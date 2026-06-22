@@ -510,6 +510,53 @@ describe('settings external sign-on actions', () => {
     expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
   });
 
+  test('saveExternalSignOnProvider requires local admin password before saving settings', async () => {
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.saveExternalSignOnProvider(
+      actionEvent({
+        externalSignOnProvider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        currentPassword: 'wrong-password'
+      }) as never
+    );
+
+    expect(result).toMatchObject({
+      status: 400,
+      data: { message: 'Enter the current local admin password before saving external sign-on settings.' }
+    });
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('wrong-password');
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
+  });
+
+  test('saveExternalSignOnProvider saves settings after local admin password verification', async () => {
+    authMocks.verifyAdminPassword.mockReturnValue(true);
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    await expect(
+      actions.saveExternalSignOnProvider(
+        actionEvent({
+          externalSignOnProvider: 'entra',
+          entraTenant: 'contoso.onmicrosoft.com',
+          entraClientId: 'entra-client',
+          entraClientSecret: 'entra-secret',
+          currentPassword: 'correct-password'
+        }) as never
+      )
+    ).resolves.toEqual({ message: 'External sign-on provider settings saved.' });
+
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).toHaveBeenCalledWith({
+      provider: 'entra',
+      googleClientId: '',
+      googleClientSecret: '',
+      entraTenant: 'contoso.onmicrosoft.com',
+      entraClientId: 'entra-client',
+      entraClientSecret: 'entra-secret'
+    });
+  });
+
   test('connectExternalSignOn requires local admin password before redirect', async () => {
     const { actions } = await import('../src/routes/settings/+page.server');
 

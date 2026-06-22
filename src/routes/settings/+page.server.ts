@@ -76,6 +76,10 @@ export const actions = {
   },
   saveExternalSignOnProvider: async ({ request }) => {
     const form = await request.formData();
+    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+      return fail(400, { message: 'Enter the current local admin password before saving external sign-on settings.' });
+    }
+
     try {
       updateExternalSignOnProviderSettings(externalSignOnProviderSettingsFromForm(form));
       return { message: 'External sign-on provider settings saved.' };

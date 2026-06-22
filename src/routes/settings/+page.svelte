@@ -466,7 +466,7 @@
         <label>
           Current local admin password
           <input name="currentPassword" type="password" autocomplete="current-password" />
-          <span class="help-text">Required only when connecting external sign-on from this screen.</span>
+          <span class="help-text">Required before saving provider settings or connecting external sign-on.</span>
         </label>
 
         <div class="button-row">
