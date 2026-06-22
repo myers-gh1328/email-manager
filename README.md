@@ -111,6 +111,15 @@ After signing in:
 8. Preview a campaign.
 9. Schedule and approve the send.
 
+## Optional Google Or Microsoft Sign-On
+
+Password login is always available. After setup, you can also connect one
+Google or Microsoft Entra ID account from **Settings > Security**.
+
+You provide your own Google or Microsoft app registration. The app shows the
+redirect address to copy and asks for the IDs and secret from that provider. See
+[External Sign-On](docs/EXTERNAL-SIGN-ON.md) for step-by-step setup help.
+
 ## App Pages
 
 - Dashboard: scheduler status, setup status, counts, and recent campaign schedules.

@@ -66,7 +66,7 @@
 </script>
 
 <svelte:head>
-  <title>Settings · Scuba Email Studio</title>
+  <title>Settings · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band settings-page">
@@ -194,7 +194,7 @@
           <div class="setup-note">
             <p class="help-text">Create a Microsoft Entra app registration before connecting Outlook:</p>
             <ol>
-              <li>In Microsoft Entra admin center, create an app registration named <strong>Scuba Email Studio</strong>.</li>
+              <li>In Microsoft Entra admin center, create an app registration named <strong>Training Communications Studio</strong>.</li>
               <li>Set supported account types to the accounts you want to use. Use personal Microsoft accounts if you send from Outlook.com.</li>
               <li>Add a web redirect URI exactly matching <code>{data.microsoftRedirectUri}</code>.</li>
               <li>Create a client secret and paste its value below before it expires from the Entra screen.</li>
