@@ -35,6 +35,9 @@ jobs:
       - name: Run project gate
         run: npm run agent:check
 
+      - name: Generate coverage
+        run: npm run test:coverage
+
       - name: Sonar scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:

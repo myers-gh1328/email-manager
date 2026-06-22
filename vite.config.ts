@@ -4,6 +4,16 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [sveltekit()],
   test: {
-    include: ['tests/**/*.test.ts']
+    include: ['tests/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
+      include: ['src/lib/server/**/*.ts', 'src/lib/shared/**/*.ts', 'src/mcp/**/*.ts'],
+      exclude: [
+        'src/lib/server/repository/types.ts',
+        'src/mcp/index.ts'
+      ]
+    }
   }
 });
