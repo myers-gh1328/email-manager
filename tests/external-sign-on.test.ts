@@ -472,6 +472,79 @@ describe('external sign-on status', () => {
     }
   });
 
+  test('rejects callback claims when the provider subject is missing', async () => {
+    const {
+      exchangeExternalSignOnCode,
+      setExternalSignOnOidcAdapterForTests,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+
+    try {
+      updateExternalSignOnProviderSettings({
+        provider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        entraTenant: '',
+        entraClientId: '',
+        entraClientSecret: ''
+      });
+      setExternalSignOnOidcAdapterForTests({
+        exchange: vi.fn().mockResolvedValue({} as never)
+      });
+
+      await expect(
+        exchangeExternalSignOnCode({
+          origin: 'https://app.example.com',
+          provider: 'google',
+          code: 'code',
+          codeVerifier: 'verifier',
+          nonce: 'nonce'
+        })
+      ).rejects.toThrow('The provider did not return an account identifier.');
+    } finally {
+      setExternalSignOnOidcAdapterForTests(undefined);
+    }
+  });
+
+  test('clearing the OIDC adapter prevents later exchange calls from using it', async () => {
+    const {
+      exchangeExternalSignOnCode,
+      setExternalSignOnOidcAdapterForTests,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+    const exchange = vi.fn().mockResolvedValue({ sub: 'stale-adapter-subject' });
+    const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('default adapter used'));
+
+    try {
+      updateExternalSignOnProviderSettings({
+        provider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        entraTenant: '',
+        entraClientId: '',
+        entraClientSecret: ''
+      });
+
+      setExternalSignOnOidcAdapterForTests({ exchange });
+      setExternalSignOnOidcAdapterForTests(undefined);
+
+      await expect(
+        exchangeExternalSignOnCode({
+          origin: 'https://app.example.com',
+          provider: 'google',
+          code: 'code',
+          codeVerifier: 'verifier',
+          nonce: 'nonce'
+        })
+      ).rejects.toThrow();
+      expect(exchange).not.toHaveBeenCalled();
+      expect(fetch).toHaveBeenCalled();
+    } finally {
+      fetch.mockRestore();
+      setExternalSignOnOidcAdapterForTests(undefined);
+    }
+  });
+
   test('rejects incomplete provider credentials before calling the OIDC adapter', async () => {
     const { exchangeExternalSignOnCode, setExternalSignOnOidcAdapterForTests } = await import(
       '../src/lib/server/external-sign-on'
