@@ -798,6 +798,7 @@ export type ExternalSignOnCallbackInput = {
   origin: string;
   provider: ExternalSignOnProvider;
   code: string;
+  state: string;
   codeVerifier: string;
   nonce: string;
 };
@@ -882,6 +883,7 @@ describe('external sign-on OIDC exchange', () => {
         origin: 'https://app.example.com',
         provider: 'google',
         code: 'code',
+        state: 'state',
         codeVerifier: 'verifier',
         nonce: 'nonce'
       })
@@ -935,7 +937,8 @@ export async function exchangeExternalSignOnCode(input: ExternalSignOnCallbackIn
 Implement `defaultOidcAdapter` using the installed `openid-client` API. The code must:
 
 - Discover issuer metadata for Google or Entra.
-- Exchange the authorization code with client ID, client secret, redirect URI, and code verifier.
+- Exchange the authorization code with client ID, client secret, redirect URI, returned state, and code verifier.
+- Pass `expectedState`, `expectedNonce`, and `pkceCodeVerifier` to `openid-client`; route-level state checks do not replace library-level state validation.
 - Validate nonce through the library.
 - Return only `{ sub, email, name }`.
 
@@ -1095,6 +1098,7 @@ export async function GET({ cookies, params, url }) {
       origin: url.origin,
       provider: params.provider,
       code,
+      state: url.searchParams.get('state') ?? '',
       codeVerifier: request.codeVerifier,
       nonce: request.nonce
     });
