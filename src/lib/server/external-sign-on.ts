@@ -84,6 +84,8 @@ const signOnRequestCookieNames = {
   codeVerifier: 'tcs_sso_code_verifier'
 } as const;
 
+const linkAllowanceCookieName = 'tcs_sso_link_allowed';
+const linkAllowanceMaxAgeSeconds = 5 * 60;
 const expiredSignOnRequestMessage = 'The sign-on request expired. Start again.';
 
 let oidcAdapter: OidcAdapter | undefined;
@@ -250,6 +252,28 @@ export function storeExternalSignOnRequest(
   cookies.set(signOnRequestCookieNames.codeVerifier, request.codeVerifier, options);
 }
 
+export function allowExternalSignOnLink(cookies: ExternalSignOnCookies) {
+  const token = randomUrlToken();
+  repo.setSetting(
+    linkAllowanceSettingKey(token),
+    new Date(Date.now() + linkAllowanceMaxAgeSeconds * 1000).toISOString()
+  );
+  cookies.set(linkAllowanceCookieName, token, linkAllowanceCookieOptions());
+}
+
+export function consumeExternalSignOnLinkAllowance(cookies: ExternalSignOnCookies) {
+  const token = cookies.get(linkAllowanceCookieName) ?? '';
+  cookies.delete(linkAllowanceCookieName, { path: '/' });
+  if (!token) return false;
+
+  const key = linkAllowanceSettingKey(token);
+  const expiresAt = repo.getSetting(key);
+  if (expiresAt) repo.deleteSetting(key);
+
+  const expiresTime = new Date(expiresAt).getTime();
+  return Number.isFinite(expiresTime) && expiresTime > Date.now();
+}
+
 export function consumeExternalSignOnRequest(
   cookies: ExternalSignOnCookies,
   provider: ExternalSignOnProvider
@@ -296,6 +320,10 @@ function clientSecretSettingKey(provider: ExternalSignOnProvider) {
 
 function clientIdSettingKey(provider: ExternalSignOnProvider) {
   return `auth.sso.${provider}.clientId`;
+}
+
+function linkAllowanceSettingKey(token: string) {
+  return `auth.sso.linkAllowance.${createHash('sha256').update(token).digest('hex')}`;
 }
 
 function authorizationEndpoint(provider: ExternalSignOnProvider) {
@@ -359,6 +387,16 @@ function signOnRequestCookieOptions() {
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 10 * 60,
+    secure: process.env.SCUBA_EMAIL_SECURE_COOKIES === 'true'
+  } as const;
+}
+
+function linkAllowanceCookieOptions() {
+  return {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: linkAllowanceMaxAgeSeconds,
     secure: process.env.SCUBA_EMAIL_SECURE_COOKIES === 'true'
   } as const;
 }

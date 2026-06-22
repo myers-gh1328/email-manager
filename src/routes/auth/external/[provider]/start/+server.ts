@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { isAuthenticated } from '$lib/server/auth';
 import {
+  consumeExternalSignOnLinkAllowance,
   createExternalSignOnAuthorizationUrl,
   isExternalSignOnProvider,
   pkceChallenge,
@@ -17,8 +18,10 @@ export const GET = async ({ cookies, params, url }) => {
   }
 
   const mode = url.searchParams.get('mode') === 'link' ? 'link' : 'login';
-  if (mode === 'link' && !isAuthenticated(cookies)) {
-    throw redirect(303, externalSignOnErrorLocation);
+  if (mode === 'link') {
+    if (!isAuthenticated(cookies) || !consumeExternalSignOnLinkAllowance(cookies)) {
+      throw redirect(303, externalSignOnErrorLocation);
+    }
   }
 
   const state = randomUrlToken();

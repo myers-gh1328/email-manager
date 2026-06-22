@@ -2,7 +2,9 @@ import { describe, expect, test, vi, beforeEach } from 'vitest';
 
 const externalSignOnMocks = vi.hoisted(() => ({
   assertExternalSignOnIdentityMatches: vi.fn(),
+  allowExternalSignOnLink: vi.fn(),
   clearExternalSignOnIdentity: vi.fn(),
+  consumeExternalSignOnLinkAllowance: vi.fn(),
   consumeExternalSignOnRequest: vi.fn(),
   createExternalSignOnAuthorizationUrl: vi.fn(),
   exchangeExternalSignOnCode: vi.fn(),
@@ -77,6 +79,7 @@ function event({
 
 function actionEvent(entries: Record<string, string>) {
   return {
+    cookies: { marker: 'cookies' },
     request: new Request('https://app.example.com/settings', {
       method: 'POST',
       body: new URLSearchParams(entries)
@@ -139,6 +142,7 @@ describe('external sign-on routes', () => {
     externalSignOnMocks.createExternalSignOnAuthorizationUrl.mockReturnValue(
       new URL('https://provider.example.com/authorize?state=state-token')
     );
+    externalSignOnMocks.consumeExternalSignOnLinkAllowance.mockReturnValue(false);
     externalSignOnMocks.consumeExternalSignOnRequest.mockReturnValue({
       provider: 'google',
       mode: 'login',
@@ -231,8 +235,23 @@ describe('external sign-on routes', () => {
     expect(externalSignOnMocks.createExternalSignOnAuthorizationUrl).not.toHaveBeenCalled();
   });
 
-  test('authenticated link start stores a transient request and redirects to provider URL', async () => {
+  test('authenticated link start without password-confirmed marker redirects without storing request', async () => {
     authMocks.isAuthenticated.mockReturnValue(true);
+    const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
+    const routeEvent = event({
+      url: 'https://app.example.com/auth/external/google/start?mode=link'
+    });
+
+    await expectRedirect(GET(routeEvent as never), 303, '/login?error=external');
+
+    expect(externalSignOnMocks.consumeExternalSignOnLinkAllowance).toHaveBeenCalledWith(routeEvent.cookies);
+    expect(externalSignOnMocks.storeExternalSignOnRequest).not.toHaveBeenCalled();
+    expect(externalSignOnMocks.createExternalSignOnAuthorizationUrl).not.toHaveBeenCalled();
+  });
+
+  test('authenticated link start with password-confirmed marker stores a transient request and redirects to provider URL', async () => {
+    authMocks.isAuthenticated.mockReturnValue(true);
+    externalSignOnMocks.consumeExternalSignOnLinkAllowance.mockReturnValue(true);
     const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
     const routeEvent = event({
       url: 'https://app.example.com/auth/external/google/start?mode=link'
@@ -244,6 +263,7 @@ describe('external sign-on routes', () => {
       'https://provider.example.com/authorize?state=state-token'
     );
 
+    expect(externalSignOnMocks.consumeExternalSignOnLinkAllowance).toHaveBeenCalledWith(routeEvent.cookies);
     expect(externalSignOnMocks.storeExternalSignOnRequest).toHaveBeenCalledWith(routeEvent.cookies, {
       provider: 'google',
       mode: 'link',
@@ -484,6 +504,7 @@ describe('settings external sign-on actions', () => {
     expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
     expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
     expect(externalSignOnMocks.getExternalSignOnStatus.mock.results.every((result) => result.value === existingStatus)).toBe(true);
+    expect(externalSignOnMocks.allowExternalSignOnLink).not.toHaveBeenCalled();
   });
 
   test('connectExternalSignOn preserves a blank secret for matching existing Google provider config', async () => {
@@ -518,6 +539,7 @@ describe('settings external sign-on actions', () => {
       entraClientId: '',
       entraClientSecret: ''
     });
+    expect(externalSignOnMocks.allowExternalSignOnLink).toHaveBeenCalledWith({ marker: 'cookies' });
   });
 
   test('connectExternalSignOn saves provider settings and redirects to provider link start', async () => {
@@ -547,5 +569,6 @@ describe('settings external sign-on actions', () => {
       entraClientId: 'entra-client',
       entraClientSecret: 'entra-secret'
     });
+    expect(externalSignOnMocks.allowExternalSignOnLink).toHaveBeenCalledWith({ marker: 'cookies' });
   });
 });

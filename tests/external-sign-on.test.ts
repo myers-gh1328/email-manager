@@ -793,6 +793,63 @@ describe('external sign-on status', () => {
     }
   });
 
+  test('allows external sign-on link start once with a short-lived marker', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-22T13:00:00.000Z'));
+    const originalSecureCookies = process.env.SCUBA_EMAIL_SECURE_COOKIES;
+    delete process.env.SCUBA_EMAIL_SECURE_COOKIES;
+    try {
+      const { allowExternalSignOnLink, consumeExternalSignOnLinkAllowance } = await import(
+        '../src/lib/server/external-sign-on'
+      );
+      const cookies = fakeCookies();
+
+      allowExternalSignOnLink(cookies as never);
+
+      expect(cookies.set).toHaveBeenCalledWith(
+        'tcs_sso_link_allowed',
+        expect.any(String),
+        {
+          path: '/',
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 300,
+          secure: false
+        }
+      );
+      expect(consumeExternalSignOnLinkAllowance(cookies as never)).toBe(true);
+      expect(cookies.get('tcs_sso_link_allowed')).toBeUndefined();
+      expect(cookies.deleteOptions.get('tcs_sso_link_allowed')).toEqual({ path: '/' });
+      expect(consumeExternalSignOnLinkAllowance(cookies as never)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+      if (originalSecureCookies === undefined) {
+        delete process.env.SCUBA_EMAIL_SECURE_COOKIES;
+      } else {
+        process.env.SCUBA_EMAIL_SECURE_COOKIES = originalSecureCookies;
+      }
+    }
+  });
+
+  test('rejects expired external sign-on link markers', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-22T13:00:00.000Z'));
+    try {
+      const { allowExternalSignOnLink, consumeExternalSignOnLinkAllowance } = await import(
+        '../src/lib/server/external-sign-on'
+      );
+      const cookies = fakeCookies();
+
+      allowExternalSignOnLink(cookies as never);
+      vi.setSystemTime(new Date('2026-06-22T13:06:00.000Z'));
+
+      expect(consumeExternalSignOnLinkAllowance(cookies as never)).toBe(false);
+      expect(cookies.get('tcs_sso_link_allowed')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   test('clears external sign-on request cookies when provider does not match', async () => {
     const { consumeExternalSignOnRequest, storeExternalSignOnRequest } = await import(
       '../src/lib/server/external-sign-on'

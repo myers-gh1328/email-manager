@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { setAdminPassword, verifyAdminPassword } from '$lib/server/auth';
 import {
+  allowExternalSignOnLink,
   clearExternalSignOnIdentity,
   externalSignOnRedirectUri,
   getExternalSignOnStatus,
@@ -82,7 +83,7 @@ export const actions = {
       return fail(400, { message: 'Choose Google or Microsoft Entra ID and enter the provider settings.' });
     }
   },
-  connectExternalSignOn: async ({ request }) => {
+  connectExternalSignOn: async ({ request, cookies }) => {
     const form = await request.formData();
     if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
       return fail(400, { message: 'Enter the current local admin password before connecting external sign-on.' });
@@ -111,6 +112,7 @@ export const actions = {
       return fail(400, { message: 'Check the selected provider settings before connecting external sign-on.' });
     }
 
+    allowExternalSignOnLink(cookies);
     throw redirect(303, `/auth/external/${provider}/start?mode=link`);
   },
   removeExternalSignOn: async ({ request }) => {
