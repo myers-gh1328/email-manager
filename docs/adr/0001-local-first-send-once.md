@@ -8,7 +8,7 @@ Accepted
 
 Training Communications Studio is built for individual instructors and training providers who manage class communications from their own machine. The app stores student contact data, templates, class sessions, settings, and encrypted SMTP credentials locally.
 
-Email delivery is high risk because accidental duplicate emails are visible to students and can erode trust. Scheduled sends must also remain understandable to non-technical users.
+Email delivery is high risk because accidental duplicate emails are visible to students and can erode trust. Scheduled sends must also remain understandable to instructors.
 
 ## Decision
 
