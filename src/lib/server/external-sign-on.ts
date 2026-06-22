@@ -82,12 +82,13 @@ export function externalSignOnRedirectUri(origin: string, provider: ExternalSign
 export function createExternalSignOnAuthorizationUrl(input: ExternalSignOnAuthorizationInput) {
   const clientId = repo.getSetting(clientIdSettingKey(input.provider));
   const clientSecret = getExternalSignOnClientSecret(input.provider);
+  const action = input.mode === 'link' ? 'connecting sign-on' : 'signing in';
 
   if (!clientId) {
-    throw new Error(`Configure the ${providerLabels[input.provider]} client ID before signing in.`);
+    throw new Error(`Configure the ${providerLabels[input.provider]} client ID before ${action}.`);
   }
   if (!clientSecret) {
-    throw new Error(`Configure the ${providerLabels[input.provider]} client secret before signing in.`);
+    throw new Error(`Configure the ${providerLabels[input.provider]} client secret before ${action}.`);
   }
 
   const url = new URL(authorizationEndpoint(input.provider));

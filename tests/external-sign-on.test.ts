@@ -155,13 +155,20 @@ describe('external sign-on status', () => {
     });
 
     expect(url.origin).toBe('https://accounts.google.com');
+    expect(url.pathname).toBe('/o/oauth2/v2/auth');
     expect(url.searchParams.get('client_id')).toBe('google-client');
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      'https://localhost:5173/auth/external/google/callback'
+    );
+    expect(url.searchParams.get('response_type')).toBe('code');
     expect(url.searchParams.get('scope')).toBe('openid email profile');
     expect(url.searchParams.get('state')).toBe('state-token');
     expect(url.searchParams.get('nonce')).toBe('nonce-token');
     expect(url.searchParams.get('code_challenge')).toBe('challenge-token');
     expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     expect(url.searchParams.has('access_type')).toBe(false);
+    expect(url.searchParams.has('client_secret')).toBe(false);
+    expect(url.toString()).not.toContain('google-secret');
   });
 
   test('creates Entra authorization URL from saved provider settings', async () => {
@@ -189,6 +196,46 @@ describe('external sign-on status', () => {
     expect(url.host).toBe('login.microsoftonline.com');
     expect(url.pathname).toBe('/contoso.onmicrosoft.com/oauth2/v2.0/authorize');
     expect(url.searchParams.get('client_id')).toBe('entra-client');
+    expect(url.searchParams.get('redirect_uri')).toBe(
+      'https://localhost:5173/auth/external/entra/callback'
+    );
+    expect(url.searchParams.get('response_type')).toBe('code');
     expect(url.searchParams.get('scope')).toBe('openid email profile');
+    expect(url.searchParams.get('state')).toBe('state-token');
+    expect(url.searchParams.get('nonce')).toBe('nonce-token');
+    expect(url.searchParams.get('code_challenge')).toBe('challenge-token');
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(url.searchParams.has('client_secret')).toBe(false);
+    expect(url.toString()).not.toContain('entra-secret');
+  });
+
+  test('uses mode-specific missing configuration errors', async () => {
+    const { createExternalSignOnAuthorizationUrl } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    expect(() =>
+      createExternalSignOnAuthorizationUrl({
+        origin: 'https://localhost:5173',
+        provider: 'google',
+        mode: 'link',
+        state: 'state-token',
+        nonce: 'nonce-token',
+        codeChallenge: 'challenge-token'
+      })
+    ).toThrow('Configure the Google client ID before connecting sign-on.');
+
+    settings.set('auth.sso.entra.clientId', 'entra-client');
+
+    expect(() =>
+      createExternalSignOnAuthorizationUrl({
+        origin: 'https://localhost:5173',
+        provider: 'entra',
+        mode: 'login',
+        state: 'state-token',
+        nonce: 'nonce-token',
+        codeChallenge: 'challenge-token'
+      })
+    ).toThrow('Configure the Microsoft Entra ID client secret before signing in.');
   });
 });
