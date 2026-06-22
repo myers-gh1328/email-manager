@@ -63,6 +63,7 @@ Runtime data lives under `data/` by default and must not be committed. The SQLit
 - Read `docs/ARCHITECTURE.md` before changing persistence, scheduling, auth, SMTP, AI, or template rendering.
 - Read `docs/AI-MAINTAINER.md` before broad refactors, deployment work, or changes that cross more than one route.
 - Read `docs/AGENTIC-OPERATING-MODEL.md` before changing agent instructions, skills, scoped rules, prompts, hooks, validation scripts, or repository governance.
+- Read `docs/RELEASES.md` before changing versions, release packaging, or repository automation.
 - Use the repo-local skills in `.agents/skills/` when they match the work:
   - `agent-orientation` for MCP app overview, scheduler readiness, navigation, and capability discovery.
   - `agent-contacts` for MCP contact search, creation, and updates.
@@ -90,15 +91,19 @@ Runtime data lives under `data/` by default and must not be committed. The SQLit
 - Remote exposure is deployment documentation/settings, not a Cloudflare API dependency.
 - Do not treat sandboxed network failures as production health failures. If a network command is blocked by sandboxing, either run the project deploy script with the required approval or report that local health could not be checked from the sandbox.
 - Do not commit runtime data, local secrets, build output, dependency folders, cache folders, or local process-manager files.
-- Treat this repo as an open-source candidate. Before adding docs, examples,
+- Treat this repo as open-source. Before adding docs, examples,
   scripts, fixtures, or operational notes, check `docs/OPEN-SOURCE-READINESS.md`
   and avoid private hostnames, local paths, real data, account details, secrets,
   or owner-only infrastructure assumptions.
 
 ## Repository Workflow
 
-This repo currently allows focused local commits on `main` unless the user says
-to use a branch or PR. Do not assume this rule applies to sibling repos. Related repos may use different commit rules; read each repo's own `AGENTS.md` before editing or committing there.
+Do not commit directly to `main`. Create a focused branch, commit there, push
+the branch, and open a pull request. Keep `main` releasable.
+
+Do not assume this workflow applies to sibling repos. Related repos may use
+different commit rules; read each repo's own `AGENTS.md` before editing or
+committing there.
 ## Ownership And Review
 
 - Agent-facing assets are operational configuration. Changes to `AGENTS.md`, `.agents/`, `.cursor/`, `.codex/`, `.github/prompts/`, `docs/AGENTIC-OPERATING-MODEL.md`, and `scripts/agent/` must be reviewed with the same care as code.

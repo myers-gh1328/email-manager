@@ -252,6 +252,7 @@ Keep documentation concise and operational:
 - Put agent operating policy, scorer alignment, and governance in `docs/AGENTIC-OPERATING-MODEL.md`.
 - Keep user setup and product behavior in `README.md`.
 - Keep public-readiness rules in `docs/OPEN-SOURCE-READINESS.md`.
+- Keep branch, version, and release rules in `docs/RELEASES.md`.
 - Link new docs from an existing entry point so they are discoverable.
 
 When behavior changes, update docs in the same change if a future agent or user would otherwise make the wrong decision.

@@ -7,6 +7,7 @@ small, well-tested, and aligned with the existing local-first workflow.
 ## Before Opening A Change
 
 - Read `AGENTS.md` and `docs/ARCHITECTURE.md`.
+- Create a focused branch. Do not commit directly to `main`.
 - Do not add real student data, databases, logs, screenshots, credentials,
   private hostnames, account details, or local machine paths.
 - Keep server-only behavior under `src/lib/server`.
@@ -33,6 +34,7 @@ That command runs:
 ## Pull Request Expectations
 
 - Explain the user-facing behavior changed.
+- Target `main` from a focused branch.
 - Include focused tests for repository, scheduler, mailer, auth, settings, or
   template changes.
 - Update docs when a future maintainer would otherwise make a wrong assumption.

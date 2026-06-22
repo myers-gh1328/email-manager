@@ -2,9 +2,8 @@
 
 Audience: owner/operator and future agents.
 
-Training Communications Studio may eventually become an open-source local-first app. Until
-that decision is made, treat this repo as private but keep the current tree
-public-ready.
+Training Communications Studio is an open-source local-first app. Keep the
+current tree public-ready.
 
 ## Rule
 
@@ -91,7 +90,7 @@ These findings describe the current tracked tree.
 - A root license, contribution guide, and security policy are present.
 - `package.json` remains marked private because this project is distributed as
   a desktop/server app, not as an npm package.
-- Repository automation is intentionally out of scope until explicitly requested.
+- Repository automation is allowed through reviewed workflow changes.
 
 ### Contribution, Support, And Security Policy
 

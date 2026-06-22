@@ -8,4 +8,8 @@ Before broad refactors or cross-route work, read `docs/AI-MAINTAINER.md`.
 
 Before changing agent-facing guidance, rules, skills, prompts, agents, or validation policy, read `docs/AGENTIC-OPERATING-MODEL.md`.
 
+Before changing versions, release packaging, or repository automation, read `docs/RELEASES.md`.
+
+Create a focused branch and open a pull request. Do not commit directly to `main`.
+
 Run `npm run agent:check` before claiming changes are complete.
