@@ -1,6 +1,6 @@
 {
   "name": "training-communications-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first class communication and email scheduling for instructors and training providers.",
   "author": "Training Communications Studio contributors",
   "private": true,
