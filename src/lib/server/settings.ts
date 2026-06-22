@@ -146,7 +146,8 @@ export function updateReplySyncSettings(form: FormData) {
   set('replySync.username', form.get('replySyncUsername'));
   set('replySync.pollingEnabled', checked(form, 'replySyncPollingEnabled'));
 
-  const password = String(form.get('replySyncPassword') ?? '');
+  const postedPassword = form.get('replySyncPassword');
+  const password = typeof postedPassword === 'string' ? postedPassword : '';
   if (password) repo.setSetting('replySync.password', encryptSecret(password));
 }
 

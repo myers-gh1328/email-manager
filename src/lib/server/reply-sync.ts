@@ -142,7 +142,7 @@ async function createImapMailbox(settings: AppSettings, password: string): Promi
           providerKey: `${mailbox.uidValidity ?? ''}:${message.uid}`,
           providerMessageId: parsed.messageId,
           inReplyTo: parsed.inReplyTo,
-          references: Array.isArray(parsed.references) ? parsed.references : parsed.references ? [parsed.references] : [],
+          references: parsedReferences(parsed.references),
           fromName: parsed.from?.value[0]?.name,
           fromEmail: parsed.from?.value[0]?.address,
           subject: parsed.subject,
@@ -157,4 +157,10 @@ async function createImapMailbox(settings: AppSettings, password: string): Promi
       await client.logout().catch(() => undefined);
     }
   };
+}
+
+function parsedReferences(references: string[] | string | undefined) {
+  if (Array.isArray(references)) return references;
+  if (references) return [references];
+  return [];
 }

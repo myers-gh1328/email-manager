@@ -17,24 +17,24 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     undefined
   );
   return {
-    id: String(row.id),
-    contactId: String(row.contact_id),
-    contactName: `${String(row.first_name)} ${String(row.last_name)}`.trim(),
-    contactEmail: String(row.email),
-    channel: String(row.channel) as CommunicationHistoryItem['channel'],
-    source: String(row.source) as CommunicationHistoryItem['source'],
-    sourceId: row.source_id ? String(row.source_id) : undefined,
-    originalRecipient: String(row.original_recipient ?? ''),
-    effectiveRecipient: String(row.effective_recipient ?? ''),
+    id: text(row.id),
+    contactId: text(row.contact_id),
+    contactName: `${text(row.first_name)} ${text(row.last_name)}`.trim(),
+    contactEmail: text(row.email),
+    channel: text(row.channel) as CommunicationHistoryItem['channel'],
+    source: text(row.source) as CommunicationHistoryItem['source'],
+    sourceId: row.source_id ? text(row.source_id) : undefined,
+    originalRecipient: text(row.original_recipient),
+    effectiveRecipient: text(row.effective_recipient),
     testMode: Boolean(row.test_mode),
-    subject: String(row.subject),
-    body: String(row.body),
-    status: String(row.status) as CommunicationHistoryItem['status'],
-    sentAt: row.sent_at ? String(row.sent_at) : undefined,
-    messageId: row.message_id ? String(row.message_id) : undefined,
-    providerMessage: row.provider_message ? String(row.provider_message) : undefined,
-    errorMessage: row.error_message ? String(row.error_message) : undefined,
-    createdAt: String(row.created_at),
+    subject: text(row.subject),
+    body: text(row.body),
+    status: text(row.status) as CommunicationHistoryItem['status'],
+    sentAt: row.sent_at ? text(row.sent_at) : undefined,
+    messageId: row.message_id ? text(row.message_id) : undefined,
+    providerMessage: row.provider_message ? text(row.provider_message) : undefined,
+    errorMessage: row.error_message ? text(row.error_message) : undefined,
+    createdAt: text(row.created_at),
     replies,
     replyCount: replies.length,
     unreviewedReplyCount: replies.filter((reply) => !reply.reviewedAt).length,
@@ -44,19 +44,19 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
 
 function mapReply(row: Row): CommunicationReply {
   return {
-    id: String(row.id),
-    communicationId: String(row.communication_id),
-    providerKey: String(row.provider_key),
-    providerMessageId: String(row.provider_message_id ?? ''),
-    fromName: String(row.from_name ?? ''),
-    fromEmail: String(row.from_email ?? ''),
-    subject: String(row.subject ?? ''),
-    textBody: String(row.text_body ?? ''),
-    htmlBody: String(row.html_body ?? ''),
-    snippet: String(row.snippet ?? ''),
-    receivedAt: String(row.received_at),
-    reviewedAt: String(row.reviewed_at ?? ''),
-    createdAt: String(row.created_at)
+    id: text(row.id),
+    communicationId: text(row.communication_id),
+    providerKey: text(row.provider_key),
+    providerMessageId: text(row.provider_message_id),
+    fromName: text(row.from_name),
+    fromEmail: text(row.from_email),
+    subject: text(row.subject),
+    textBody: text(row.text_body),
+    htmlBody: text(row.html_body),
+    snippet: text(row.snippet),
+    receivedAt: text(row.received_at),
+    reviewedAt: text(row.reviewed_at),
+    createdAt: text(row.created_at)
   };
 }
 
@@ -115,13 +115,13 @@ function getEmailTestAudit(db: DatabaseSync, id: string): EmailTestAuditItem {
 
 function mapEmailTestAudit(row: Row): EmailTestAuditItem {
   return {
-    id: String(row.id),
-    originalRecipient: String(row.original_recipient),
-    effectiveRecipient: String(row.effective_recipient),
-    subject: String(row.subject),
-    body: String(row.body),
-    providerMessage: row.provider_message ? String(row.provider_message) : undefined,
-    createdAt: String(row.created_at)
+    id: text(row.id),
+    originalRecipient: text(row.original_recipient),
+    effectiveRecipient: text(row.effective_recipient),
+    subject: text(row.subject),
+    body: text(row.body),
+    providerMessage: row.provider_message ? text(row.provider_message) : undefined,
+    createdAt: text(row.created_at)
   };
 }
 
@@ -160,7 +160,7 @@ export function listCommunicationMessageIds(db: DatabaseSync) {
   return db
     .prepare("select id, message_id from communications where message_id != '' and status in ('accepted', 'sent')")
     .all()
-    .map((row) => ({ id: String((row as Row).id), messageId: String((row as Row).message_id) }));
+    .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
 }
 
 export function recordCommunicationReply(db: DatabaseSync, input: CommunicationReplyInput): RecordedCommunicationReply {
@@ -216,8 +216,8 @@ function listCommunicationById(db: DatabaseSync, id: string) {
 }
 
 function withReplies(db: DatabaseSync, rows: Row[]) {
-  const replies = rows.length ? listRepliesForCommunications(db, rows.map((row) => String(row.id))) : new Map<string, CommunicationReply[]>();
-  return rows.map((row) => mapCommunication(row, replies.get(String(row.id)) ?? []));
+  const replies = rows.length ? listRepliesForCommunications(db, rows.map((row) => text(row.id))) : new Map<string, CommunicationReply[]>();
+  return rows.map((row) => mapCommunication(row, replies.get(text(row.id)) ?? []));
 }
 
 function listRepliesForCommunication(db: DatabaseSync, communicationId: string) {
@@ -239,4 +239,8 @@ function listRepliesForCommunications(db: DatabaseSync, communicationIds: string
     grouped.set(reply.communicationId, existing);
     return grouped;
   }, new Map<string, CommunicationReply[]>());
+}
+
+function text(value: unknown) {
+  return typeof value === 'string' ? value : '';
 }

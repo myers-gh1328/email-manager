@@ -1,8 +1,33 @@
 import { describe, expect, test } from 'vitest';
-import { syncRepliesWithMailbox, type ReplySyncMailbox } from '../src/lib/server/reply-sync';
+import { replySyncConfigured, syncRepliesWithMailbox, type ReplySyncMailbox } from '../src/lib/server/reply-sync';
 import { createTestRepository } from './repository-helpers';
 
 describe('reply sync', () => {
+  test('reports configured only when required IMAP settings are complete', () => {
+    expect(replySyncConfigured({ replySyncHost: '', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(false);
+    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: '', replySyncPasswordConfigured: true })).toBe(false);
+    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: false })).toBe(false);
+    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(true);
+  });
+
+  test('does not fetch the mailbox when there are no outbound message ids', async () => {
+    const mailbox = fakeMailbox([]);
+    const repo = {
+      listCommunicationMessageIds: () => [],
+      recordCommunicationReply: () => {
+        throw new Error('should not record replies');
+      }
+    };
+
+    await expect(syncRepliesWithMailbox(repo, mailbox)).resolves.toEqual({
+      status: 'synced',
+      checked: 0,
+      imported: 0,
+      matched: 0,
+      skipped: 0
+    });
+  });
+
   test('imports only inbox messages that reply to app-sent email', async () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
@@ -51,6 +76,36 @@ describe('reply sync', () => {
       fromEmail: 'maya@example.com',
       snippet: 'Confirmed.'
     });
+  });
+
+  test('matches replies through References headers', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Please confirm',
+      body: 'Can you confirm?',
+      status: 'accepted',
+      messageId: '<app-reference@example.com>'
+    });
+
+    const result = await syncRepliesWithMailbox(
+      repo,
+      fakeMailbox([
+        {
+          providerKey: 'inbox:3',
+          providerMessageId: '<reply-3@example.com>',
+          references: ['<other@example.com>', '<app-reference@example.com>'],
+          textBody: 'Reference match.',
+          receivedAt: '2026-06-22T14:00:00.000Z'
+        }
+      ])
+    );
+
+    expect(result).toMatchObject({ checked: 1, matched: 1, imported: 1 });
+    expect(repo.listContactCommunications(contact.id)[0].replies[0].snippet).toBe('Reference match.');
   });
 });
 
