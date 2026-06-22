@@ -26,6 +26,16 @@ export type ExternalSignOnAuthorizationInput = {
   codeChallenge: string;
 };
 
+export type ExternalSignOnClaims = { sub: string; email?: string; name?: string };
+
+export type ExternalSignOnCallbackInput = {
+  origin: string;
+  provider: ExternalSignOnProvider;
+  code: string;
+  codeVerifier: string;
+  nonce: string;
+};
+
 export type ExternalSignOnStatus = {
   enabled: boolean;
   provider: ExternalSignOnProvider | '';
@@ -144,6 +154,47 @@ export function updateExternalSignOnProviderSettings(input: ExternalSignOnProvid
   if (entraClientSecret) {
     repo.setSetting('auth.sso.entra.clientSecret', encryptSecret(entraClientSecret));
   }
+}
+
+export function linkExternalSignOnIdentity(
+  provider: ExternalSignOnProvider,
+  claims: ExternalSignOnClaims
+) {
+  const subject = clean(claims.sub);
+  if (!subject) {
+    throw new Error('The provider did not return an account identifier.');
+  }
+
+  repo.setSetting('auth.sso.provider', provider);
+  repo.setSetting('auth.sso.subject', subject);
+  repo.setSetting('auth.sso.email', clean(claims.email ?? ''));
+  repo.setSetting('auth.sso.name', clean(claims.name ?? ''));
+  repo.setSetting('auth.sso.linkedAt', new Date().toISOString());
+}
+
+export function assertExternalSignOnIdentityMatches(
+  provider: ExternalSignOnProvider,
+  claims: ExternalSignOnClaims
+) {
+  const status = getExternalSignOnStatus();
+  const subject = clean(claims.sub);
+
+  if (!status.enabled || status.provider !== provider || repo.getSetting('auth.sso.subject') !== subject) {
+    throw new Error('That account is not linked to this app.');
+  }
+}
+
+export function clearExternalSignOnIdentity() {
+  repo.deleteSetting('auth.sso.subject');
+  repo.deleteSetting('auth.sso.email');
+  repo.deleteSetting('auth.sso.name');
+  repo.deleteSetting('auth.sso.linkedAt');
+}
+
+export async function exchangeExternalSignOnCode(
+  _input: ExternalSignOnCallbackInput
+): Promise<ExternalSignOnClaims> {
+  throw new Error('OIDC exchange is implemented in the dependency integration step.');
 }
 
 export function storeExternalSignOnRequest(

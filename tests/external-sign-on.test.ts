@@ -33,6 +33,7 @@ function fakeCookies() {
 
 describe('external sign-on status', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     settings.clear();
   });
 
@@ -75,6 +76,98 @@ describe('external sign-on status', () => {
       googleClientSecretConfigured: true
     });
     expect(JSON.stringify(status)).not.toContain('plain-google-secret');
+  });
+
+  test('links a Google identity and reports enabled status', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-22T13:14:15.000Z'));
+    const { getExternalSignOnStatus, linkExternalSignOnIdentity } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    linkExternalSignOnIdentity('google', {
+      sub: 'google-sub',
+      email: 'owner@example.com',
+      name: 'Owner Example'
+    });
+
+    expect(getExternalSignOnStatus()).toMatchObject({
+      enabled: true,
+      provider: 'google',
+      providerLabel: 'Google',
+      email: 'owner@example.com',
+      name: 'Owner Example',
+      linkedAt: '2026-06-22T13:14:15.000Z'
+    });
+  });
+
+  test('accepts exact linked identity and rejects mismatched provider or subject', async () => {
+    const { assertExternalSignOnIdentityMatches, linkExternalSignOnIdentity } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    linkExternalSignOnIdentity('google', { sub: 'google-sub' });
+
+    expect(() =>
+      assertExternalSignOnIdentityMatches('google', { sub: 'google-sub' })
+    ).not.toThrow();
+    expect(() => assertExternalSignOnIdentityMatches('entra', { sub: 'google-sub' })).toThrow(
+      new Error('That account is not linked to this app.')
+    );
+    expect(() => assertExternalSignOnIdentityMatches('google', { sub: 'other-sub' })).toThrow(
+      new Error('That account is not linked to this app.')
+    );
+  });
+
+  test('clears linked identity while preserving provider configuration', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-22T13:14:15.000Z'));
+    const {
+      clearExternalSignOnIdentity,
+      getExternalSignOnClientSecret,
+      getExternalSignOnStatus,
+      linkExternalSignOnIdentity,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+
+    updateExternalSignOnProviderSettings({
+      provider: 'google',
+      googleClientId: 'google-client',
+      googleClientSecret: 'google-secret',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
+    linkExternalSignOnIdentity('google', {
+      sub: 'google-sub',
+      email: 'owner@example.com',
+      name: 'Owner Example'
+    });
+
+    clearExternalSignOnIdentity();
+
+    expect(getExternalSignOnStatus()).toMatchObject({
+      enabled: false,
+      provider: 'google',
+      providerLabel: 'Google',
+      email: '',
+      name: '',
+      linkedAt: '',
+      googleClientId: 'google-client',
+      googleClientSecretConfigured: true
+    });
+    expect(getExternalSignOnClientSecret('google')).toBe('google-secret');
+  });
+
+  test('rejects linking an identity when the subject is missing', async () => {
+    const { linkExternalSignOnIdentity } = await import('../src/lib/server/external-sign-on');
+
+    expect(() => linkExternalSignOnIdentity('google', { sub: '' })).toThrow(
+      new Error('The provider did not return an account identifier.')
+    );
+    expect(() => linkExternalSignOnIdentity('google', { sub: '   ' })).toThrow(
+      new Error('The provider did not return an account identifier.')
+    );
   });
 
   test('saves Google provider settings and preserves blank secret updates', async () => {
