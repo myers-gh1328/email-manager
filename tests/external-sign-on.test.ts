@@ -162,6 +162,9 @@ describe('external sign-on status', () => {
   test('rejects linking an identity when the subject is missing', async () => {
     const { linkExternalSignOnIdentity } = await import('../src/lib/server/external-sign-on');
 
+    expect(() => linkExternalSignOnIdentity('google', {} as never)).toThrow(
+      new Error('The provider did not return an account identifier.')
+    );
     expect(() => linkExternalSignOnIdentity('google', { sub: '' })).toThrow(
       new Error('The provider did not return an account identifier.')
     );

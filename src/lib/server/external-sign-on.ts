@@ -160,7 +160,7 @@ export function linkExternalSignOnIdentity(
   provider: ExternalSignOnProvider,
   claims: ExternalSignOnClaims
 ) {
-  const subject = clean(claims.sub);
+  const subject = typeof claims.sub === 'string' ? clean(claims.sub) : '';
   if (!subject) {
     throw new Error('The provider did not return an account identifier.');
   }
