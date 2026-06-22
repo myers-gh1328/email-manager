@@ -62,13 +62,6 @@ const signOnRequestCookieNames = {
   codeVerifier: 'tcs_sso_code_verifier'
 } as const;
 
-const signOnRequestCookieOptions = {
-  path: '/',
-  httpOnly: true,
-  sameSite: 'lax',
-  maxAge: 10 * 60
-} as const;
-
 const expiredSignOnRequestMessage = 'The sign-on request expired. Start again.';
 
 export function isExternalSignOnProvider(value: string): value is ExternalSignOnProvider {
@@ -157,15 +150,12 @@ export function storeExternalSignOnRequest(
   cookies: ExternalSignOnCookies,
   request: ExternalSignOnRequest
 ) {
-  cookies.set(signOnRequestCookieNames.provider, request.provider, signOnRequestCookieOptions);
-  cookies.set(signOnRequestCookieNames.mode, request.mode, signOnRequestCookieOptions);
-  cookies.set(signOnRequestCookieNames.state, request.state, signOnRequestCookieOptions);
-  cookies.set(signOnRequestCookieNames.nonce, request.nonce, signOnRequestCookieOptions);
-  cookies.set(
-    signOnRequestCookieNames.codeVerifier,
-    request.codeVerifier,
-    signOnRequestCookieOptions
-  );
+  const options = signOnRequestCookieOptions();
+  cookies.set(signOnRequestCookieNames.provider, request.provider, options);
+  cookies.set(signOnRequestCookieNames.mode, request.mode, options);
+  cookies.set(signOnRequestCookieNames.state, request.state, options);
+  cookies.set(signOnRequestCookieNames.nonce, request.nonce, options);
+  cookies.set(signOnRequestCookieNames.codeVerifier, request.codeVerifier, options);
 }
 
 export function consumeExternalSignOnRequest(
@@ -229,6 +219,16 @@ function clearExternalSignOnRequest(cookies: ExternalSignOnCookies) {
   for (const name of Object.values(signOnRequestCookieNames)) {
     cookies.delete(name, { path: '/' });
   }
+}
+
+function signOnRequestCookieOptions() {
+  return {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 10 * 60,
+    secure: process.env.SCUBA_EMAIL_SECURE_COOKIES === 'true'
+  } as const;
 }
 
 function isExternalSignOnMode(value: string): value is ExternalSignOnMode {

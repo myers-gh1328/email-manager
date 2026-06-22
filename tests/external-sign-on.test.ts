@@ -14,10 +14,20 @@ vi.mock('../src/lib/server/app', () => ({
 
 function fakeCookies() {
   const values = new Map<string, string>();
+  const setOptions = new Map<string, unknown>();
+  const deleteOptions = new Map<string, unknown>();
   return {
     get: vi.fn((name: string) => values.get(name)),
-    set: vi.fn((name: string, value: string) => values.set(name, value)),
-    delete: vi.fn((name: string) => values.delete(name))
+    set: vi.fn((name: string, value: string, options: unknown) => {
+      values.set(name, value);
+      setOptions.set(name, options);
+    }),
+    delete: vi.fn((name: string, options: unknown) => {
+      values.delete(name);
+      deleteOptions.set(name, options);
+    }),
+    setOptions,
+    deleteOptions
   };
 }
 
@@ -263,12 +273,70 @@ describe('external sign-on status', () => {
 
     storeExternalSignOnRequest(cookies as never, request);
 
+    for (const name of [
+      'tcs_sso_provider',
+      'tcs_sso_mode',
+      'tcs_sso_state',
+      'tcs_sso_nonce',
+      'tcs_sso_code_verifier'
+    ]) {
+      expect(cookies.setOptions.get(name)).toEqual({
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 600,
+        secure: false
+      });
+    }
+
     expect(consumeExternalSignOnRequest(cookies as never, 'google')).toEqual(request);
     expect(cookies.get('tcs_sso_provider')).toBeUndefined();
     expect(cookies.get('tcs_sso_mode')).toBeUndefined();
     expect(cookies.get('tcs_sso_state')).toBeUndefined();
     expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
     expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
+    for (const name of [
+      'tcs_sso_provider',
+      'tcs_sso_mode',
+      'tcs_sso_state',
+      'tcs_sso_nonce',
+      'tcs_sso_code_verifier'
+    ]) {
+      expect(cookies.deleteOptions.get(name)).toEqual({ path: '/' });
+    }
+  });
+
+  test('stores external sign-on request cookies as secure when configured', async () => {
+    const originalSecureCookies = process.env.SCUBA_EMAIL_SECURE_COOKIES;
+    process.env.SCUBA_EMAIL_SECURE_COOKIES = 'true';
+    try {
+      const { storeExternalSignOnRequest } = await import('../src/lib/server/external-sign-on');
+      const cookies = fakeCookies();
+
+      storeExternalSignOnRequest(cookies as never, {
+        provider: 'google',
+        mode: 'link',
+        state: 'state-value',
+        nonce: 'nonce-value',
+        codeVerifier: 'verifier-value'
+      });
+
+      for (const name of [
+        'tcs_sso_provider',
+        'tcs_sso_mode',
+        'tcs_sso_state',
+        'tcs_sso_nonce',
+        'tcs_sso_code_verifier'
+      ]) {
+        expect(cookies.setOptions.get(name)).toMatchObject({ secure: true });
+      }
+    } finally {
+      if (originalSecureCookies === undefined) {
+        delete process.env.SCUBA_EMAIL_SECURE_COOKIES;
+      } else {
+        process.env.SCUBA_EMAIL_SECURE_COOKIES = originalSecureCookies;
+      }
+    }
   });
 
   test('clears external sign-on request cookies when provider does not match', async () => {
@@ -293,6 +361,15 @@ describe('external sign-on status', () => {
     expect(cookies.get('tcs_sso_state')).toBeUndefined();
     expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
     expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
+    for (const name of [
+      'tcs_sso_provider',
+      'tcs_sso_mode',
+      'tcs_sso_state',
+      'tcs_sso_nonce',
+      'tcs_sso_code_verifier'
+    ]) {
+      expect(cookies.deleteOptions.get(name)).toEqual({ path: '/' });
+    }
   });
 
   test('creates a SHA-256 base64url PKCE challenge', async () => {
