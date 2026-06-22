@@ -1,6 +1,6 @@
 import type { AppRepository } from '../../repository';
-import { sendDueCampaignsWithDependencies } from '../../background';
 import { sendOutboundEmail } from '../../mailer';
+import { sendDueCampaignsWithDependencies } from '../../send-due-campaigns';
 import { getSettings, type AppSettings } from '../../settings';
 import { commitPreparedApproval, prepareAgentApproval } from '../approvals';
 import { agentError, agentOk } from '../envelope';
