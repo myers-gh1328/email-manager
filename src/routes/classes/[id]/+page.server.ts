@@ -76,8 +76,8 @@ export const actions = {
   },
   importImage: async ({ params, request }) => {
     const settings = getSettings();
-    if (!settings.aiEnabled || !settings.aiVisionEnabled) {
-      return { message: 'Enable AI assistance and mark it as a vision model before importing screenshots.' };
+    if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
+      return { message: 'Connect AI assistance and choose a vision-capable model before importing roster images.' };
     }
     const form = await request.formData();
     const file = form.get('imageFile');
@@ -87,7 +87,7 @@ export const actions = {
       const result = importRosterRows(repo, params.id, await extractRosterFromImage(dataUrl));
       return {
         panel: 'image',
-        message: `Imported screenshot roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
+        message: `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
       };
     } catch (error) {
       return fail(400, { error: true, panel: 'image', message: error instanceof Error ? error.message : String(error) });

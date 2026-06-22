@@ -124,9 +124,43 @@ export interface CommunicationInput {
   subject: string;
   body: string;
   status: 'accepted' | 'sent' | 'failed';
+  messageId?: string;
   providerMessage?: string;
   errorMessage?: string;
 }
+
+export interface CommunicationReplyInput {
+  communicationId: string;
+  providerKey: string;
+  providerMessageId?: string;
+  fromName?: string;
+  fromEmail?: string;
+  subject?: string;
+  textBody?: string;
+  htmlBody?: string;
+  snippet?: string;
+  receivedAt: string;
+}
+
+export interface CommunicationReply {
+  id: string;
+  communicationId: string;
+  providerKey: string;
+  providerMessageId: string;
+  fromName: string;
+  fromEmail: string;
+  subject: string;
+  textBody: string;
+  htmlBody: string;
+  snippet: string;
+  receivedAt: string;
+  reviewedAt: string;
+  createdAt: string;
+}
+
+export type RecordedCommunicationReply = CommunicationReply & {
+  created: boolean;
+};
 
 export interface CommunicationHistoryItem {
   id: string;
@@ -143,9 +177,14 @@ export interface CommunicationHistoryItem {
   body: string;
   status: 'accepted' | 'sent' | 'failed';
   sentAt?: string;
+  messageId?: string;
   providerMessage?: string;
   errorMessage?: string;
   createdAt: string;
+  replies: CommunicationReply[];
+  replyCount: number;
+  unreviewedReplyCount: number;
+  acknowledgedAt?: string;
 }
 
 export interface EmailTestAuditInput {

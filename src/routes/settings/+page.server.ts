@@ -10,6 +10,7 @@ import {
   type ExternalSignOnProvider
 } from '$lib/server/external-sign-on';
 import { listAiModels } from '$lib/server/llm';
+import { syncRepliesNow } from '$lib/server/reply-sync';
 import { required } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
 import { loadSettingsData } from '$lib/server/page-data';
@@ -21,6 +22,7 @@ import {
   updateDeliverySettings,
   updateProfileSettings,
   updateRemoteAccessSettings,
+  updateReplySyncSettings,
   updateSmtpSettings,
   updateVocabularySettings
 } from '$lib/server/settings';
@@ -61,6 +63,19 @@ export const actions = {
   updateAi: async ({ request }) => {
     updateAiSettings(await request.formData());
     return { message: 'AI settings saved.' };
+  },
+  updateReplySync: async ({ request }) => {
+    updateReplySyncSettings(await request.formData());
+    return { message: 'Reply sync settings saved.' };
+  },
+  syncRepliesNow: async () => {
+    try {
+      const result = await syncRepliesNow();
+      if (result.status === 'not_configured') return fail(400, { message: 'Enter IMAP settings before syncing replies.' });
+      return { message: `Reply sync checked ${result.checked} recent messages and imported ${result.imported} new replies.` };
+    } catch {
+      return fail(400, { message: 'Reply sync failed. Check the IMAP settings and try again.' });
+    }
   },
   updateAgentAccess: async ({ request }) => {
     updateAgentAccessSettings(await request.formData());

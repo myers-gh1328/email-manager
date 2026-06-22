@@ -134,9 +134,27 @@ export function migrate(db: DatabaseSync) {
       body text not null,
       status text not null,
       sent_at text,
+      message_id text not null default '',
       provider_message text,
       error_message text,
       created_at text not null
+    );
+
+    create table if not exists communication_replies (
+      id text primary key,
+      communication_id text not null references communications(id) on delete cascade,
+      provider_key text not null,
+      provider_message_id text not null default '',
+      from_name text not null default '',
+      from_email text not null default '',
+      subject text not null default '',
+      text_body text not null default '',
+      html_body text not null default '',
+      snippet text not null default '',
+      received_at text not null,
+      reviewed_at text not null default '',
+      created_at text not null,
+      unique (provider_key)
     );
 
     create table if not exists settings (
@@ -212,6 +230,7 @@ export function migrate(db: DatabaseSync) {
   addColumnIfMissing(db, 'communications', 'original_recipient', "text not null default ''");
   addColumnIfMissing(db, 'communications', 'effective_recipient', "text not null default ''");
   addColumnIfMissing(db, 'communications', 'test_mode', 'integer not null default 0');
+  addColumnIfMissing(db, 'communications', 'message_id', "text not null default ''");
   addColumnIfMissing(db, 'course_type_default_templates', 'send_offset_minutes', 'integer not null default 0');
   addColumnIfMissing(db, 'campaigns', 'source', "text not null default 'manual'");
   addColumnIfMissing(db, 'campaigns', 'default_purpose', "text not null default ''");
@@ -243,6 +262,11 @@ export function migrate(db: DatabaseSync) {
       on agent_approvals(status, expires_at);
     create index if not exists idx_agent_audit_events_created
       on agent_audit_events(created_at);
+    create unique index if not exists idx_communications_message_id_unique
+      on communications(message_id)
+      where message_id != '';
+    create index if not exists idx_communication_replies_communication_id
+      on communication_replies(communication_id, received_at);
   `);
 }
 

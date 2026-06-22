@@ -26,6 +26,8 @@ The app is a SvelteKit Node application.
 - The repository module owns all SQLite reads and writes.
 - The background scheduler wakes up every minute inside the Node process.
 - SMTP delivery happens only from server-side code.
+- Optional IMAP reply sync runs from server-side code and only imports replies
+  to outbound messages already recorded by the app.
 - Optional AI drafting calls an OpenAI-compatible endpoint from server-side code.
 - Optional external event ingestion may import contacts, classes, and class
   enrollments from a user-configured source.
@@ -46,7 +48,7 @@ Routes are split by user workflow:
 - Templates: template creation and AI drafting.
 - Campaigns: preview and scheduling.
 - Communications: direct email composer and contact-centered outbound history.
-- Settings: searchable collapsible SMTP, AI, scheduler, remote access, agent access, vocabulary, and password controls.
+- Settings: searchable collapsible SMTP, reply sync, AI, scheduler, remote access, agent access, vocabulary, and password controls.
 - Setup and login: first-run password setup and authentication.
 
 Avoid rebuilding this as one large page. The route split keeps each workflow small enough to reason about and test.
@@ -67,6 +69,8 @@ Required visibility:
 - Class detail must show per-student checklist state using global checklist items plus course-type checklist items.
 - Campaign detail must distinguish class time from send time and show recipient delivery status.
 - Communications must provide a complete outbound email history across direct and campaign sends, not only contact-specific history.
+- Communications must show imported replies as acknowledgements under the
+  outbound email they replied to. It must not act like a general inbox reader.
 - Test audit navigation is visible only while email test mode is enabled. Direct URL access may show historical redirected test emails, but the page must clearly state when test mode is off.
 - Settings must use searchable collapsible sections and grouped forms. Changing one settings group must not resave unrelated groups.
 - AI model selection should prefer model discovery from the configured OpenAI-compatible `/models` endpoint, with manual entry only as a fallback for servers that cannot list models.
@@ -87,6 +91,9 @@ Main tables:
 - Campaigns store one scheduled send for one class/template pair.
 - Campaign deliveries store recipient-level send status.
 - Communications store one outbound email history row per recipient for direct and campaign sends.
+- Communication replies store IMAP messages that match an outbound
+  communication `Message-ID`. They are shown as acknowledgements, not as a
+  full mailbox archive.
 - Checklist items store global and course-type class preparation requirements.
 - Enrollment checklist completions store per-student checklist state for a class.
 - Settings store app configuration and encrypted secrets.
@@ -147,9 +154,30 @@ SMTP settings are configured by the user. The app sends individual messages, one
 
 All outbound email attempts should be recorded as communications tied to the recipient contact. Store the rendered subject and body snapshot so the contact history shows what the student actually received or what failed to send.
 
+Accepted outbound messages should include an app-generated `Message-ID` in the
+SMTP payload and the communication row. Reply sync depends on that ID rather
+than provider-specific SMTP response IDs.
+
 Do not expose SMTP secrets to the browser. Do not log decrypted SMTP passwords. If adding diagnostics, report configuration status without printing secrets.
 
 Email test mode reroutes outbound messages to the configured safe recipient and records audit data. Automatic scheduled sends are paused while test mode is enabled. Preserve both behaviors when changing mail delivery.
+
+## Reply Sync
+
+Reply sync is optional and IMAP-only. It connects to the configured inbox,
+opens `INBOX` read-only, fetches recent messages, and imports only messages
+whose `In-Reply-To` or `References` headers match a non-empty outbound
+communication `Message-ID` stored by this app.
+
+Reply sync must not mark messages read, move messages, delete messages, tag
+messages, or import unrelated inbox mail. Background polling is enabled by
+default once IMAP settings are complete, but the user can turn polling off and
+run a manual sync from Settings.
+
+Do not log specific reply sync details. Avoid sender addresses, subjects,
+message bodies, mailbox names, UIDs, Message-IDs, usernames, hosts, or
+credential details in logs. User-visible errors should stay generic and point
+the user back to IMAP settings.
 
 ## AI Drafting
 

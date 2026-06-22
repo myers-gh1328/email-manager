@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-  <title>Communications · Scuba Email Studio</title>
+  <title>Communications · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">
@@ -94,8 +94,37 @@
               </p>
               <p>{communication.body}</p>
               {#if communication.errorMessage}<p class="error">Error: {communication.errorMessage}</p>{/if}
+              {#if communication.replies.length}
+                <div class="reply-list">
+                  {#each communication.replies as reply}
+                    <article class="reply-card">
+                      <div>
+                        <strong>{reply.fromName || reply.fromEmail || 'Reply'}</strong>
+                        <p>{formatDateTime(reply.receivedAt)}{#if reply.subject} · {reply.subject}{/if}</p>
+                        <p>{reply.snippet || reply.textBody}</p>
+                      </div>
+                      {#if reply.reviewedAt}
+                        <span class="pill good">Reviewed</span>
+                      {:else}
+                        <form method="POST" action="?/markReplyReviewed" use:enhance>
+                          <input name="replyId" type="hidden" value={reply.id} />
+                          <button class="secondary" type="submit">Mark reviewed</button>
+                        </form>
+                      {/if}
+                    </article>
+                  {/each}
+                </div>
+              {/if}
             </div>
-            <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{communication.status}</span>
+            <div class="status-stack">
+              <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{communication.status}</span>
+              {#if communication.replyCount}
+                <span class="pill good">Acknowledged</span>
+                {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} new</span>{/if}
+              {:else if communication.status === 'accepted' || communication.status === 'sent'}
+                <span class="pill">No reply yet</span>
+              {/if}
+            </div>
           </article>
         {:else}
           <p class="empty">No email history recorded yet.</p>
@@ -151,3 +180,36 @@
     </div>
   </form>
 </section>
+
+<style>
+  .reply-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .reply-card {
+    align-items: start;
+    background: rgba(37, 99, 235, 0.05);
+    border: 1px solid rgba(37, 99, 235, 0.16);
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 10px;
+  }
+
+  .status-stack {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  @media (max-width: 720px) {
+    .reply-card,
+    .status-stack {
+      align-items: stretch;
+    }
+  }
+</style>

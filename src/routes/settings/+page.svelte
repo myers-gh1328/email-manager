@@ -11,6 +11,10 @@
   let initialized = $state(false);
   let aiBaseUrl = $state('');
   let selectedAiModel = $state('');
+  let replySyncHost = $state('');
+  let replySyncPort = $state('');
+  let replySyncTls = $state(true);
+  let replySyncUsername = $state('');
   let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
 
@@ -24,6 +28,10 @@
       microsoftTenantId = data.settings.microsoftTenantId;
       aiBaseUrl = form?.aiBaseUrl || data.settings.aiBaseUrl;
       selectedAiModel = form?.aiModel || data.settings.aiModel;
+      replySyncHost = data.settings.replySyncHost;
+      replySyncPort = data.settings.replySyncPort;
+      replySyncTls = data.settings.replySyncTls;
+      replySyncUsername = data.settings.replySyncUsername;
       externalSignOnProvider = data.externalSignOn.provider || 'google';
       initialized = true;
     }
@@ -44,6 +52,14 @@
       smtpPort = '587';
       microsoftTenantId ||= 'common';
     }
+  }
+
+  function applyImapPreset(provider: 'gmail' | 'fastmail' | 'outlook') {
+    replySyncTls = true;
+    replySyncPort = '993';
+    if (provider === 'gmail') replySyncHost = 'imap.gmail.com';
+    if (provider === 'fastmail') replySyncHost = 'imap.fastmail.com';
+    if (provider === 'outlook') replySyncHost = 'outlook.office365.com';
   }
 
   function noticeClass(message: string) {
@@ -324,6 +340,58 @@
         <button type="submit">Save AI settings</button>
       </div>
     </form>
+    </details>
+    {/if}
+
+    {#if sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])}
+    <details class="settings-section settings-panel" open>
+      <summary>Reply Sync</summary>
+      <form method="POST" action="?/updateReplySync" class="panel-form" use:enhance>
+        <div>
+          <p class="eyebrow">Acknowledgements</p>
+          <h3>Show replies to sent email</h3>
+          <p class="help-text">Connect the inbox for the same address you send from. The app only imports messages that reply to emails it already sent.</p>
+        </div>
+        <div class="button-row">
+          <button class="secondary" type="button" onclick={() => applyImapPreset('gmail')}>Gmail preset</button>
+          <button class="secondary" type="button" onclick={() => applyImapPreset('fastmail')}>Fastmail preset</button>
+          <button class="secondary" type="button" onclick={() => applyImapPreset('outlook')}>Outlook preset</button>
+        </div>
+        <div class="split">
+          <label>
+            Incoming mail server
+            <input name="replySyncHost" bind:value={replySyncHost} placeholder="imap.example.com" />
+            <span class="help-text">This is the IMAP server from your email provider.</span>
+          </label>
+          <label>
+            Port
+            <input name="replySyncPort" bind:value={replySyncPort} />
+            <span class="help-text">Usually 993.</span>
+          </label>
+        </div>
+        <label class="check with-help">
+          <span><input name="replySyncTls" type="checkbox" bind:checked={replySyncTls} /> Use secure IMAP</span>
+          <small>Leave this on unless your email provider gives different instructions.</small>
+        </label>
+        <label>
+          Username
+          <input name="replySyncUsername" bind:value={replySyncUsername} />
+          <span class="help-text">Usually the same email address used for sending.</span>
+        </label>
+        <label>
+          Password
+          <input name="replySyncPassword" type="password" placeholder={data.settings.replySyncPasswordConfigured ? 'Configured' : ''} />
+          <span class="help-text">Use an app password if your email provider offers one. Leave blank to keep the current saved password.</span>
+        </label>
+        <label class="check with-help">
+          <span><input name="replySyncPollingEnabled" type="checkbox" checked={data.settings.replySyncPollingEnabled} /> Check for replies automatically</span>
+          <small>When on, the app checks the inbox while the server is running. Turn it off to sync only when you click the button below.</small>
+        </label>
+        <div class="button-row">
+          <button type="submit">Save reply sync</button>
+          <button class="secondary" type="submit" formaction="?/syncRepliesNow" formnovalidate>Sync replies now</button>
+        </div>
+      </form>
     </details>
     {/if}
 

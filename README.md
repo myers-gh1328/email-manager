@@ -57,11 +57,12 @@ public download.
 - Tracks reusable course types and dated class sessions.
 - Enrolls students into class sessions.
 - Imports class rosters from CSV, including a downloadable roster template.
-- Optionally imports class rosters from screenshots when AI is enabled and marked as vision-capable.
+- Optionally imports class rosters from photos or screenshots when AI is connected and the chosen model supports vision.
 - Creates email templates with personalization fields.
 - Previews the exact subject and body each student will receive.
 - Schedules approved class emails, including welcome, reminder, logistics, and thank-you messages.
 - Sends through SMTP as individual emails, not one visible group email.
+- Optionally checks an IMAP inbox for replies to emails this app sent, so replies can show as acknowledgements in the app.
 - Prevents successful scheduled emails from being sent twice to the same student.
 - Optionally connects to an OpenAI-compatible local AI endpoint for template drafting.
 - Optionally imports contacts, classes, and class enrollments from a
@@ -73,6 +74,7 @@ public download.
 - No attachments in email templates.
 - No newsletter or marketing-list management.
 - No multi-user roles. Each installation is a single-instructor app.
+- No general inbox reader. Reply sync only imports messages that reply to emails sent by this app.
 - No built-in Cloudflare account integration. Remote access is handled by your tunnel or reverse proxy.
 
 ## Requirements
@@ -104,12 +106,13 @@ After signing in:
 1. Open Settings.
 2. Set your instructor name.
 3. Configure SMTP.
-4. Add contacts.
-5. Add a course type and class session.
-6. Enroll contacts in the class session.
-7. Create a template.
-8. Preview a campaign.
-9. Schedule and approve the send.
+4. Optionally configure Reply Sync if you want replies to show in the app.
+5. Add contacts.
+6. Add a course type and class session.
+7. Enroll contacts in the class session.
+8. Create a template.
+9. Preview a campaign.
+10. Schedule and approve the send.
 
 ## Optional Google Or Microsoft Sign-On
 
@@ -127,7 +130,7 @@ redirect address to copy and asks for the IDs and secret from that provider. See
 - Classes: course types, dated class sessions, roster detail, enrollment, and unenrollment.
 - Templates: reusable personalized email templates and optional AI drafting.
 - Campaigns: per-student preview, one-time campaign scheduling, campaign detail, lifecycle updates, and recipient delivery status.
-- Settings: searchable collapsible SMTP, AI, scheduler, remote access, agent access, vocabulary, and admin password settings.
+- Settings: searchable collapsible SMTP, reply sync, AI, scheduler, remote access, agent access, vocabulary, and admin password settings.
 
 ## Template Variables
 
@@ -165,6 +168,17 @@ Thanks,
 ```
 
 Always use campaign preview before approving a scheduled send. Preview shows the final per-student message and reports missing template fields.
+
+## Reply Sync
+
+Reply Sync is optional. Configure it in **Settings > Reply Sync** with the IMAP
+server for the same mailbox you send from.
+
+When enabled, the app checks recent inbox messages while the server is running
+and imports only replies whose email headers point back to messages the app
+sent. It does not import unrelated inbox mail, mark messages read, move
+messages, or delete messages. You can turn automatic checking off and use
+**Sync replies now** manually.
 
 ## SMTP Setup
 

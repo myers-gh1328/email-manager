@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { createContactTool, searchContactsTool, updateContactTool } from '../src/lib/server/agent/tools/contacts';
 import { defaultAgentPermissions } from '../src/lib/server/agent/permissions';
-import { defaultVocabulary } from '../src/lib/server/agent/vocabulary';
 import type { AppSettings } from '../src/lib/server/settings';
 import { createTestRepository } from './repository-helpers';
+import { baseAppSettings } from './settings-helpers';
 
 describe('agent contact tools', () => {
   it('returns contacts when agent access and viewData are enabled', () => {
@@ -111,32 +111,8 @@ describe('agent contact tools', () => {
 });
 
 function agentSettings(permissions: Partial<AppSettings['agentPermissions']> = {}, agentEnabled = true): AppSettings {
-  return {
-    instructorName: '',
-    publicBaseUrl: '',
-    schedulerEnabled: false,
-    emailTestModeEnabled: false,
-    emailSignature: '',
-    remoteAccessEnabled: false,
-    trustedProxyEnabled: false,
-    smtpHost: '',
-    smtpPort: '587',
-    smtpUser: '',
-    smtpFrom: '',
-    smtpAuthMethod: 'password',
-    smtpPasswordConfigured: false,
-    microsoftTenantId: 'common',
-    microsoftClientId: '',
-    microsoftClientSecretConfigured: false,
-    microsoftRefreshTokenConfigured: false,
-    aiEnabled: false,
-    aiVisionEnabled: false,
-    aiBaseUrl: '',
-    aiModel: '',
-    aiApiKeyConfigured: false,
-    themeMode: 'system',
+  return baseAppSettings({
     agentEnabled,
-    agentPermissions: { ...defaultAgentPermissions, ...permissions },
-    vocabulary: defaultVocabulary
-  };
+    agentPermissions: { ...defaultAgentPermissions, ...permissions }
+  });
 }

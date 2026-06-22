@@ -64,7 +64,16 @@ import {
   updateChecklistItem,
   updateCourseTypeChecklistItem
 } from './checklists';
-import { listCommunications, listContactCommunications, listEmailTestAudits, recordCommunication, recordEmailTestAudit } from './communications';
+import {
+  listCommunicationMessageIds,
+  listCommunications,
+  listContactCommunications,
+  listEmailTestAudits,
+  markCommunicationReplyReviewed,
+  recordCommunication,
+  recordCommunicationReply,
+  recordEmailTestAudit
+} from './communications';
 import { getExternalEventIngestion, getExternalMapping, recordExternalEventIngestion, setExternalMapping } from './external-events';
 import {
   createAgentApproval,
@@ -88,6 +97,7 @@ import type {
   ChecklistItemInput,
   ClassSessionInput,
   CommunicationInput,
+  CommunicationReplyInput,
   ContactInput,
   CourseTypeInput,
   CourseTypeChecklistItemInput,
@@ -119,6 +129,9 @@ export type {
   ClassSessionInput,
   CommunicationHistoryItem,
   CommunicationInput,
+  CommunicationReply,
+  CommunicationReplyInput,
+  RecordedCommunicationReply,
   ContactHistoryItem,
   ContactInput,
   CourseTypeChecklistItemInput,
@@ -404,6 +417,18 @@ export class AppRepository {
 
   recordCommunication(input: CommunicationInput) {
     return recordCommunication(this.db, input);
+  }
+
+  recordCommunicationReply(input: CommunicationReplyInput) {
+    return recordCommunicationReply(this.db, input);
+  }
+
+  markCommunicationReplyReviewed(id: string) {
+    return markCommunicationReplyReviewed(this.db, id);
+  }
+
+  listCommunicationMessageIds() {
+    return listCommunicationMessageIds(this.db);
   }
 
   recordEmailTestAudit(input: EmailTestAuditInput) {
