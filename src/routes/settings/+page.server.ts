@@ -87,20 +87,26 @@ export const actions = {
     }
 
     let provider: ExternalSignOnProvider;
+    let settingsInput: ReturnType<typeof externalSignOnProviderSettingsFromForm>;
     try {
-      const settingsInput = externalSignOnProviderSettingsFromForm(form);
+      settingsInput = externalSignOnProviderSettingsFromForm(form);
       if (!isExternalSignOnProvider(settingsInput.provider)) {
         return fail(400, { message: 'Choose Google or Microsoft Entra ID before connecting external sign-on.' });
       }
       provider = settingsInput.provider;
-      updateExternalSignOnProviderSettings(settingsInput);
     } catch {
       return fail(400, { message: 'Check the selected provider settings before connecting external sign-on.' });
     }
 
     const status = getExternalSignOnStatus();
-    if (!externalSignOnProviderIsConfigured(status, provider)) {
+    if (!externalSignOnProviderInputIsConfigured(settingsInput, status, provider)) {
       return fail(400, { message: 'Enter the selected provider client ID and client secret before connecting external sign-on.' });
+    }
+
+    try {
+      updateExternalSignOnProviderSettings(settingsInput);
+    } catch {
+      return fail(400, { message: 'Check the selected provider settings before connecting external sign-on.' });
     }
 
     throw redirect(303, `/auth/external/${provider}/start?mode=link`);
@@ -172,12 +178,36 @@ function externalSignOnProviderSettingsFromForm(form: FormData) {
   };
 }
 
-function externalSignOnProviderIsConfigured(
+function externalSignOnProviderInputIsConfigured(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
   status: ReturnType<typeof getExternalSignOnStatus>,
   provider: ExternalSignOnProvider
 ) {
   if (provider === 'google') {
-    return Boolean(status.googleClientId && status.googleClientSecretConfigured);
+    return Boolean(clean(input.googleClientId) && (clean(input.googleClientSecret) || canPreserveGoogleSecret(input, status)));
   }
-  return Boolean(status.entraClientId && status.entraClientSecretConfigured);
+  return Boolean(clean(input.entraClientId) && (clean(input.entraClientSecret) || canPreserveEntraSecret(input, status)));
+}
+
+function canPreserveGoogleSecret(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
+  status: ReturnType<typeof getExternalSignOnStatus>
+) {
+  return status.provider === 'google'
+    && status.googleClientSecretConfigured
+    && clean(input.googleClientId) === clean(status.googleClientId);
+}
+
+function canPreserveEntraSecret(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
+  status: ReturnType<typeof getExternalSignOnStatus>
+) {
+  return status.provider === 'entra'
+    && status.entraClientSecretConfigured
+    && clean(input.entraClientId) === clean(status.entraClientId)
+    && (clean(input.entraTenant) || 'common') === (clean(status.entraTenant) || 'common');
+}
+
+function clean(value: string) {
+  return value.trim();
 }

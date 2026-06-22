@@ -456,6 +456,34 @@ describe('settings external sign-on actions', () => {
     expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
   });
 
+  test('connectExternalSignOn does not save incomplete provider settings after password verification', async () => {
+    authMocks.verifyAdminPassword.mockReturnValue(true);
+    const existingStatus = externalSignOnStatus({
+      provider: 'google',
+      googleClientId: 'existing-google-client',
+      googleClientSecretConfigured: true
+    });
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(existingStatus);
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.connectExternalSignOn(
+      actionEvent({
+        externalSignOnProvider: 'google',
+        googleClientId: '',
+        googleClientSecret: '',
+        currentPassword: 'correct-password'
+      }) as never
+    );
+
+    expect(result).toMatchObject({
+      status: 400,
+      data: { message: 'Enter the selected provider client ID and client secret before connecting external sign-on.' }
+    });
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
+    expect(externalSignOnMocks.getExternalSignOnStatus.mock.results.every((result) => result.value === existingStatus)).toBe(true);
+  });
+
   test('connectExternalSignOn saves provider settings and redirects to provider link start', async () => {
     authMocks.verifyAdminPassword.mockReturnValue(true);
     const { actions } = await import('../src/routes/settings/+page.server');
