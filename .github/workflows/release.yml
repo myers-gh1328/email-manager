@@ -71,15 +71,25 @@ jobs:
           - name: Windows
             os: windows-latest
             command: npm run desktop:dist:win
-            artifact: release/electron/*
+            artifact: |
+              release/electron/*.exe
+              release/electron/*.blockmap
+              release/electron/latest*.yml
           - name: macOS
             os: macos-latest
             command: npm run desktop:dist:mac
-            artifact: release/electron/*
+            artifact: |
+              release/electron/*.dmg
+              release/electron/*.blockmap
+              release/electron/latest*.yml
           - name: Linux
             os: ubuntu-latest
             command: npm run desktop:dist:linux
-            artifact: release/electron/*
+            artifact: |
+              release/electron/*.AppImage
+              release/electron/*.deb
+              release/electron/*.blockmap
+              release/electron/latest*.yml
 
     steps:
       - name: Checkout
@@ -127,4 +137,4 @@ jobs:
           tag_name: ${{ needs.validate.outputs.version }}
           name: Training Communications Studio ${{ needs.validate.outputs.version }}
           draft: true
-          files: artifacts/**
+          files: artifacts/*
