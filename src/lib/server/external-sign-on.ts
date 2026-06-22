@@ -160,8 +160,8 @@ export function linkExternalSignOnIdentity(
   provider: ExternalSignOnProvider,
   claims: ExternalSignOnClaims
 ) {
-  const subject = typeof claims.sub === 'string' ? clean(claims.sub) : '';
-  if (!subject) {
+  const subject = typeof claims.sub === 'string' ? claims.sub : '';
+  if (!clean(subject)) {
     throw new Error('The provider did not return an account identifier.');
   }
 
@@ -177,9 +177,13 @@ export function assertExternalSignOnIdentityMatches(
   claims: ExternalSignOnClaims
 ) {
   const status = getExternalSignOnStatus();
-  const subject = clean(claims.sub);
+  const subject = typeof claims.sub === 'string' ? claims.sub : '';
 
-  if (!status.enabled || status.provider !== provider || repo.getSetting('auth.sso.subject') !== subject) {
+  if (
+    !status.enabled ||
+    status.provider !== provider ||
+    repo.getSetting('auth.sso.subject') !== subject
+  ) {
     throw new Error('That account is not linked to this app.');
   }
 }

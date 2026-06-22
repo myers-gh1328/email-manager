@@ -119,6 +119,34 @@ describe('external sign-on status', () => {
     );
   });
 
+  test('stores and matches opaque provider subjects exactly', async () => {
+    const { assertExternalSignOnIdentityMatches, linkExternalSignOnIdentity } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    linkExternalSignOnIdentity('google', { sub: ' google-sub ' });
+
+    expect(settings.get('auth.sso.subject')).toBe(' google-sub ');
+    expect(() =>
+      assertExternalSignOnIdentityMatches('google', { sub: ' google-sub ' })
+    ).not.toThrow();
+    expect(() => assertExternalSignOnIdentityMatches('google', { sub: 'google-sub' })).toThrow(
+      new Error('That account is not linked to this app.')
+    );
+  });
+
+  test('rejects matching an identity when claims are malformed', async () => {
+    const { assertExternalSignOnIdentityMatches, linkExternalSignOnIdentity } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    linkExternalSignOnIdentity('google', { sub: 'google-sub' });
+
+    expect(() => assertExternalSignOnIdentityMatches('google', {} as never)).toThrow(
+      new Error('That account is not linked to this app.')
+    );
+  });
+
   test('clears linked identity while preserving provider configuration', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-06-22T13:14:15.000Z'));
