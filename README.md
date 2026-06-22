@@ -342,6 +342,11 @@ event ingestion.
 Read `docs/OPEN-SOURCE-READINESS.md` before making public-facing changes.
 Read `docs/RELEASES.md` before changing versions or release packaging.
 
+Dependency updates are managed by Dependabot through `.github/dependabot.yml`.
+Dependabot opens weekly grouped PRs for npm and GitHub Actions updates. These
+PRs are never auto-merged; review and run the normal verification path before
+merge.
+
 Build desktop packages:
 
 ```bash
