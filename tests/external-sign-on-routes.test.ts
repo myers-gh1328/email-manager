@@ -13,7 +13,8 @@ const externalSignOnMocks = vi.hoisted(() => ({
 }));
 
 const authMocks = vi.hoisted(() => ({
-  createSession: vi.fn()
+  createSession: vi.fn(),
+  isAuthenticated: vi.fn()
 }));
 
 vi.mock('$lib/server/external-sign-on', () => externalSignOnMocks);
@@ -69,6 +70,7 @@ describe('external sign-on routes', () => {
       email: 'owner@example.com',
       name: 'Owner Example'
     });
+    authMocks.isAuthenticated.mockReturnValue(false);
   });
 
   test('unknown provider start redirects to login external error', async () => {
@@ -79,8 +81,7 @@ describe('external sign-on routes', () => {
   });
 
   test.each([
-    ['login', 'https://app.example.com/auth/external/google/start'],
-    ['link', 'https://app.example.com/auth/external/google/start?mode=link']
+    ['login', 'https://app.example.com/auth/external/google/start']
   ])('start mode %s stores a transient request and redirects to provider URL', async (mode, url) => {
     const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
     const routeEvent = event({ url });
@@ -103,6 +104,41 @@ describe('external sign-on routes', () => {
       state: 'state-token',
       nonce: 'nonce-token',
       codeChallenge: 'challenge-for-verifier-token'
+    });
+  });
+
+  test('unauthenticated link start redirects to login external error', async () => {
+    const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
+
+    await expectRedirect(
+      GET(event({ url: 'https://app.example.com/auth/external/google/start?mode=link' }) as never),
+      303,
+      '/login?error=external'
+    );
+
+    expect(externalSignOnMocks.storeExternalSignOnRequest).not.toHaveBeenCalled();
+    expect(externalSignOnMocks.createExternalSignOnAuthorizationUrl).not.toHaveBeenCalled();
+  });
+
+  test('authenticated link start stores a transient request and redirects to provider URL', async () => {
+    authMocks.isAuthenticated.mockReturnValue(true);
+    const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
+    const routeEvent = event({
+      url: 'https://app.example.com/auth/external/google/start?mode=link'
+    });
+
+    await expectRedirect(
+      GET(routeEvent as never),
+      303,
+      'https://provider.example.com/authorize?state=state-token'
+    );
+
+    expect(externalSignOnMocks.storeExternalSignOnRequest).toHaveBeenCalledWith(routeEvent.cookies, {
+      provider: 'google',
+      mode: 'link',
+      state: 'state-token',
+      nonce: 'nonce-token',
+      codeVerifier: 'verifier-token'
     });
   });
 
@@ -152,7 +188,32 @@ describe('external sign-on routes', () => {
     expect(authMocks.createSession).toHaveBeenCalledWith(routeEvent.cookies);
   });
 
-  test('link callback stores linked identity and redirects to security settings', async () => {
+  test('unauthenticated link callback redirects to login external error without linking identity', async () => {
+    externalSignOnMocks.consumeExternalSignOnRequest.mockReturnValue({
+      provider: 'google',
+      mode: 'link',
+      state: 'state-token',
+      nonce: 'nonce-token',
+      codeVerifier: 'verifier-token'
+    });
+    const { GET } = await import('../src/routes/auth/external/[provider]/callback/+server');
+
+    await expectRedirect(
+      GET(
+        event({
+          url: 'https://app.example.com/auth/external/google/callback?code=returned-code&state=state-token'
+        }) as never
+      ),
+      303,
+      '/login?error=external'
+    );
+
+    expect(externalSignOnMocks.linkExternalSignOnIdentity).not.toHaveBeenCalled();
+    expect(authMocks.createSession).not.toHaveBeenCalled();
+  });
+
+  test('authenticated link callback stores linked identity and redirects to security settings', async () => {
+    authMocks.isAuthenticated.mockReturnValue(true);
     externalSignOnMocks.consumeExternalSignOnRequest.mockReturnValue({
       provider: 'google',
       mode: 'link',

@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { createSession } from '$lib/server/auth';
+import { createSession, isAuthenticated } from '$lib/server/auth';
 import {
   assertExternalSignOnIdentityMatches,
   consumeExternalSignOnRequest,
@@ -20,6 +20,10 @@ export const GET = async ({ cookies, params, url }) => {
   let location = '/';
   try {
     const request = consumeExternalSignOnRequest(cookies, provider);
+    if (request.mode === 'link' && !isAuthenticated(cookies)) {
+      throw new Error('External sign-on link requires authentication.');
+    }
+
     const state = url.searchParams.get('state') ?? '';
     if (state !== request.state) {
       throw new Error('External sign-on state mismatch.');

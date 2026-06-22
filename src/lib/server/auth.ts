@@ -104,6 +104,7 @@ export function getAuthRedirect({
   path: string;
 }) {
   if (!hasPassword) return path === '/setup' ? undefined : '/setup';
+  if (path.startsWith('/auth/external/')) return undefined;
   if (!isAuthenticated) return path === '/login' ? undefined : '/login';
   return path === '/login' || path === '/setup' ? '/' : undefined;
 }
