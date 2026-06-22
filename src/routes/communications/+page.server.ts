@@ -99,6 +99,11 @@ export const actions = {
         body: text(form, 'body')
       });
     }
+  },
+  markReplyReviewed: async ({ request }) => {
+    const form = await request.formData();
+    repo.markCommunicationReplyReviewed(required(form, 'replyId'));
+    return { message: 'Reply marked reviewed.' };
   }
 };
 

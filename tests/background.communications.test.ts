@@ -24,7 +24,8 @@ vi.mock('../src/lib/server/mailer', () => ({
     effectiveRecipient: to,
     testMode: false,
     finalText: text,
-    finalHtml: ''
+    finalHtml: '',
+    messageId: '<campaign-1@example.com>'
   }))
 }));
 
@@ -78,6 +79,7 @@ describe('background campaign communication logging', () => {
       subject: 'Welcome Maya',
       body: 'Hi Maya Patel, see you at Pool.',
       status: 'accepted',
+      messageId: '<campaign-1@example.com>',
       providerMessage: 'provider-123'
     });
   });
@@ -95,7 +97,8 @@ describe('background campaign communication logging', () => {
               effectiveRecipient: 'maya@example.com',
               testMode: false,
               finalText: 'Hi Maya Patel, see you at Pool.',
-              finalHtml: ''
+              finalHtml: '',
+              messageId: '<campaign-1@example.com>'
             });
         })
     );

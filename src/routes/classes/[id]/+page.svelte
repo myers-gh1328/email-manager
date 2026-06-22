@@ -19,6 +19,7 @@
   let contactOptions = $derived(
     data.contacts.map((contact) => ({ value: contact.id, label: `${contact.firstName} ${contact.lastName} · ${contact.email}` }))
   );
+  let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiBaseUrl && data.settings.aiModel));
 
   $effect(() => {
     if (loadedSessionId !== data.session.id) {
@@ -221,20 +222,20 @@
         <button type="submit">Import CSV</button>
       </form>
     </details>
-    {#if data.settings.aiEnabled && data.settings.aiVisionEnabled}
+    {#if aiImageImportReady}
       <details class="action-panel" open={form?.panel === 'image'}>
-        <summary>Import screenshot</summary>
-        {#if importingImage}<BusyOverlay message="Importing roster screenshot..." />{/if}
+        <summary>Import roster photo</summary>
+        {#if importingImage}<BusyOverlay message="Importing roster image..." />{/if}
         <form method="POST" action="?/importImage" enctype="multipart/form-data" class="panel-form" data-local-busy use:enhance={showImageImportBusy}>
-          <label>Roster image<input name="imageFile" type="file" accept="image/*" required /></label>
+          <label>Roster photo or image<input name="imageFile" type="file" accept="image/*" capture="environment" required /></label>
           <button type="submit" disabled={importingImage}>Extract students from image</button>
         </form>
       </details>
     {:else}
       <details class="action-panel">
-        <summary>Import screenshot</summary>
+        <summary>Import roster photo</summary>
         <section class="panel-form">
-          <p class="body-copy">Enable AI assistance and mark the configured model as vision-capable in Settings to import a roster screenshot.</p>
+          <p class="body-copy">Connect AI assistance and choose a vision-capable model in Settings to import a roster photo or screenshot.</p>
         </section>
       </details>
     {/if}

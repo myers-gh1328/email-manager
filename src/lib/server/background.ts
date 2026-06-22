@@ -1,6 +1,7 @@
 import { isAgentDev, repo } from './app';
 import { variablesFor } from './form-utils';
 import { sendOutboundEmail } from './mailer';
+import { syncRepliesNow } from './reply-sync';
 import { getSettings } from './settings';
 import { renderTemplate } from '../shared/template';
 import type { AppRepository } from './repository';
@@ -8,6 +9,7 @@ import type { AppSettings } from './settings';
 
 let started = false;
 let sendingDue = false;
+let syncingReplies = false;
 
 export function startBackgroundScheduler() {
   if (started || isAgentDev || process.env.SCUBA_EMAIL_DISABLE_BACKGROUND === 'true') return;
@@ -17,6 +19,11 @@ export function startBackgroundScheduler() {
       console.error('Scheduled send failed', error);
     });
   }, 60_000);
+  setInterval(() => {
+    void syncReplies().catch(() => {
+      console.error('Reply sync failed');
+    });
+  }, 300_000);
 }
 
 export async function sendDueCampaigns() {
@@ -26,6 +33,18 @@ export async function sendDueCampaigns() {
     return await sendDueCampaignsWithDependencies(repo, getSettings());
   } finally {
     sendingDue = false;
+  }
+}
+
+export async function syncReplies() {
+  const settings = getSettings();
+  if (!settings.replySyncPollingEnabled) return { status: 'disabled' as const, checked: 0, imported: 0, matched: 0, skipped: 0 };
+  if (syncingReplies) return { status: 'disabled' as const, checked: 0, imported: 0, matched: 0, skipped: 0 };
+  syncingReplies = true;
+  try {
+    return await syncRepliesNow();
+  } finally {
+    syncingReplies = false;
   }
 }
 
@@ -76,6 +95,7 @@ export async function sendDueCampaignsWithDependencies(
             subject,
             body: result.finalText,
             status: 'accepted',
+            messageId: result.messageId,
             providerMessage: result.providerMessage
           });
         }

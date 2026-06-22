@@ -2,39 +2,15 @@ import { mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { defaultAgentPermissions } from '../src/lib/server/agent/permissions';
-import { defaultVocabulary } from '../src/lib/server/agent/vocabulary';
 import { remoteAccessStatus } from '../src/lib/server/page-data';
-import type { AppSettings } from '../src/lib/server/settings';
+import { baseAppSettings } from './settings-helpers';
 
-const settings: AppSettings = {
+const settings = baseAppSettings({
   instructorName: 'Alex',
   publicBaseUrl: 'https://mail.example.com',
-  schedulerEnabled: false,
-  emailTestModeEnabled: false,
-  emailSignature: '',
   remoteAccessEnabled: true,
-  trustedProxyEnabled: true,
-  smtpHost: '',
-  smtpPort: '587',
-  smtpUser: '',
-  smtpFrom: '',
-  smtpAuthMethod: 'password',
-  smtpPasswordConfigured: false,
-  microsoftTenantId: 'common',
-  microsoftClientId: '',
-  microsoftClientSecretConfigured: false,
-  microsoftRefreshTokenConfigured: false,
-  aiEnabled: false,
-  aiVisionEnabled: false,
-  aiBaseUrl: '',
-  aiModel: '',
-  aiApiKeyConfigured: false,
-  themeMode: 'system',
-  agentEnabled: false,
-  agentPermissions: defaultAgentPermissions,
-  vocabulary: defaultVocabulary
-};
+  trustedProxyEnabled: true
+});
 
 describe('remote access readiness', () => {
   afterEach(() => {

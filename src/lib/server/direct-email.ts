@@ -22,6 +22,7 @@ interface DirectEmailRepository {
     subject: string;
     body: string;
     status: 'accepted' | 'failed';
+    messageId?: string;
     providerMessage?: string;
     errorMessage?: string;
   }): unknown;
@@ -52,7 +53,7 @@ type SendEmail = (
   to: string,
   subject: string,
   text: string
-) => Promise<string | { providerMessage: string; originalRecipient: string; effectiveRecipient: string; testMode: boolean; finalText: string }>;
+) => Promise<string | { providerMessage: string; originalRecipient: string; effectiveRecipient: string; testMode: boolean; finalText: string; messageId?: string }>;
 
 export function previewDirectEmail(repo: DirectEmailRepository, input: DirectEmailInput): DirectEmailPreview[] {
   const uniqueContactIds = [...new Set(input.contactIds)];
@@ -109,6 +110,7 @@ export async function sendDirectEmail(
         subject: preview.subject,
         body: normalized.finalText,
         status: 'accepted',
+        messageId: 'messageId' in normalized ? normalized.messageId : undefined,
         providerMessage: normalized.providerMessage
       });
       sent += 1;

@@ -90,7 +90,8 @@ describe('direct email workflow', () => {
       finalText: 'Hello Maya Patel.\n\nAlex',
       testMode: true,
       originalRecipient: 'maya@example.com',
-      effectiveRecipient: 'instructor@example.com'
+      effectiveRecipient: 'instructor@example.com',
+      messageId: '<direct-1@example.com>'
     }));
 
     await sendDirectEmail(repo, send, {
@@ -114,6 +115,7 @@ describe('direct email workflow', () => {
       testMode: true,
       subject: 'Hi Maya',
       body: 'Hello Maya Patel.\n\nAlex',
+      messageId: '<direct-1@example.com>',
       providerMessage: 'smtp-accepted'
     });
   });

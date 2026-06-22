@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultAgentPermissions } from '../src/lib/server/agent/permissions';
 import { prepareDirectEmailTool, commitDirectEmailTool } from '../src/lib/server/agent/tools/communications';
-import { defaultVocabulary } from '../src/lib/server/agent/vocabulary';
 import type { AppSettings } from '../src/lib/server/settings';
 import { createTestRepository } from './repository-helpers';
+import { baseAppSettings } from './settings-helpers';
 
 const { sendOutboundEmail } = vi.hoisted(() => ({
   sendOutboundEmail: vi.fn()
@@ -213,33 +213,11 @@ function agentSettings(
   agentEnabled = true,
   overrides: Partial<AppSettings> = {}
 ): AppSettings {
-  return {
+  return baseAppSettings({
     instructorName: 'Alex',
-    publicBaseUrl: '',
     schedulerEnabled: true,
-    emailTestModeEnabled: false,
-    emailSignature: '',
-    remoteAccessEnabled: false,
-    trustedProxyEnabled: false,
-    smtpHost: '',
-    smtpPort: '587',
-    smtpUser: '',
-    smtpFrom: '',
-    smtpAuthMethod: 'password',
-    smtpPasswordConfigured: false,
-    microsoftTenantId: 'common',
-    microsoftClientId: '',
-    microsoftClientSecretConfigured: false,
-    microsoftRefreshTokenConfigured: false,
-    aiEnabled: false,
-    aiVisionEnabled: false,
-    aiBaseUrl: '',
-    aiModel: '',
-    aiApiKeyConfigured: false,
-    themeMode: 'system',
     agentEnabled,
     agentPermissions: { ...defaultAgentPermissions, ...permissions },
-    vocabulary: defaultVocabulary,
     ...overrides
-  };
+  });
 }

@@ -33,6 +33,12 @@ export interface AppSettings {
   aiBaseUrl: string;
   aiModel: string;
   aiApiKeyConfigured: boolean;
+  replySyncHost: string;
+  replySyncPort: string;
+  replySyncTls: boolean;
+  replySyncUsername: string;
+  replySyncPasswordConfigured: boolean;
+  replySyncPollingEnabled: boolean;
   themeMode: ThemeMode;
   agentEnabled: boolean;
   agentPermissions: AgentPermissions;
@@ -63,6 +69,12 @@ export function getSettings(): AppSettings {
     aiBaseUrl: repo.getSetting('ai.baseUrl'),
     aiModel: repo.getSetting('ai.model'),
     aiApiKeyConfigured: Boolean(repo.getSetting('ai.apiKey')),
+    replySyncHost: repo.getSetting('replySync.host'),
+    replySyncPort: repo.getSetting('replySync.port') || '993',
+    replySyncTls: repo.getSetting('replySync.tls') !== 'false',
+    replySyncUsername: repo.getSetting('replySync.username'),
+    replySyncPasswordConfigured: Boolean(repo.getSetting('replySync.password')),
+    replySyncPollingEnabled: repo.getSetting('replySync.pollingEnabled') !== 'false',
     themeMode: normalizeThemeMode(repo.getSetting('ui.themeMode')),
     agentEnabled: repo.getSetting('agent.enabled') === 'true',
     agentPermissions: normalizeAgentPermissions(
@@ -127,6 +139,17 @@ export function updateAiSettings(form: FormData) {
   if (aiApiKey) repo.setSetting('ai.apiKey', encryptSecret(aiApiKey));
 }
 
+export function updateReplySyncSettings(form: FormData) {
+  set('replySync.host', form.get('replySyncHost'));
+  set('replySync.port', form.get('replySyncPort') || '993');
+  set('replySync.tls', checked(form, 'replySyncTls'));
+  set('replySync.username', form.get('replySyncUsername'));
+  set('replySync.pollingEnabled', checked(form, 'replySyncPollingEnabled'));
+
+  const password = String(form.get('replySyncPassword') ?? '');
+  if (password) repo.setSetting('replySync.password', encryptSecret(password));
+}
+
 export function updateAgentAccessSettings(form: FormData) {
   set('agent.enabled', checked(form, 'agentEnabled'));
 }
@@ -167,6 +190,10 @@ export function getMicrosoftRefreshToken() {
 
 export function getAiApiKey() {
   return decryptSecret(repo.getSetting('ai.apiKey'));
+}
+
+export function getReplySyncPassword() {
+  return decryptSecret(repo.getSetting('replySync.password'));
 }
 
 export function aiApiKeyForModelLoad(postedBaseUrl: string, postedApiKey: string, settings: AppSettings, savedApiKey: string) {

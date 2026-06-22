@@ -46,6 +46,8 @@ Keep route-specific form actions in the owning `+page.server.ts`. Move code into
 - `src/lib/server/background.ts` owns the minute-based scheduled-send loop and due-campaign processing.
 - `src/lib/server/scheduler.ts` owns pure delivery-planning helpers.
 - `src/lib/server/mailer.ts` owns SMTP delivery, Microsoft OAuth2 SMTP support, test mode rerouting, signatures, and HTML conversion.
+- `src/lib/server/reply-sync.ts` owns optional IMAP reply sync for matching
+  inbox replies back to app-sent communications.
 - `src/lib/server/settings.ts` owns settings reads and grouped settings persistence.
 - `src/lib/server/microsoft-oauth.ts` owns Microsoft authorization URLs, callback token exchange, refresh token storage, and SMTP access tokens.
 - `src/lib/server/llm.ts` owns optional AI calls and parsing of model responses.
@@ -100,6 +102,26 @@ Use configured/not-configured booleans for UI state. Preserve the "blank secret 
 The app must work without an AI endpoint. AI may draft text or extract roster rows, but it must not approve campaigns, schedule campaigns, or send email without user review.
 
 AI parsing should tolerate common model response wrappers where practical. If parsing fails, return a useful error without leaking prompts or keys.
+
+Image roster import is allowed only when AI assistance is enabled, the chosen
+model is marked vision-capable, and an AI endpoint plus model are configured.
+The class roster page may accept mobile camera photos, but those photos still
+go through the normal AI extraction and import review path.
+
+### Optional Reply Sync
+
+Reply sync is not inbox management. It uses IMAP only to find replies to
+communications that this app already sent. Matching is by outbound
+`Message-ID` against inbound `In-Reply-To` and `References` headers.
+
+When changing reply sync, preserve these rules:
+
+- open the inbox read-only
+- do not mark, move, delete, or tag mailbox messages
+- do not import unrelated mail
+- do not log senders, subjects, bodies, mailbox names, UIDs, Message-IDs,
+  credentials, usernames, or hosts
+- keep background polling disableable and keep manual sync available
 
 ### Optional Local MCP
 

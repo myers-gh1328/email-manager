@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { randomUUID } from 'node:crypto';
 import { repo } from './app';
 import { getMicrosoftSmtpAccessToken } from './microsoft-oauth';
 import { getSettings, getSmtpPassword } from './settings';
@@ -21,6 +22,7 @@ export interface OutboundEmailResult {
   testMode: boolean;
   finalText: string;
   finalHtml: string;
+  messageId: string;
 }
 
 export async function sendOutboundEmail(input: OutboundEmailInput): Promise<OutboundEmailResult> {
@@ -32,6 +34,7 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
   const effectiveRecipient = settings.emailTestModeEnabled ? settings.smtpFrom : originalRecipient;
   const finalText = applySignature(input.text, settings.emailSignature);
   const finalHtml = textToEmailHtml(finalText);
+  const messageId = createOutboundMessageId(settings.publicBaseUrl);
 
   const transporter = nodemailer.createTransport({
     host: settings.smtpHost,
@@ -44,6 +47,7 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
     from: settings.smtpFrom,
     to: effectiveRecipient,
     subject: input.subject,
+    messageId,
     text: finalText,
     html: finalHtml
   });
@@ -65,12 +69,13 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
     effectiveRecipient,
     testMode: settings.emailTestModeEnabled,
     finalText,
-    finalHtml
+    finalHtml,
+    messageId
   };
 }
 
 export async function testSmtpSettings(to: string) {
-  return sendEmail(to, 'Scuba email app test', 'Your SMTP settings are working.');
+  return sendEmail(to, 'Training Communications Studio email test', 'Your SMTP settings are working.');
 }
 
 export function applySignature(text: string, signature: string) {
@@ -93,6 +98,16 @@ function escapeHtml(value: string) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function createOutboundMessageId(publicBaseUrl: string) {
+  let host = 'training-communications.local';
+  try {
+    if (publicBaseUrl) host = new URL(publicBaseUrl).hostname || host;
+  } catch {
+    host = 'training-communications.local';
+  }
+  return `<tcs-${randomUUID()}@${host}>`;
 }
 
 export function canSend() {
