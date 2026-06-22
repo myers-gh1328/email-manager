@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
+import * as oidc from 'openid-client';
 import { repo } from './app';
 import { decryptSecret, encryptSecret } from './crypto';
 
@@ -34,6 +35,16 @@ export type ExternalSignOnCallbackInput = {
   code: string;
   codeVerifier: string;
   nonce: string;
+};
+
+export type OidcAdapter = {
+  exchange: (
+    input: ExternalSignOnCallbackInput & {
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+    }
+  ) => Promise<ExternalSignOnClaims>;
 };
 
 export type ExternalSignOnStatus = {
@@ -73,6 +84,12 @@ const signOnRequestCookieNames = {
 } as const;
 
 const expiredSignOnRequestMessage = 'The sign-on request expired. Start again.';
+
+let oidcAdapter: OidcAdapter | undefined;
+
+export function setExternalSignOnOidcAdapterForTests(adapter: OidcAdapter | undefined) {
+  oidcAdapter = adapter;
+}
 
 export function isExternalSignOnProvider(value: string): value is ExternalSignOnProvider {
   return value === 'google' || value === 'entra';
@@ -196,9 +213,28 @@ export function clearExternalSignOnIdentity() {
 }
 
 export async function exchangeExternalSignOnCode(
-  _input: ExternalSignOnCallbackInput
+  input: ExternalSignOnCallbackInput
 ): Promise<ExternalSignOnClaims> {
-  throw new Error('OIDC exchange is implemented in the dependency integration step.');
+  const clientId = clean(repo.getSetting(clientIdSettingKey(input.provider)));
+  const clientSecret = clean(getExternalSignOnClientSecret(input.provider));
+  const redirectUri = externalSignOnRedirectUri(input.origin, input.provider);
+
+  if (!clientId || !clientSecret) {
+    throw new Error('External sign-on provider settings are incomplete.');
+  }
+
+  const claims = await (oidcAdapter ?? defaultOidcAdapter).exchange({
+    ...input,
+    clientId,
+    clientSecret,
+    redirectUri
+  });
+
+  if (typeof claims.sub !== 'string' || !clean(claims.sub)) {
+    throw new Error('The provider did not return an account identifier.');
+  }
+
+  return claims;
 }
 
 export function storeExternalSignOnRequest(
@@ -268,6 +304,44 @@ function authorizationEndpoint(provider: ExternalSignOnProvider) {
 
   const tenant = repo.getSetting('auth.sso.entra.tenant') || 'common';
   return `https://login.microsoftonline.com/${encodeURIComponent(tenant)}/oauth2/v2.0/authorize`;
+}
+
+const defaultOidcAdapter: OidcAdapter = {
+  async exchange(input) {
+    const config = await oidc.discovery(
+      issuerUrl(input.provider),
+      input.clientId,
+      {
+        client_secret: input.clientSecret,
+        redirect_uris: [input.redirectUri],
+        response_types: ['code']
+      },
+      oidc.ClientSecretPost(input.clientSecret)
+    );
+    const callbackUrl = new URL(input.redirectUri);
+    callbackUrl.searchParams.set('code', input.code);
+
+    const tokens = await oidc.authorizationCodeGrant(config, callbackUrl, {
+      expectedNonce: input.nonce,
+      pkceCodeVerifier: input.codeVerifier
+    });
+    const claims = tokens.claims();
+
+    return {
+      sub: typeof claims?.sub === 'string' ? claims.sub : '',
+      email: typeof claims?.email === 'string' ? claims.email : undefined,
+      name: typeof claims?.name === 'string' ? claims.name : undefined
+    };
+  }
+};
+
+function issuerUrl(provider: ExternalSignOnProvider) {
+  if (provider === 'google') {
+    return new URL('https://accounts.google.com');
+  }
+
+  const tenant = repo.getSetting('auth.sso.entra.tenant') || 'common';
+  return new URL(`https://login.microsoftonline.com/${encodeURIComponent(tenant)}/v2.0`);
 }
 
 function clearExternalSignOnRequest(cookies: ExternalSignOnCookies) {

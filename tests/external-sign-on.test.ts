@@ -32,9 +32,13 @@ function fakeCookies() {
 }
 
 describe('external sign-on status', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useRealTimers();
     settings.clear();
+    const { setExternalSignOnOidcAdapterForTests } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+    setExternalSignOnOidcAdapterForTests(undefined);
   });
 
   test('returns disabled status by default', async () => {
@@ -380,6 +384,117 @@ describe('external sign-on status', () => {
         codeChallenge: 'challenge-token'
       })
     ).toThrow('Configure the Microsoft Entra ID client secret before signing in.');
+  });
+
+  test('exchanges a Google callback through the configured OIDC adapter', async () => {
+    const {
+      exchangeExternalSignOnCode,
+      setExternalSignOnOidcAdapterForTests,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+    const exchange = vi.fn().mockResolvedValue({
+      sub: 'google-subject',
+      email: 'owner@example.com',
+      name: 'Owner Example'
+    });
+
+    try {
+      updateExternalSignOnProviderSettings({
+        provider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        entraTenant: '',
+        entraClientId: '',
+        entraClientSecret: ''
+      });
+      setExternalSignOnOidcAdapterForTests({ exchange });
+
+      await expect(
+        exchangeExternalSignOnCode({
+          origin: 'https://app.example.com',
+          provider: 'google',
+          code: 'code',
+          codeVerifier: 'verifier',
+          nonce: 'nonce'
+        })
+      ).resolves.toEqual({
+        sub: 'google-subject',
+        email: 'owner@example.com',
+        name: 'Owner Example'
+      });
+
+      expect(exchange).toHaveBeenCalledWith({
+        origin: 'https://app.example.com',
+        provider: 'google',
+        code: 'code',
+        codeVerifier: 'verifier',
+        nonce: 'nonce',
+        clientId: 'google-client',
+        clientSecret: 'google-secret',
+        redirectUri: 'https://app.example.com/auth/external/google/callback'
+      });
+    } finally {
+      setExternalSignOnOidcAdapterForTests(undefined);
+    }
+  });
+
+  test('rejects callback claims without a provider subject', async () => {
+    const {
+      exchangeExternalSignOnCode,
+      setExternalSignOnOidcAdapterForTests,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+
+    try {
+      updateExternalSignOnProviderSettings({
+        provider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        entraTenant: '',
+        entraClientId: '',
+        entraClientSecret: ''
+      });
+      setExternalSignOnOidcAdapterForTests({
+        exchange: vi.fn().mockResolvedValue({ sub: '   ' })
+      });
+
+      await expect(
+        exchangeExternalSignOnCode({
+          origin: 'https://app.example.com',
+          provider: 'google',
+          code: 'code',
+          codeVerifier: 'verifier',
+          nonce: 'nonce'
+        })
+      ).rejects.toThrow('The provider did not return an account identifier.');
+    } finally {
+      setExternalSignOnOidcAdapterForTests(undefined);
+    }
+  });
+
+  test('rejects incomplete provider credentials before calling the OIDC adapter', async () => {
+    const { exchangeExternalSignOnCode, setExternalSignOnOidcAdapterForTests } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+    const exchange = vi.fn();
+
+    try {
+      settings.set('auth.sso.google.clientId', 'google-client');
+      setExternalSignOnOidcAdapterForTests({ exchange });
+
+      await expect(
+        exchangeExternalSignOnCode({
+          origin: 'https://app.example.com',
+          provider: 'google',
+          code: 'code',
+          codeVerifier: 'verifier',
+          nonce: 'nonce'
+        })
+      ).rejects.toThrow('External sign-on provider settings are incomplete.');
+      expect(exchange).not.toHaveBeenCalled();
+    } finally {
+      setExternalSignOnOidcAdapterForTests(undefined);
+    }
   });
 
   test('stores and consumes an external sign-on request', async () => {
