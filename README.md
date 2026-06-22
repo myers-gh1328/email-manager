@@ -233,13 +233,13 @@ For Cloudflare Tunnel:
 
 1. Build and run the app on a private local port.
 2. Set a strong app secret.
-3. Enable secure cookies when serving through HTTPS.
+3. Set `SCUBA_EMAIL_SECURE_COOKIES=true` in the environment where the app starts when serving through HTTPS.
 4. Forward your public hostname to the local app, for example `http://127.0.0.1:3000`.
 5. In Settings, set the public base URL to the HTTPS hostname.
 6. Enable remote-ready mode so the dashboard can report remote-access blockers.
 7. Enable trusted proxy headers only if the tunnel is the only public path to the app.
 
-Remote access protects the app with the same admin password. Use a strong password. The remote-ready and trusted-proxy settings do not configure your tunnel or proxy; they make the app show whether required runtime hardening, such as `SCUBA_EMAIL_APP_SECRET` and secure cookies, is in place.
+Remote access protects the app with the same admin password. Use a strong password. The remote-ready and trusted-proxy settings do not configure your tunnel or proxy. Secure cookies are not a Settings-page checkbox; set `SCUBA_EMAIL_SECURE_COOKIES=true` before starting the app, then restart it. Remote-ready mode makes the app show whether required runtime hardening, such as `SCUBA_EMAIL_APP_SECRET` and secure cookies, is in place.
 
 ## Environment Variables
 

@@ -106,7 +106,9 @@ export function loadCommunicationsData(contactId?: string) {
 }
 
 export function loadSettingsData() {
+  const settings = getSettings();
   return {
-    settings: getSettings()
+    settings,
+    remoteStatus: remoteAccessStatus(settings)
   };
 }
