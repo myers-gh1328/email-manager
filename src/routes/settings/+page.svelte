@@ -11,6 +11,7 @@
   let initialized = $state(false);
   let aiBaseUrl = $state('');
   let selectedAiModel = $state('');
+  let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
 
   $effect(() => {
@@ -23,6 +24,7 @@
       microsoftTenantId = data.settings.microsoftTenantId;
       aiBaseUrl = form?.aiBaseUrl || data.settings.aiBaseUrl;
       selectedAiModel = form?.aiModel || data.settings.aiModel;
+      externalSignOnProvider = data.externalSignOn.provider || 'google';
       initialized = true;
     }
   });
@@ -45,7 +47,7 @@
   }
 
   function noticeClass(message: string) {
-    return message.includes('accepted') || message.includes('connected') || message.includes('saved') || message.includes('updated')
+    return message.includes('accepted') || message.includes('connected') || message.includes('saved') || message.includes('updated') || message.includes('removed')
       ? 'success spaced'
       : 'error spaced';
   }
@@ -55,10 +57,16 @@
     if (!query) return true;
     return [title, ...terms].join(' ').toLowerCase().includes(query);
   }
+
+  function externalSignOnRedirectUri() {
+    return externalSignOnProvider === 'entra'
+      ? data.externalSignOnRedirectUris.entra
+      : data.externalSignOnRedirectUris.google;
+  }
 </script>
 
 <svelte:head>
-  <title>Settings · Scuba Email Studio</title>
+  <title>Settings · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band settings-page">
@@ -186,7 +194,7 @@
           <div class="setup-note">
             <p class="help-text">Create a Microsoft Entra app registration before connecting Outlook:</p>
             <ol>
-              <li>In Microsoft Entra admin center, create an app registration named <strong>Scuba Email Studio</strong>.</li>
+              <li>In Microsoft Entra admin center, create an app registration named <strong>Training Communications Studio</strong>.</li>
               <li>Set supported account types to the accounts you want to use. Use personal Microsoft accounts if you send from Outlook.com.</li>
               <li>Add a web redirect URI exactly matching <code>{data.microsoftRedirectUri}</code>.</li>
               <li>Create a client secret and paste its value below before it expires from the Entra screen.</li>
@@ -359,10 +367,15 @@
       </details>
     {/if}
 
-    {#if sectionMatches('Security', ['change admin password app secret login credentials'])}
-    <details class="settings-section settings-panel">
-      <summary>Change admin password</summary>
+    {#if sectionMatches('Security', ['change admin password app secret login credentials external sign-on sso google microsoft entra identity'])}
+    <details class="settings-section settings-panel wide" open={data.openSection === 'security'}>
+      <summary>Security</summary>
       <form method="POST" action="?/changePassword" class="panel-form" use:enhance>
+        <div>
+          <p class="eyebrow">Password login</p>
+          <h3>Local admin password</h3>
+          <p class="help-text">Password login stays available even when external sign-on is connected. Use a strong local password for setup, recovery, and settings changes.</p>
+        </div>
         <label>
           New password
           <input name="password" type="password" minlength="10" />
@@ -370,6 +383,113 @@
         </label>
         <button type="submit">Update password</button>
       </form>
+
+      <form method="POST" action="?/saveExternalSignOnProvider" class="panel-form external-sign-on-form" use:enhance>
+        <div class="panel-title-row">
+          <div>
+            <p class="eyebrow">External sign-on</p>
+            <h3>Google or Microsoft Entra ID</h3>
+            <p class="help-text">External sign-on is optional. Connect one provider account to let this single-user app accept that account at login.</p>
+          </div>
+          {#if data.externalSignOn.enabled}<span class="pill good">Linked</span>{/if}
+        </div>
+
+        {#if data.externalSignOnLinked}
+          <p class="success">External sign-on is connected. Password login remains available.</p>
+        {/if}
+
+        {#if data.externalSignOn.enabled}
+          <div class="setup-note">
+            <p class="help-text">
+              Linked to {data.externalSignOn.providerLabel}
+              {#if data.externalSignOn.email} as <strong>{data.externalSignOn.email}</strong>{/if}
+              {#if data.externalSignOn.name} ({data.externalSignOn.name}){/if}.
+            </p>
+            {#if data.externalSignOn.linkedAt}<p class="help-text">Connected at {data.externalSignOn.linkedAt}.</p>{/if}
+          </div>
+        {:else}
+          <div class="setup-note">
+            <p class="help-text">No external account is linked yet. Save the provider settings, then connect with your current local admin password.</p>
+          </div>
+        {/if}
+
+        <div class="toggle-grid">
+          <label class="check with-help">
+            <span><input name="externalSignOnProvider" type="radio" value="google" bind:group={externalSignOnProvider} /> Google</span>
+            <small>Use a Google OAuth client with an authorized redirect URI matching this app.</small>
+          </label>
+          <label class="check with-help">
+            <span><input name="externalSignOnProvider" type="radio" value="entra" bind:group={externalSignOnProvider} /> Microsoft Entra ID</span>
+            <small>Use a Microsoft Entra app registration for work, school, or Microsoft accounts.</small>
+          </label>
+        </div>
+
+        <label>
+          Redirect URI
+          <input value={externalSignOnRedirectUri()} readonly />
+          <span class="help-text">Copy this exact address into the provider app registration before connecting.</span>
+        </label>
+
+        {#if externalSignOnProvider === 'google'}
+          <div class="split">
+            <label>
+              Google client ID
+              <input name="googleClientId" value={data.externalSignOn.googleClientId} />
+              <span class="help-text">OAuth client ID from Google Cloud Console.</span>
+            </label>
+            <label>
+              Google client secret
+              <input name="googleClientSecret" type="password" placeholder={data.externalSignOn.googleClientSecretConfigured ? 'Configured' : ''} />
+              <span class="help-text">Leave blank to keep the current saved secret.</span>
+            </label>
+          </div>
+        {:else}
+          <div class="split">
+            <label>
+              Entra tenant
+              <input name="entraTenant" value={data.externalSignOn.entraTenant} placeholder="common" />
+              <span class="help-text">Use <code>common</code> for broad Microsoft sign-in, or your tenant ID for one organization.</span>
+            </label>
+            <label>
+              Application ID
+              <input name="entraClientId" value={data.externalSignOn.entraClientId} />
+              <span class="help-text">Application client ID from Microsoft Entra app registration.</span>
+            </label>
+          </div>
+          <label>
+            Entra client secret
+            <input name="entraClientSecret" type="password" placeholder={data.externalSignOn.entraClientSecretConfigured ? 'Configured' : ''} />
+            <span class="help-text">Leave blank to keep the current saved secret.</span>
+          </label>
+        {/if}
+
+        <label>
+          Current local admin password
+          <input name="currentPassword" type="password" autocomplete="current-password" />
+          <span class="help-text">Required before saving provider settings or connecting external sign-on.</span>
+        </label>
+
+        <div class="button-row">
+          <button class="secondary" type="submit">Save provider settings</button>
+          <button type="submit" formaction="?/connectExternalSignOn">Connect external sign-on</button>
+        </div>
+      </form>
+
+      {#if data.externalSignOn.enabled}
+        <form method="POST" action="?/removeExternalSignOn" class="panel-form" use:enhance>
+          <div>
+            <p class="eyebrow">Linked account</p>
+            <h3>Remove external sign-on</h3>
+            <p class="help-text">Removing the link stops external account login. Provider client settings are kept so you can reconnect later.</p>
+          </div>
+          <label>
+            Current local admin password
+            <input name="currentPassword" type="password" autocomplete="current-password" />
+            <span class="help-text">Required before removing the linked account.</span>
+          </label>
+          <button class="danger" type="submit">Remove external sign-on</button>
+        </form>
+      {/if}
     </details>
     {/if}
 

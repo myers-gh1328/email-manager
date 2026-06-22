@@ -195,6 +195,13 @@ classes so manual entry and imports share the same identity rules.
 
 The app is single-user per installation. The admin password is required before using the app.
 
+Optional external sign-on is single-user sign-on only. It links one Google or
+Microsoft Entra ID identity to the installation and then creates the same local
+session used by password login. It does not add users, roles, teams, invites,
+account management, or hosted authentication. Provider credentials are
+installation-owned settings. Sign-on must not store provider access tokens or
+refresh tokens.
+
 Secrets are encrypted before storage using the app secret. The app secret must be changed before remote exposure.
 
 Sensitive values include:

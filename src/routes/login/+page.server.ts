@@ -1,5 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { clearLoginFailures, createSession, loginThrottleStatus, recordLoginFailure, verifyAdminPassword } from '$lib/server/auth';
+import { getExternalSignOnStatus } from '$lib/server/external-sign-on';
+
+export const load = ({ url }) => ({
+  externalSignOn: getExternalSignOnStatus(),
+  externalError: url.searchParams.get('error') === 'external'
+});
 
 export const actions = {
   default: async ({ request, cookies, getClientAddress }) => {

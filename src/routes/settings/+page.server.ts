@@ -1,5 +1,14 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { setAdminPassword } from '$lib/server/auth';
+import { setAdminPassword, verifyAdminPassword } from '$lib/server/auth';
+import {
+  allowExternalSignOnLink,
+  clearExternalSignOnIdentity,
+  externalSignOnRedirectUri,
+  getExternalSignOnStatus,
+  isExternalSignOnProvider,
+  updateExternalSignOnProviderSettings,
+  type ExternalSignOnProvider
+} from '$lib/server/external-sign-on';
 import { listAiModels } from '$lib/server/llm';
 import { required } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
@@ -21,6 +30,13 @@ export const load = ({ url }) => {
   return {
     ...data,
     message: url.searchParams.get('message') ?? '',
+    openSection: url.searchParams.get('section') ?? '',
+    externalSignOnLinked: url.searchParams.get('externalSignOn') === 'linked',
+    externalSignOn: getExternalSignOnStatus(),
+    externalSignOnRedirectUris: {
+      google: externalSignOnRedirectUri(url.origin, 'google'),
+      entra: externalSignOnRedirectUri(url.origin, 'entra')
+    },
     microsoftRedirectUri: `${(data.settings.publicBaseUrl || url.origin).replace(/\/$/, '')}/settings/microsoft/callback`
   };
 };
@@ -57,6 +73,60 @@ export const actions = {
   updateVocabulary: async ({ request }) => {
     updateVocabularySettings(await request.formData());
     return { message: 'Vocabulary settings saved.' };
+  },
+  saveExternalSignOnProvider: async ({ request }) => {
+    const form = await request.formData();
+    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+      return fail(400, { message: 'Enter the current local admin password before saving external sign-on settings.' });
+    }
+
+    try {
+      updateExternalSignOnProviderSettings(externalSignOnProviderSettingsFromForm(form));
+      return { message: 'External sign-on provider settings saved.' };
+    } catch {
+      return fail(400, { message: 'Choose Google or Microsoft Entra ID and enter the provider settings.' });
+    }
+  },
+  connectExternalSignOn: async ({ request, cookies }) => {
+    const form = await request.formData();
+    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+      return fail(400, { message: 'Enter the current local admin password before connecting external sign-on.' });
+    }
+
+    let provider: ExternalSignOnProvider;
+    let settingsInput: ReturnType<typeof externalSignOnProviderSettingsFromForm>;
+    try {
+      settingsInput = externalSignOnProviderSettingsFromForm(form);
+      if (!isExternalSignOnProvider(settingsInput.provider)) {
+        return fail(400, { message: 'Choose Google or Microsoft Entra ID before connecting external sign-on.' });
+      }
+      provider = settingsInput.provider;
+    } catch {
+      return fail(400, { message: 'Check the selected provider settings before connecting external sign-on.' });
+    }
+
+    const status = getExternalSignOnStatus();
+    if (!externalSignOnProviderInputIsConfigured(settingsInput, status, provider)) {
+      return fail(400, { message: 'Enter the selected provider client ID and client secret before connecting external sign-on.' });
+    }
+
+    try {
+      updateExternalSignOnProviderSettings(settingsInput);
+    } catch {
+      return fail(400, { message: 'Check the selected provider settings before connecting external sign-on.' });
+    }
+
+    allowExternalSignOnLink(cookies);
+    throw redirect(303, `/auth/external/${provider}/start?mode=link`);
+  },
+  removeExternalSignOn: async ({ request }) => {
+    const form = await request.formData();
+    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+      return fail(400, { message: 'Enter the current local admin password before removing external sign-on.' });
+    }
+
+    clearExternalSignOnIdentity();
+    return { message: 'External sign-on link removed. Provider settings were kept.' };
   },
   loadAiModels: async ({ request }) => {
     const form = await request.formData();
@@ -104,3 +174,48 @@ export const actions = {
     return { message: 'Admin password updated.' };
   }
 };
+
+function externalSignOnProviderSettingsFromForm(form: FormData) {
+  return {
+    provider: String(form.get('externalSignOnProvider') ?? ''),
+    googleClientId: String(form.get('googleClientId') ?? ''),
+    googleClientSecret: String(form.get('googleClientSecret') ?? ''),
+    entraTenant: String(form.get('entraTenant') ?? ''),
+    entraClientId: String(form.get('entraClientId') ?? ''),
+    entraClientSecret: String(form.get('entraClientSecret') ?? '')
+  };
+}
+
+function externalSignOnProviderInputIsConfigured(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
+  status: ReturnType<typeof getExternalSignOnStatus>,
+  provider: ExternalSignOnProvider
+) {
+  if (provider === 'google') {
+    return Boolean(clean(input.googleClientId) && (clean(input.googleClientSecret) || canPreserveGoogleSecret(input, status)));
+  }
+  return Boolean(clean(input.entraClientId) && (clean(input.entraClientSecret) || canPreserveEntraSecret(input, status)));
+}
+
+function canPreserveGoogleSecret(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
+  status: ReturnType<typeof getExternalSignOnStatus>
+) {
+  return status.provider === 'google'
+    && status.googleClientSecretConfigured
+    && clean(input.googleClientId) === clean(status.googleClientId);
+}
+
+function canPreserveEntraSecret(
+  input: ReturnType<typeof externalSignOnProviderSettingsFromForm>,
+  status: ReturnType<typeof getExternalSignOnStatus>
+) {
+  return status.provider === 'entra'
+    && status.entraClientSecretConfigured
+    && clean(input.entraClientId) === clean(status.entraClientId)
+    && (clean(input.entraTenant) || 'common') === (clean(status.entraTenant) || 'common');
+}
+
+function clean(value: string) {
+  return value.trim();
+}

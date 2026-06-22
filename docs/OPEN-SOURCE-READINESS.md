@@ -44,6 +44,9 @@ owner's machine without exposing private data or private infrastructure.
   owner-only infrastructure.
 - Optional AI, SMTP, Microsoft OAuth, and remote-access features remain
   optional unless the core app explicitly requires them later.
+- External sign-on docs must not imply hosted authentication, shared Google
+  credentials, or shared Microsoft credentials. Users who enable sign-on bring
+  their own provider app registration and secrets.
 
 ## App-Specific Safety Checks
 
