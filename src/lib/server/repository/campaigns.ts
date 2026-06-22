@@ -1,0 +1,257 @@
+import type { DatabaseSync } from 'node:sqlite';
+import { createDeliveryPlan, type CampaignDelivery } from '../scheduler';
+import { getClassSession, listEnrollments } from './contacts';
+import { newId, now } from './ids';
+import { mapCampaign, mapDelivery } from './mappers';
+import { getTemplate } from './templates';
+import type { CampaignInput, Row } from './types';
+
+export function createCampaign(db: DatabaseSync, input: CampaignInput) {
+  const id = newId();
+  db.prepare(
+    `insert into campaigns (
+      id, class_session_id, template_id, name, scheduled_for, approved,
+      source, default_purpose, default_label, send_offset_minutes, created_at
+    )
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    id,
+    input.classSessionId,
+    input.templateId,
+    input.name.trim(),
+    input.scheduledFor,
+    input.approved ? 1 : 0,
+    input.source ?? 'manual',
+    input.defaultPurpose?.trim() ?? '',
+    input.defaultLabel?.trim() ?? '',
+    input.sendOffsetMinutes ?? 0,
+    now()
+  );
+  return getCampaign(db, id);
+}
+
+export function listCampaigns(db: DatabaseSync) {
+  return db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       from campaigns c
+       join templates t on t.id = c.template_id
+       join class_sessions cs on cs.id = c.class_session_id
+       join course_types ct on ct.id = cs.course_type_id
+       order by c.scheduled_for desc`
+    )
+    .all()
+    .map(mapCampaign);
+}
+
+export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string) {
+  return db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       from campaigns c
+       join templates t on t.id = c.template_id
+       join class_sessions cs on cs.id = c.class_session_id
+       join course_types ct on ct.id = cs.course_type_id
+       where c.class_session_id = ?
+       order by c.scheduled_for asc`
+    )
+    .all(classSessionId)
+    .map((row) => {
+      const campaign = mapCampaign(row);
+      const counts = deliveryCounts(db, campaign.id);
+      return {
+        ...campaign,
+        pendingCount: counts.pending,
+        sentCount: counts.sent,
+        failedCount: counts.failed,
+        recipientCount: counts.pending + counts.sent + counts.failed
+      };
+    });
+}
+
+export function getCampaign(db: DatabaseSync, id: string) {
+  const row = db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       from campaigns c
+       join templates t on t.id = c.template_id
+       join class_sessions cs on cs.id = c.class_session_id
+       join course_types ct on ct.id = cs.course_type_id
+       where c.id = ?`
+    )
+    .get(id) as Row | undefined;
+  if (!row) throw new Error(`Campaign not found: ${id}`);
+  return mapCampaign(row);
+}
+
+export function updateCampaign(db: DatabaseSync, id: string, input: { name: string; scheduledFor: string; approved: boolean }) {
+  db.prepare('update campaigns set name = ?, scheduled_for = ?, approved = ? where id = ?')
+    .run(input.name.trim(), input.scheduledFor, input.approved ? 1 : 0, id);
+  return getCampaign(db, id);
+}
+
+export function updateDefaultCampaign(
+  db: DatabaseSync,
+  id: string,
+  input: {
+    templateId: string;
+    name: string;
+    scheduledFor: string;
+    defaultPurpose: string;
+    defaultLabel: string;
+    sendOffsetMinutes: number;
+  }
+) {
+  db.prepare(
+    `update campaigns
+     set template_id = ?, name = ?, scheduled_for = ?, approved = 1, source = 'course_default',
+       default_purpose = ?, default_label = ?, send_offset_minutes = ?
+     where id = ?`
+  ).run(input.templateId, input.name.trim(), input.scheduledFor, input.defaultPurpose, input.defaultLabel, input.sendOffsetMinutes, id);
+  db.prepare("update campaign_deliveries set status = 'pending', error_message = null where campaign_id = ? and status = 'failed'").run(id);
+  return getCampaign(db, id);
+}
+
+export function hasSentDeliveries(db: DatabaseSync, campaignId: string) {
+  const sent = db
+    .prepare("select count(*) as value from campaign_deliveries where campaign_id = ? and status = 'sent'")
+    .get(campaignId) as Row;
+  return Number(sent.value) > 0;
+}
+
+export function deleteCampaign(db: DatabaseSync, id: string) {
+  if (hasSentDeliveries(db, id)) throw new Error('Campaign has sent deliveries and cannot be deleted.');
+  db.prepare('delete from campaigns where id = ?').run(id);
+}
+
+export function getCampaignDetail(db: DatabaseSync, id: string) {
+  const campaign = getCampaign(db, id);
+  const classSession = getClassSession(db, campaign.classSessionId);
+  const template = getTemplate(db, campaign.templateId);
+  const deliveries = new Map(listDeliveries(db, id).map((delivery) => [delivery.recipientId, delivery]));
+  const recipients = listEnrollments(db, campaign.classSessionId)
+    .map((contact) => {
+      const delivery = deliveries.get(contact.id);
+      return {
+        contactId: contact.id,
+        name: `${contact.firstName} ${contact.lastName}`.trim(),
+        email: contact.email,
+        doNotEmail: contact.doNotEmail,
+        status: contact.doNotEmail ? 'skipped' : (delivery?.status ?? 'not planned'),
+        reason: contact.doNotEmail ? 'Do not email' : delivery?.errorMessage,
+        delivery
+      };
+    })
+    .sort((a, b) => recipientStatusRank(a.status) - recipientStatusRank(b.status) || a.name.localeCompare(b.name));
+
+  return { campaign, classSession, template, recipients };
+}
+
+function recipientStatusRank(status: string) {
+  return ['skipped', 'failed', 'pending', 'not planned', 'sent'].indexOf(status);
+}
+
+function deliveryCounts(db: DatabaseSync, campaignId: string) {
+  const initialCounts: { pending: number; sent: number; failed: number } = { pending: 0, sent: 0, failed: 0 };
+  const rows = db
+    .prepare(
+      `select status, count(*) as value
+       from campaign_deliveries
+       where campaign_id = ?
+       group by status`
+    )
+    .all(campaignId) as Row[];
+  return rows.reduce<{ pending: number; sent: number; failed: number }>(
+    (counts, row) => {
+      const status = String(row.status);
+      const value = Number(row.value);
+      if (status === 'pending') counts.pending = value;
+      if (status === 'sent') counts.sent = value;
+      if (status === 'failed') counts.failed = value;
+      return counts;
+    },
+    initialCounts
+  );
+}
+
+export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string): CampaignDelivery[] {
+  const campaign = getCampaign(db, campaignId);
+  const enrolledRecipients = listEnrollments(db, campaign.classSessionId).filter((contact) => !contact.doNotEmail);
+  const existing = listDeliveries(db, campaignId);
+  const existingRecipientIds = new Set(existing.map((delivery) => delivery.recipientId));
+  const recipients =
+    campaign.source !== 'course_default' && existing.length > 0
+      ? enrolledRecipients.filter((contact) => existingRecipientIds.has(contact.id))
+      : enrolledRecipients;
+  const pending = createDeliveryPlan({
+    campaignId,
+    recipientIds: recipients.map((contact) => contact.id),
+    existingDeliveries: existing
+  });
+
+  for (const delivery of pending) {
+    db.prepare(
+      `insert into campaign_deliveries (id, campaign_id, recipient_id, status, created_at)
+       values (?, ?, ?, ?, ?)
+       on conflict(id) do update set status = 'pending', error_message = null
+       where campaign_deliveries.status = 'failed'`
+    ).run(delivery.id, delivery.campaignId, delivery.recipientId, delivery.status, delivery.createdAt);
+  }
+
+  return listPendingDeliveries(db, campaignId);
+}
+
+export function listDeliveries(db: DatabaseSync, campaignId: string): CampaignDelivery[] {
+  return db
+    .prepare('select * from campaign_deliveries where campaign_id = ? order by created_at')
+    .all(campaignId)
+    .map(mapDelivery);
+}
+
+export function listPendingDeliveries(db: DatabaseSync, campaignId: string): CampaignDelivery[] {
+  return db
+    .prepare(
+      `select d.*
+       from campaign_deliveries d
+       join contacts c on c.id = d.recipient_id
+       where d.campaign_id = ? and d.status = 'pending' and c.do_not_email = 0
+       order by d.created_at`
+    )
+    .all(campaignId)
+    .map(mapDelivery);
+}
+
+export function claimNextPendingDelivery(db: DatabaseSync, campaignId: string): CampaignDelivery | undefined {
+  const row = db
+    .prepare(
+      `update campaign_deliveries
+       set status = 'sending', error_message = null
+       where id = (
+         select d.id
+         from campaign_deliveries d
+         join contacts c on c.id = d.recipient_id
+         where d.campaign_id = ? and d.status = 'pending' and c.do_not_email = 0
+         order by d.created_at
+         limit 1
+       )
+       returning *`
+    )
+    .get(campaignId) as Row | undefined;
+  return row ? mapDelivery(row) : undefined;
+}
+
+export function markDeliverySent(db: DatabaseSync, deliveryId: string, providerMessage: string) {
+  db.prepare(
+    `update campaign_deliveries
+     set status = 'sent', sent_at = ?, provider_message = ?, error_message = null
+     where id = ? and status != 'sent'`
+  ).run(now(), providerMessage, deliveryId);
+}
+
+export function markDeliveryFailed(db: DatabaseSync, deliveryId: string, errorMessage: string) {
+  db.prepare(
+    `update campaign_deliveries
+     set status = 'failed', error_message = ?
+     where id = ? and status != 'sent'`
+  ).run(errorMessage, deliveryId);
+}

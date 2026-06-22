@@ -1,0 +1,16 @@
+---
+description: Server-only boundaries, repository rules, and secret handling.
+globs:
+  - "src/lib/server/**/*.ts"
+  - "src/routes/**/+page.server.ts"
+  - "src/routes/**/+server.ts"
+---
+
+# Server Boundaries
+
+- Keep SQLite SQL inside `src/lib/server/repository/`; routes and Svelte components should call repository methods.
+- Add schema changes in `repository/schema.ts`, public methods in `repository/index.ts`, row conversion in `repository/mappers.ts`, and domain SQL in the matching repository module.
+- Do not log SMTP passwords, OAuth refresh tokens, AI API keys, admin password hashes, session tokens, or decrypted app secrets.
+- Preserve the campaign send-once invariant from `docs/ARCHITECTURE.md`.
+- Shared server helpers belong in `src/lib/server` when behavior is reused, security-sensitive, background-capable, or useful to test directly.
+- If a change touches sending or communications, use the `scuba-send-safety` skill.

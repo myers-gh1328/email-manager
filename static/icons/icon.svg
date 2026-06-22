@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Scuba Email Studio">
+  <rect width="512" height="512" rx="96" fill="#10201d"/>
+  <path d="M116 184h280a32 32 0 0 1 32 32v152a32 32 0 0 1-32 32H116a32 32 0 0 1-32-32V216a32 32 0 0 1 32-32Z" fill="#eff8f4"/>
+  <path d="m96 214 160 114 160-114" fill="none" stroke="#0f766e" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="190" cy="154" r="42" fill="#8fcac0"/>
+  <circle cx="322" cy="154" r="42" fill="#8fcac0"/>
+  <path d="M232 154h48" stroke="#eff8f4" stroke-width="22" stroke-linecap="round"/>
+  <path d="M176 132c-24 0-44 20-44 44" fill="none" stroke="#10201d" stroke-width="18" stroke-linecap="round" opacity=".28"/>
+  <path d="M308 132c-24 0-44 20-44 44" fill="none" stroke="#10201d" stroke-width="18" stroke-linecap="round" opacity=".28"/>
+</svg>

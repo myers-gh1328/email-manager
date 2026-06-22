@@ -1,0 +1,21 @@
+---
+description: Testing and validation expectations for behavior and agent assets.
+globs:
+  - "src/**/*.ts"
+  - "src/**/*.svelte"
+  - "tests/**/*.ts"
+  - ".agents/**"
+  - ".cursor/**"
+  - ".codex/**"
+  - ".github/prompts/**"
+  - "docs/**"
+---
+
+# Tests And Validation
+
+- Use focused tests while iterating, then run `npm run agent:check` before claiming completion.
+- Prefer pure helper tests for scheduling, template, form, and readiness behavior over brittle full-page snapshots.
+- Add repository tests with schema or SQL changes.
+- Add send-safety tests when changing campaigns, deliveries, scheduler, mailer, direct email, communications, or email test mode.
+- Keep agent assets discoverable and covered by `tests/agent-assets.test.ts`.
+- If validation cannot be run, state exactly which command was skipped and why.

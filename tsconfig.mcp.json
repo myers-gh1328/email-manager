@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": false,
+    "checkJs": false,
+    "declaration": false,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "outDir": "build-mcp",
+    "rootDir": ".",
+    "types": ["node"],
+    "verbatimModuleSyntax": false
+  },
+  "include": [
+    "src/mcp/**/*.ts",
+    "src/lib/server/agent/**/*.ts",
+    "src/lib/server/app.ts",
+    "src/lib/server/app-secret.ts",
+    "src/lib/server/crypto.ts",
+    "src/lib/server/page-data.ts",
+    "src/lib/server/repository/**/*.ts",
+    "src/lib/server/scheduler.ts",
+    "src/lib/server/settings.ts",
+    "src/lib/shared/theme.ts"
+  ],
+  "exclude": ["src/**/*.svelte", "tests/**"]
+}

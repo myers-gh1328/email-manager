@@ -1,0 +1,27 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, test } from 'vitest';
+
+describe('app accessibility contracts', () => {
+  test('active navigation exposes aria-current', () => {
+    const layout = readFileSync('src/routes/+layout.svelte', 'utf8');
+
+    expect(layout).toContain('aria-current');
+  });
+
+  test('interactive controls have a global focus-visible style', () => {
+    const styles = readFileSync('src/styles.css', 'utf8');
+
+    expect(styles).toContain(':focus-visible');
+    expect(styles).toContain('outline');
+  });
+
+  test('keeps settings searchable and grouped with native collapsible sections', () => {
+    const source = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+
+    expect(source).toContain('Search settings');
+    expect(source).toContain('<details');
+    expect(source).toContain('<summary>Agent Access</summary>');
+    expect(source).toContain('<summary>Agent Permissions</summary>');
+    expect(source).toContain('<summary>Vocabulary</summary>');
+  });
+});

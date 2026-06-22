@@ -1,0 +1,16 @@
+---
+description: SvelteKit route and form-action rules for Scuba Email Studio.
+globs:
+  - "src/routes/**/*.svelte"
+  - "src/routes/**/+page.server.ts"
+  - "src/routes/**/+server.ts"
+---
+
+# SvelteKit Routes
+
+- Keep page-specific form actions in the owning `+page.server.ts`.
+- Use grouped actions for grouped settings or workflow panels; do not resave unrelated settings from one submit.
+- Keep browser load data free of decrypted secrets, password hashes, tokens, and app secrets.
+- Route layout should follow the workflow split in `docs/ARCHITECTURE.md`.
+- If a route changes scheduling, sending, settings, AI, auth, or SMTP behavior, update or add tests for the relevant invariant.
+- UI changes that affect layout, navigation, or visible send state should follow `docs/AGENT-DEV-ENV.md` and the `scuba-ui-workflow` skill.

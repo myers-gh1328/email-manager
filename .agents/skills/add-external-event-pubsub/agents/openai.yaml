@@ -1,0 +1,3 @@
+display_name: Add External Event Pub/Sub
+short_description: Add optional external event ingestion safely.
+default_prompt: Add or update optional external event pub/sub support while keeping the app public-ready and user-configured.

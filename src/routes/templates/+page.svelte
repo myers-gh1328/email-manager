@@ -1,0 +1,154 @@
+<script lang="ts">
+	  import { enhance } from '$app/forms';
+	  import BusyOverlay from '$lib/BusyOverlay.svelte';
+	  import EmailBodyEditor from '$lib/EmailBodyEditor.svelte';
+	  import { classTemplateTokens, tokenFields } from '$lib/shared/template-fields';
+
+	  let { data, form } = $props();
+	  let drafting = $state(false);
+	  let aiPrompt = $state('');
+	  const variables = classTemplateTokens;
+	  const variableFields = tokenFields(variables);
+
+  function confirmDelete() {
+    return confirm('Delete this template? This cannot be undone.');
+  }
+
+  function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
+    const isAiSubmit = submitter instanceof HTMLButtonElement && submitter.formAction.includes('/aiDraft');
+    if (isAiSubmit) drafting = true;
+    return async ({ update }: { update: () => Promise<void> }) => {
+      try {
+        await update();
+      } finally {
+        if (isAiSubmit) drafting = false;
+      }
+    };
+  }
+</script>
+
+<svelte:head>
+  <title>Templates · Scuba Email Studio</title>
+</svelte:head>
+
+<section class="band two-column">
+  <div>
+    <div class="section-heading compact">
+      <div>
+        <p class="eyebrow">Templates</p>
+        <h2>Reusable personalized emails</h2>
+      </div>
+    </div>
+    <div class="action-row">
+      <a class:active={data.action === 'create'} class="button-link" href="/templates?action=create">Create template</a>
+      <a class:active={data.action === 'ai'} class="button-link" href="/templates?action=ai">AI draft</a>
+    </div>
+    {#if form?.message}<p class={form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    <div class="form-stack task-stack">
+    {#if data.selectedTemplate}
+      {#if drafting}
+        <BusyOverlay message="Drafting template..." />
+      {/if}
+      <form method="POST" action="?/updateTemplate" class="panel-form" data-local-busy use:enhance={draftWithAi}>
+        <h3>Edit template</h3>
+        <input name="templateId" type="hidden" value={data.selectedTemplate.id} />
+        <label>Name<input name="name" value={data.selectedTemplate.name} required /></label>
+        <label>Subject<input name="subject" value={data.selectedTemplate.subject} required /></label>
+        <details class="token-help">
+          <summary>Template fields</summary>
+          <div class="token-row compact">
+            {#each variables as variable}<code>{variable}</code>{/each}
+          </div>
+        </details>
+        <EmailBodyEditor name="body" rows={8} required value={data.selectedTemplate.body} fields={variableFields} />
+        <label>AI instruction<textarea name="prompt" rows="3" placeholder="Make this shorter, warmer, and include the class start time."></textarea></label>
+        <div class="button-row">
+          <button type="submit">Update template</button>
+          <button class="secondary" type="submit" formaction="?/aiDraft" formnovalidate disabled={!data.settings.aiEnabled || drafting}>
+            {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
+            Reprompt AI
+          </button>
+          <a class="button-link" href="/templates">Cancel</a>
+          <button class="danger" type="submit" formaction="?/deleteTemplate" onclick={confirmDelete}>Delete</button>
+        </div>
+      </form>
+    {/if}
+    {#if data.action === 'create'}
+      {#if drafting}
+        <BusyOverlay message="Drafting template..." />
+      {/if}
+      <form method="POST" action="?/createTemplate" class="panel-form" data-local-busy use:enhance={draftWithAi}>
+        <h3>Create template</h3>
+        <label>Name<input name="name" placeholder="Welcome email" required /></label>
+        <label>Subject<input name="subject" placeholder={'Welcome to {{courseName}}, {{firstName}}'} required /></label>
+        <details class="token-help">
+          <summary>Template fields</summary>
+          <div class="token-row compact">
+            {#each variables as variable}<code>{variable}</code>{/each}
+          </div>
+        </details>
+        <EmailBodyEditor name="body" rows={9} required placeholder={'Hi {{firstName}},'} fields={variableFields} />
+        <label>AI instruction<textarea name="prompt" rows="3" placeholder="Draft a friendly welcome email for an upcoming class."></textarea></label>
+        <div class="button-row">
+          <button type="submit">Save template</button>
+          <button class="secondary" type="submit" formaction="?action=create&/aiDraft" formnovalidate disabled={!data.settings.aiEnabled || drafting}>
+            {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
+            Draft with AI
+          </button>
+          <a class="button-link" href="/templates">Cancel</a>
+        </div>
+      </form>
+    {/if}
+    {#if data.action === 'ai'}
+      {#if drafting}
+        <BusyOverlay message="Drafting template..." />
+      {/if}
+      <form method="POST" action="?action=ai&/aiDraft" class="panel-form" data-local-busy use:enhance={draftWithAi}>
+        <h3>AI drafting</h3>
+        <label>Prompt<textarea bind:value={aiPrompt} name="prompt" rows="3" placeholder="Write a friendly reminder for tomorrow's pool session."></textarea></label>
+        <button type="submit" disabled={!data.settings.aiEnabled || drafting || !aiPrompt.trim()}>
+          {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
+          {drafting ? 'Drafting with AI' : 'Draft with AI'}
+        </button>
+        {#if form?.message}<p class="error">{form.message}</p>{/if}
+      </form>
+      {#if form?.draft}
+        <form method="POST" action={form.draft.templateId ? '?/updateTemplate' : '?/createTemplate'} class="panel-form draft-result" use:enhance={draftWithAi}>
+          <h3>Review AI draft</h3>
+          {#if form.draft.templateId}<input name="templateId" type="hidden" value={form.draft.templateId} />{/if}
+          <label>Name<input name="name" value={form.draft.name} required /></label>
+          <label>Subject<input name="subject" value={form.draft.subject} required /></label>
+          <details class="token-help">
+            <summary>Template fields</summary>
+            <div class="token-row compact">
+              {#each variables as variable}<code>{variable}</code>{/each}
+            </div>
+          </details>
+          <EmailBodyEditor name="body" rows={9} required value={form.draft.body} fields={variableFields} />
+          <div class="button-row">
+            <button type="submit">{form.draft.templateId ? 'Update template' : 'Save template'}</button>
+            <a class="button-link" href="/templates?action=ai">Discard draft</a>
+          </div>
+        </form>
+      {/if}
+      <div class="button-row">
+        <a class="button-link" href="/templates">Cancel</a>
+      </div>
+    {/if}
+    </div>
+    <div class="list">
+      {#each data.templates as template}
+        <article class="row-card tall">
+          <div>
+            <strong>{template.name}</strong>
+            <p class="template-subject">{template.subject}</p>
+            <p class="muted-preview">{template.body}</p>
+          </div>
+          <a class="button-link" href={`/templates?templateId=${template.id}`}>Edit</a>
+        </article>
+      {:else}
+        <p class="empty">No templates yet.</p>
+      {/each}
+    </div>
+  </div>
+</section>
