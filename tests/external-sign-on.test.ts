@@ -262,47 +262,57 @@ describe('external sign-on status', () => {
     const { consumeExternalSignOnRequest, storeExternalSignOnRequest } = await import(
       '../src/lib/server/external-sign-on'
     );
-    const cookies = fakeCookies();
-    const request = {
-      provider: 'google' as const,
-      mode: 'link' as const,
-      state: 'state-value',
-      nonce: 'nonce-value',
-      codeVerifier: 'verifier-value'
-    };
+    const originalSecureCookies = process.env.SCUBA_EMAIL_SECURE_COOKIES;
+    delete process.env.SCUBA_EMAIL_SECURE_COOKIES;
+    try {
+      const cookies = fakeCookies();
+      const request = {
+        provider: 'google' as const,
+        mode: 'link' as const,
+        state: 'state-value',
+        nonce: 'nonce-value',
+        codeVerifier: 'verifier-value'
+      };
 
-    storeExternalSignOnRequest(cookies as never, request);
+      storeExternalSignOnRequest(cookies as never, request);
 
-    for (const name of [
-      'tcs_sso_provider',
-      'tcs_sso_mode',
-      'tcs_sso_state',
-      'tcs_sso_nonce',
-      'tcs_sso_code_verifier'
-    ]) {
-      expect(cookies.setOptions.get(name)).toEqual({
-        path: '/',
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 600,
-        secure: false
-      });
-    }
+      for (const name of [
+        'tcs_sso_provider',
+        'tcs_sso_mode',
+        'tcs_sso_state',
+        'tcs_sso_nonce',
+        'tcs_sso_code_verifier'
+      ]) {
+        expect(cookies.setOptions.get(name)).toEqual({
+          path: '/',
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 600,
+          secure: false
+        });
+      }
 
-    expect(consumeExternalSignOnRequest(cookies as never, 'google')).toEqual(request);
-    expect(cookies.get('tcs_sso_provider')).toBeUndefined();
-    expect(cookies.get('tcs_sso_mode')).toBeUndefined();
-    expect(cookies.get('tcs_sso_state')).toBeUndefined();
-    expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
-    expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
-    for (const name of [
-      'tcs_sso_provider',
-      'tcs_sso_mode',
-      'tcs_sso_state',
-      'tcs_sso_nonce',
-      'tcs_sso_code_verifier'
-    ]) {
-      expect(cookies.deleteOptions.get(name)).toEqual({ path: '/' });
+      expect(consumeExternalSignOnRequest(cookies as never, 'google')).toEqual(request);
+      expect(cookies.get('tcs_sso_provider')).toBeUndefined();
+      expect(cookies.get('tcs_sso_mode')).toBeUndefined();
+      expect(cookies.get('tcs_sso_state')).toBeUndefined();
+      expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
+      expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
+      for (const name of [
+        'tcs_sso_provider',
+        'tcs_sso_mode',
+        'tcs_sso_state',
+        'tcs_sso_nonce',
+        'tcs_sso_code_verifier'
+      ]) {
+        expect(cookies.deleteOptions.get(name)).toEqual({ path: '/' });
+      }
+    } finally {
+      if (originalSecureCookies === undefined) {
+        delete process.env.SCUBA_EMAIL_SECURE_COOKIES;
+      } else {
+        process.env.SCUBA_EMAIL_SECURE_COOKIES = originalSecureCookies;
+      }
     }
   });
 
