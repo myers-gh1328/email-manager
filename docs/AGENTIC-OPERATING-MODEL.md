@@ -59,7 +59,8 @@ The repository-level deterministic gate is `npm run agent:check`. It runs:
 
 Agent environments may also run global stop hooks or secret checks. Do not depend on personal hooks as the only enforcement path; any required project gate belongs in `scripts/agent/` and should be referenced from `package.json`.
 
-Keep repository automation out of scope unless the repository owner explicitly asks for it.
+Repository automation is allowed for CI and releases after public launch. Keep
+release and version rules in `docs/RELEASES.md`.
 
 ## Review Controls
 

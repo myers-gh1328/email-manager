@@ -319,6 +319,7 @@ Read `docs/EXTERNAL-EVENTS.md` before adding or changing optional external
 event ingestion.
 
 Read `docs/OPEN-SOURCE-READINESS.md` before making public-facing changes.
+Read `docs/RELEASES.md` before changing versions or release packaging.
 
 Build desktop packages:
 
