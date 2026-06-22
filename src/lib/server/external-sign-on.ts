@@ -9,6 +9,14 @@ export type ExternalSignOnProvider = 'google' | 'entra';
 
 export type ExternalSignOnMode = 'login' | 'link';
 
+export type ExternalSignOnRequest = {
+  provider: ExternalSignOnProvider;
+  mode: ExternalSignOnMode;
+  state: string;
+  nonce: string;
+  codeVerifier: string;
+};
+
 export type ExternalSignOnAuthorizationInput = {
   origin: string;
   provider: ExternalSignOnProvider;
@@ -45,6 +53,23 @@ const providerLabels: Record<ExternalSignOnProvider, string> = {
   google: 'Google',
   entra: 'Microsoft Entra ID'
 };
+
+const signOnRequestCookieNames = {
+  provider: 'tcs_sso_provider',
+  mode: 'tcs_sso_mode',
+  state: 'tcs_sso_state',
+  nonce: 'tcs_sso_nonce',
+  codeVerifier: 'tcs_sso_code_verifier'
+} as const;
+
+const signOnRequestCookieOptions = {
+  path: '/',
+  httpOnly: true,
+  sameSite: 'lax',
+  maxAge: 10 * 60
+} as const;
+
+const expiredSignOnRequestMessage = 'The sign-on request expired. Start again.';
 
 export function isExternalSignOnProvider(value: string): value is ExternalSignOnProvider {
   return value === 'google' || value === 'entra';
@@ -128,6 +153,53 @@ export function updateExternalSignOnProviderSettings(input: ExternalSignOnProvid
   }
 }
 
+export function storeExternalSignOnRequest(
+  cookies: ExternalSignOnCookies,
+  request: ExternalSignOnRequest
+) {
+  cookies.set(signOnRequestCookieNames.provider, request.provider, signOnRequestCookieOptions);
+  cookies.set(signOnRequestCookieNames.mode, request.mode, signOnRequestCookieOptions);
+  cookies.set(signOnRequestCookieNames.state, request.state, signOnRequestCookieOptions);
+  cookies.set(signOnRequestCookieNames.nonce, request.nonce, signOnRequestCookieOptions);
+  cookies.set(
+    signOnRequestCookieNames.codeVerifier,
+    request.codeVerifier,
+    signOnRequestCookieOptions
+  );
+}
+
+export function consumeExternalSignOnRequest(
+  cookies: ExternalSignOnCookies,
+  provider: ExternalSignOnProvider
+): ExternalSignOnRequest {
+  const storedProvider = cookies.get(signOnRequestCookieNames.provider) ?? '';
+  const mode = cookies.get(signOnRequestCookieNames.mode) ?? '';
+  const state = cookies.get(signOnRequestCookieNames.state) ?? '';
+  const nonce = cookies.get(signOnRequestCookieNames.nonce) ?? '';
+  const codeVerifier = cookies.get(signOnRequestCookieNames.codeVerifier) ?? '';
+
+  clearExternalSignOnRequest(cookies);
+
+  if (
+    storedProvider !== provider ||
+    !isExternalSignOnProvider(storedProvider) ||
+    !isExternalSignOnMode(mode) ||
+    !state ||
+    !nonce ||
+    !codeVerifier
+  ) {
+    throw new Error(expiredSignOnRequestMessage);
+  }
+
+  return {
+    provider: storedProvider,
+    mode,
+    state,
+    nonce,
+    codeVerifier
+  };
+}
+
 export function randomUrlToken() {
   return randomBytes(32).toString('base64url');
 }
@@ -151,6 +223,16 @@ function authorizationEndpoint(provider: ExternalSignOnProvider) {
 
   const tenant = repo.getSetting('auth.sso.entra.tenant') || 'common';
   return `https://login.microsoftonline.com/${encodeURIComponent(tenant)}/oauth2/v2.0/authorize`;
+}
+
+function clearExternalSignOnRequest(cookies: ExternalSignOnCookies) {
+  for (const name of Object.values(signOnRequestCookieNames)) {
+    cookies.delete(name, { path: '/' });
+  }
+}
+
+function isExternalSignOnMode(value: string): value is ExternalSignOnMode {
+  return value === 'login' || value === 'link';
 }
 
 function clean(value: string) {

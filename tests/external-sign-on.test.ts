@@ -12,6 +12,15 @@ vi.mock('../src/lib/server/app', () => ({
   }
 }));
 
+function fakeCookies() {
+  const values = new Map<string, string>();
+  return {
+    get: vi.fn((name: string) => values.get(name)),
+    set: vi.fn((name: string, value: string) => values.set(name, value)),
+    delete: vi.fn((name: string) => values.delete(name))
+  };
+}
+
 describe('external sign-on status', () => {
   beforeEach(() => {
     settings.clear();
@@ -237,5 +246,60 @@ describe('external sign-on status', () => {
         codeChallenge: 'challenge-token'
       })
     ).toThrow('Configure the Microsoft Entra ID client secret before signing in.');
+  });
+
+  test('stores and consumes an external sign-on request', async () => {
+    const { consumeExternalSignOnRequest, storeExternalSignOnRequest } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+    const cookies = fakeCookies();
+    const request = {
+      provider: 'google' as const,
+      mode: 'link' as const,
+      state: 'state-value',
+      nonce: 'nonce-value',
+      codeVerifier: 'verifier-value'
+    };
+
+    storeExternalSignOnRequest(cookies as never, request);
+
+    expect(consumeExternalSignOnRequest(cookies as never, 'google')).toEqual(request);
+    expect(cookies.get('tcs_sso_provider')).toBeUndefined();
+    expect(cookies.get('tcs_sso_mode')).toBeUndefined();
+    expect(cookies.get('tcs_sso_state')).toBeUndefined();
+    expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
+    expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
+  });
+
+  test('clears external sign-on request cookies when provider does not match', async () => {
+    const { consumeExternalSignOnRequest, storeExternalSignOnRequest } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+    const cookies = fakeCookies();
+
+    storeExternalSignOnRequest(cookies as never, {
+      provider: 'google',
+      mode: 'link',
+      state: 'state-value',
+      nonce: 'nonce-value',
+      codeVerifier: 'verifier-value'
+    });
+
+    expect(() => consumeExternalSignOnRequest(cookies as never, 'entra')).toThrow(
+      'The sign-on request expired. Start again.'
+    );
+    expect(cookies.get('tcs_sso_provider')).toBeUndefined();
+    expect(cookies.get('tcs_sso_mode')).toBeUndefined();
+    expect(cookies.get('tcs_sso_state')).toBeUndefined();
+    expect(cookies.get('tcs_sso_nonce')).toBeUndefined();
+    expect(cookies.get('tcs_sso_code_verifier')).toBeUndefined();
+  });
+
+  test('creates a SHA-256 base64url PKCE challenge', async () => {
+    const { pkceChallenge } = await import('../src/lib/server/external-sign-on');
+
+    expect(pkceChallenge('verifier-value')).toBe(
+      'GPXfFfmq30W8w5PWMLNtzZR2q9pxnxZ4FkY2A8xIsF4'
+    );
   });
 });
