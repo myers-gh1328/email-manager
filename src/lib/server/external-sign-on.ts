@@ -7,6 +7,17 @@ export type ExternalSignOnCookies = Cookies;
 
 export type ExternalSignOnProvider = 'google' | 'entra';
 
+export type ExternalSignOnMode = 'login' | 'link';
+
+export type ExternalSignOnAuthorizationInput = {
+  origin: string;
+  provider: ExternalSignOnProvider;
+  mode: ExternalSignOnMode;
+  state: string;
+  nonce: string;
+  codeChallenge: string;
+};
+
 export type ExternalSignOnStatus = {
   enabled: boolean;
   provider: ExternalSignOnProvider | '';
@@ -63,6 +74,34 @@ export function getExternalSignOnClientSecret(provider: ExternalSignOnProvider) 
   return decryptSecret(repo.getSetting(clientSecretSettingKey(provider)));
 }
 
+export function externalSignOnRedirectUri(origin: string, provider: ExternalSignOnProvider) {
+  const baseUrl = repo.getSetting('server.publicBaseUrl') || origin;
+  return `${baseUrl.replace(/\/$/, '')}/auth/external/${provider}/callback`;
+}
+
+export function createExternalSignOnAuthorizationUrl(input: ExternalSignOnAuthorizationInput) {
+  const clientId = repo.getSetting(clientIdSettingKey(input.provider));
+  const clientSecret = getExternalSignOnClientSecret(input.provider);
+
+  if (!clientId) {
+    throw new Error(`Configure the ${providerLabels[input.provider]} client ID before signing in.`);
+  }
+  if (!clientSecret) {
+    throw new Error(`Configure the ${providerLabels[input.provider]} client secret before signing in.`);
+  }
+
+  const url = new URL(authorizationEndpoint(input.provider));
+  url.searchParams.set('client_id', clientId);
+  url.searchParams.set('redirect_uri', externalSignOnRedirectUri(input.origin, input.provider));
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('scope', 'openid email profile');
+  url.searchParams.set('state', input.state);
+  url.searchParams.set('nonce', input.nonce);
+  url.searchParams.set('code_challenge', input.codeChallenge);
+  url.searchParams.set('code_challenge_method', 'S256');
+  return url;
+}
+
 export function updateExternalSignOnProviderSettings(input: ExternalSignOnProviderSettingsInput) {
   const provider = clean(input.provider);
   if (!isExternalSignOnProvider(provider)) {
@@ -98,6 +137,19 @@ export function pkceChallenge(verifier: string) {
 
 function clientSecretSettingKey(provider: ExternalSignOnProvider) {
   return `auth.sso.${provider}.clientSecret`;
+}
+
+function clientIdSettingKey(provider: ExternalSignOnProvider) {
+  return `auth.sso.${provider}.clientId`;
+}
+
+function authorizationEndpoint(provider: ExternalSignOnProvider) {
+  if (provider === 'google') {
+    return 'https://accounts.google.com/o/oauth2/v2/auth';
+  }
+
+  const tenant = repo.getSetting('auth.sso.entra.tenant') || 'common';
+  return `https://login.microsoftonline.com/${encodeURIComponent(tenant)}/oauth2/v2.0/authorize`;
 }
 
 function clean(value: string) {

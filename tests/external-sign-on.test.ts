@@ -114,4 +114,81 @@ describe('external sign-on status', () => {
     });
     expect(getExternalSignOnClientSecret('entra')).toBe('entra-secret');
   });
+
+  test('uses configured public base URL for Google redirect URI', async () => {
+    settings.set('server.publicBaseUrl', 'https://app.example.com/');
+    const { externalSignOnRedirectUri } = await import('../src/lib/server/external-sign-on');
+
+    expect(externalSignOnRedirectUri('https://localhost:5173', 'google')).toBe(
+      'https://app.example.com/auth/external/google/callback'
+    );
+  });
+
+  test('uses request origin for Entra redirect URI without public base URL', async () => {
+    const { externalSignOnRedirectUri } = await import('../src/lib/server/external-sign-on');
+
+    expect(externalSignOnRedirectUri('http://127.0.0.1:5173', 'entra')).toBe(
+      'http://127.0.0.1:5173/auth/external/entra/callback'
+    );
+  });
+
+  test('creates Google authorization URL from saved provider settings', async () => {
+    const { createExternalSignOnAuthorizationUrl, updateExternalSignOnProviderSettings } =
+      await import('../src/lib/server/external-sign-on');
+
+    updateExternalSignOnProviderSettings({
+      provider: 'google',
+      googleClientId: 'google-client',
+      googleClientSecret: 'google-secret',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
+
+    const url = createExternalSignOnAuthorizationUrl({
+      origin: 'https://localhost:5173',
+      provider: 'google',
+      mode: 'login',
+      state: 'state-token',
+      nonce: 'nonce-token',
+      codeChallenge: 'challenge-token'
+    });
+
+    expect(url.origin).toBe('https://accounts.google.com');
+    expect(url.searchParams.get('client_id')).toBe('google-client');
+    expect(url.searchParams.get('scope')).toBe('openid email profile');
+    expect(url.searchParams.get('state')).toBe('state-token');
+    expect(url.searchParams.get('nonce')).toBe('nonce-token');
+    expect(url.searchParams.get('code_challenge')).toBe('challenge-token');
+    expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+    expect(url.searchParams.has('access_type')).toBe(false);
+  });
+
+  test('creates Entra authorization URL from saved provider settings', async () => {
+    const { createExternalSignOnAuthorizationUrl, updateExternalSignOnProviderSettings } =
+      await import('../src/lib/server/external-sign-on');
+
+    updateExternalSignOnProviderSettings({
+      provider: 'entra',
+      googleClientId: '',
+      googleClientSecret: '',
+      entraTenant: 'contoso.onmicrosoft.com',
+      entraClientId: 'entra-client',
+      entraClientSecret: 'entra-secret'
+    });
+
+    const url = createExternalSignOnAuthorizationUrl({
+      origin: 'https://localhost:5173',
+      provider: 'entra',
+      mode: 'link',
+      state: 'state-token',
+      nonce: 'nonce-token',
+      codeChallenge: 'challenge-token'
+    });
+
+    expect(url.host).toBe('login.microsoftonline.com');
+    expect(url.pathname).toBe('/contoso.onmicrosoft.com/oauth2/v2.0/authorize');
+    expect(url.searchParams.get('client_id')).toBe('entra-client');
+    expect(url.searchParams.get('scope')).toBe('openid email profile');
+  });
 });
