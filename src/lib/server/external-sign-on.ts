@@ -33,6 +33,7 @@ export type ExternalSignOnCallbackInput = {
   origin: string;
   provider: ExternalSignOnProvider;
   code: string;
+  state: string;
   codeVerifier: string;
   nonce: string;
 };
@@ -320,8 +321,10 @@ const defaultOidcAdapter: OidcAdapter = {
     );
     const callbackUrl = new URL(input.redirectUri);
     callbackUrl.searchParams.set('code', input.code);
+    callbackUrl.searchParams.set('state', input.state);
 
     const tokens = await oidc.authorizationCodeGrant(config, callbackUrl, {
+      expectedState: input.state,
       expectedNonce: input.nonce,
       pkceCodeVerifier: input.codeVerifier
     });

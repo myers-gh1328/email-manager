@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { encryptSecret } from '../src/lib/server/crypto';
 
 const settings = new Map<string, string>();
+const oidcMocks = vi.hoisted(() => ({
+  discovery: vi.fn(),
+  authorizationCodeGrant: vi.fn(),
+  ClientSecretPost: vi.fn((clientSecret: string) => ({ clientSecretAuth: clientSecret }))
+}));
 
 vi.mock('../src/lib/server/app', () => ({
   repo: {
@@ -11,6 +16,8 @@ vi.mock('../src/lib/server/app', () => ({
     __clear: () => settings.clear()
   }
 }));
+
+vi.mock('openid-client', () => oidcMocks);
 
 function fakeCookies() {
   const values = new Map<string, string>();
@@ -35,6 +42,9 @@ describe('external sign-on status', () => {
   beforeEach(async () => {
     vi.useRealTimers();
     settings.clear();
+    oidcMocks.discovery.mockReset();
+    oidcMocks.authorizationCodeGrant.mockReset();
+    oidcMocks.ClientSecretPost.mockClear();
     const { setExternalSignOnOidcAdapterForTests } = await import(
       '../src/lib/server/external-sign-on'
     );
@@ -414,6 +424,7 @@ describe('external sign-on status', () => {
           origin: 'https://app.example.com',
           provider: 'google',
           code: 'code',
+          state: 'state',
           codeVerifier: 'verifier',
           nonce: 'nonce'
         })
@@ -427,6 +438,7 @@ describe('external sign-on status', () => {
         origin: 'https://app.example.com',
         provider: 'google',
         code: 'code',
+        state: 'state',
         codeVerifier: 'verifier',
         nonce: 'nonce',
         clientId: 'google-client',
@@ -463,6 +475,7 @@ describe('external sign-on status', () => {
           origin: 'https://app.example.com',
           provider: 'google',
           code: 'code',
+          state: 'state',
           codeVerifier: 'verifier',
           nonce: 'nonce'
         })
@@ -497,6 +510,7 @@ describe('external sign-on status', () => {
           origin: 'https://app.example.com',
           provider: 'google',
           code: 'code',
+          state: 'state',
           codeVerifier: 'verifier',
           nonce: 'nonce'
         })
@@ -513,9 +527,9 @@ describe('external sign-on status', () => {
       updateExternalSignOnProviderSettings
     } = await import('../src/lib/server/external-sign-on');
     const exchange = vi.fn().mockResolvedValue({ sub: 'stale-adapter-subject' });
-    const fetch = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('default adapter used'));
 
     try {
+      oidcMocks.discovery.mockRejectedValue(new Error('default adapter used'));
       updateExternalSignOnProviderSettings({
         provider: 'google',
         googleClientId: 'google-client',
@@ -533,16 +547,133 @@ describe('external sign-on status', () => {
           origin: 'https://app.example.com',
           provider: 'google',
           code: 'code',
+          state: 'state',
           codeVerifier: 'verifier',
           nonce: 'nonce'
         })
       ).rejects.toThrow();
       expect(exchange).not.toHaveBeenCalled();
-      expect(fetch).toHaveBeenCalled();
+      expect(oidcMocks.discovery).toHaveBeenCalled();
     } finally {
-      fetch.mockRestore();
       setExternalSignOnOidcAdapterForTests(undefined);
     }
+  });
+
+  test('uses openid-client to exchange Google callbacks with state and nonce checks', async () => {
+    const config = { providerConfig: 'google' };
+    oidcMocks.discovery.mockResolvedValue(config);
+    oidcMocks.authorizationCodeGrant.mockResolvedValue({
+      claims: () => ({
+        sub: 'provider-sub',
+        email: 'owner@example.com',
+        name: 'Owner Example',
+        picture: 'ignored'
+      })
+    });
+    const { exchangeExternalSignOnCode, updateExternalSignOnProviderSettings } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    updateExternalSignOnProviderSettings({
+      provider: 'google',
+      googleClientId: 'google-client',
+      googleClientSecret: 'google-secret',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
+
+    await expect(
+      exchangeExternalSignOnCode({
+        origin: 'https://app.example.com',
+        provider: 'google',
+        code: 'code',
+        state: 'state',
+        codeVerifier: 'verifier',
+        nonce: 'nonce'
+      })
+    ).resolves.toEqual({
+      sub: 'provider-sub',
+      email: 'owner@example.com',
+      name: 'Owner Example'
+    });
+
+    expect(oidcMocks.ClientSecretPost).toHaveBeenCalledWith('google-secret');
+    const [issuerUrl, clientId, metadata, clientAuth] = oidcMocks.discovery.mock.calls[0];
+    expect(issuerUrl.href).toBe('https://accounts.google.com/');
+    expect(clientId).toBe('google-client');
+    expect(metadata).toEqual({
+      client_secret: 'google-secret',
+      redirect_uris: ['https://app.example.com/auth/external/google/callback'],
+      response_types: ['code']
+    });
+    expect(clientAuth).toBe(oidcMocks.ClientSecretPost.mock.results[0].value);
+
+    const [grantConfig, callbackUrl, checks] = oidcMocks.authorizationCodeGrant.mock.calls[0];
+    expect(grantConfig).toBe(config);
+    expect(callbackUrl.href).toBe(
+      'https://app.example.com/auth/external/google/callback?code=code&state=state'
+    );
+    expect(checks).toEqual({
+      expectedState: 'state',
+      expectedNonce: 'nonce',
+      pkceCodeVerifier: 'verifier'
+    });
+  });
+
+  test('uses the configured Entra tenant issuer for default OIDC exchange', async () => {
+    const config = { providerConfig: 'entra' };
+    oidcMocks.discovery.mockResolvedValue(config);
+    oidcMocks.authorizationCodeGrant.mockResolvedValue({
+      claims: () => ({ sub: 'entra-subject' })
+    });
+    const { exchangeExternalSignOnCode, updateExternalSignOnProviderSettings } = await import(
+      '../src/lib/server/external-sign-on'
+    );
+
+    updateExternalSignOnProviderSettings({
+      provider: 'entra',
+      googleClientId: '',
+      googleClientSecret: '',
+      entraTenant: 'contoso.onmicrosoft.com',
+      entraClientId: 'entra-client',
+      entraClientSecret: 'entra-secret'
+    });
+
+    await expect(
+      exchangeExternalSignOnCode({
+        origin: 'https://app.example.com',
+        provider: 'entra',
+        code: 'code',
+        state: 'state',
+        codeVerifier: 'verifier',
+        nonce: 'nonce'
+      })
+    ).resolves.toEqual({ sub: 'entra-subject', email: undefined, name: undefined });
+
+    expect(oidcMocks.ClientSecretPost).toHaveBeenCalledWith('entra-secret');
+    const [issuerUrl, clientId, metadata, clientAuth] = oidcMocks.discovery.mock.calls[0];
+    expect(issuerUrl.href).toBe(
+      'https://login.microsoftonline.com/contoso.onmicrosoft.com/v2.0'
+    );
+    expect(clientId).toBe('entra-client');
+    expect(metadata).toEqual({
+      client_secret: 'entra-secret',
+      redirect_uris: ['https://app.example.com/auth/external/entra/callback'],
+      response_types: ['code']
+    });
+    expect(clientAuth).toBe(oidcMocks.ClientSecretPost.mock.results[0].value);
+
+    const [grantConfig, callbackUrl, checks] = oidcMocks.authorizationCodeGrant.mock.calls[0];
+    expect(grantConfig).toBe(config);
+    expect(callbackUrl.href).toBe(
+      'https://app.example.com/auth/external/entra/callback?code=code&state=state'
+    );
+    expect(checks).toEqual({
+      expectedState: 'state',
+      expectedNonce: 'nonce',
+      pkceCodeVerifier: 'verifier'
+    });
   });
 
   test('rejects incomplete provider credentials before calling the OIDC adapter', async () => {
@@ -560,6 +691,7 @@ describe('external sign-on status', () => {
           origin: 'https://app.example.com',
           provider: 'google',
           code: 'code',
+          state: 'state',
           codeVerifier: 'verifier',
           nonce: 'nonce'
         })
