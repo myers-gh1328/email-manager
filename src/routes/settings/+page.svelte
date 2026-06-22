@@ -368,7 +368,7 @@
     {/if}
 
     {#if sectionMatches('Security', ['change admin password app secret login credentials external sign-on sso google microsoft entra identity'])}
-    <details class="settings-section settings-panel wide">
+    <details class="settings-section settings-panel wide" open={data.openSection === 'security'}>
       <summary>Security</summary>
       <form method="POST" action="?/changePassword" class="panel-form" use:enhance>
         <div>
@@ -393,6 +393,10 @@
           </div>
           {#if data.externalSignOn.enabled}<span class="pill good">Linked</span>{/if}
         </div>
+
+        {#if data.externalSignOnLinked}
+          <p class="success">External sign-on is connected. Password login remains available.</p>
+        {/if}
 
         {#if data.externalSignOn.enabled}
           <div class="setup-note">

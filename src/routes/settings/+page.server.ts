@@ -29,6 +29,8 @@ export const load = ({ url }) => {
   return {
     ...data,
     message: url.searchParams.get('message') ?? '',
+    openSection: url.searchParams.get('section') ?? '',
+    externalSignOnLinked: url.searchParams.get('externalSignOn') === 'linked',
     externalSignOn: getExternalSignOnStatus(),
     externalSignOnRedirectUris: {
       google: externalSignOnRedirectUri(url.origin, 'google'),

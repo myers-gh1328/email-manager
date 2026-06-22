@@ -397,14 +397,16 @@ describe('settings external sign-on actions', () => {
     settingsPageMocks.loadSettingsData.mockReturnValue({ settings: baseSettings() });
   });
 
-  test('settings load returns external sign-on status and redirect URIs', async () => {
+  test('settings load returns external sign-on status, redirect URIs, and link result state', async () => {
     const status = externalSignOnStatus({ provider: 'google', googleClientId: 'google-client' });
     externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(status);
     const { load } = await import('../src/routes/settings/+page.server');
 
-    const result = load({ url: new URL('https://app.example.com/settings') } as never);
+    const result = load({ url: new URL('https://app.example.com/settings?section=security&externalSignOn=linked') } as never);
 
     expect(result).toMatchObject({
+      openSection: 'security',
+      externalSignOnLinked: true,
       externalSignOn: status,
       externalSignOnRedirectUris: {
         google: 'https://app.example.com/auth/external/google/callback',
@@ -482,6 +484,40 @@ describe('settings external sign-on actions', () => {
     expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
     expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
     expect(externalSignOnMocks.getExternalSignOnStatus.mock.results.every((result) => result.value === existingStatus)).toBe(true);
+  });
+
+  test('connectExternalSignOn preserves a blank secret for matching existing Google provider config', async () => {
+    authMocks.verifyAdminPassword.mockReturnValue(true);
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(
+      externalSignOnStatus({
+        provider: 'google',
+        googleClientId: 'existing-google-client',
+        googleClientSecretConfigured: true
+      })
+    );
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    await expectRedirect(
+      actions.connectExternalSignOn(
+        actionEvent({
+          externalSignOnProvider: 'google',
+          googleClientId: 'existing-google-client',
+          googleClientSecret: '',
+          currentPassword: 'correct-password'
+        }) as never
+      ),
+      303,
+      '/auth/external/google/start?mode=link'
+    );
+
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).toHaveBeenCalledWith({
+      provider: 'google',
+      googleClientId: 'existing-google-client',
+      googleClientSecret: '',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
   });
 
   test('connectExternalSignOn saves provider settings and redirects to provider link start', async () => {
