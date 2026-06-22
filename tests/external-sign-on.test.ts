@@ -3,7 +3,7 @@ import { encryptSecret } from '../src/lib/server/crypto';
 
 const settings = new Map<string, string>();
 
-vi.mock('../src/lib/server/repository/index', () => ({
+vi.mock('../src/lib/server/app', () => ({
   repo: {
     getSetting: (key: string) => settings.get(key) ?? '',
     setSetting: (key: string, value: string) => settings.set(key, value),

@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
-import { decryptSecret, encryptSecret } from './crypto';
-import { repo } from './repository/index';
+import { repo } from './app';
+import { decryptSecret } from './crypto';
 
 export type ExternalSignOnCookies = Cookies;
 
