@@ -107,6 +107,21 @@ describe('external sign-on routes', () => {
     });
   });
 
+  test('start does not store transient request cookies when provider URL creation fails', async () => {
+    externalSignOnMocks.createExternalSignOnAuthorizationUrl.mockImplementation(() => {
+      throw new Error('Provider settings are incomplete.');
+    });
+    const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
+
+    await expectRedirect(
+      GET(event({ url: 'https://app.example.com/auth/external/google/start' }) as never),
+      303,
+      '/login?error=external'
+    );
+
+    expect(externalSignOnMocks.storeExternalSignOnRequest).not.toHaveBeenCalled();
+  });
+
   test('unauthenticated link start redirects to login external error', async () => {
     const { GET } = await import('../src/routes/auth/external/[provider]/start/+server');
 

@@ -28,7 +28,6 @@ export const GET = async ({ cookies, params, url }) => {
 
   let authorizationUrl: URL;
   try {
-    storeExternalSignOnRequest(cookies, { provider, mode, state, nonce, codeVerifier });
     authorizationUrl = createExternalSignOnAuthorizationUrl({
       origin: url.origin,
       provider,
@@ -37,6 +36,7 @@ export const GET = async ({ cookies, params, url }) => {
       nonce,
       codeChallenge
     });
+    storeExternalSignOnRequest(cookies, { provider, mode, state, nonce, codeVerifier });
   } catch {
     throw redirect(303, externalSignOnErrorLocation);
   }
