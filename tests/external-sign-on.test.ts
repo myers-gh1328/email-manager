@@ -4,7 +4,7 @@ import { encryptSecret } from '../src/lib/server/crypto';
 const settings = new Map<string, string>();
 
 vi.mock('../src/lib/server/repository/index', () => ({
-  default: {
+  repo: {
     getSetting: (key: string) => settings.get(key) ?? '',
     setSetting: (key: string, value: string) => settings.set(key, value),
     deleteSetting: (key: string) => settings.delete(key),
@@ -36,13 +36,13 @@ describe('external sign-on status', () => {
   });
 
   test('reports seeded Google identity without exposing plaintext secrets', async () => {
-    settings.set('externalSignOn.enabled', 'true');
-    settings.set('externalSignOn.provider', 'google');
-    settings.set('externalSignOn.email', 'learner@example.com');
-    settings.set('externalSignOn.name', 'Learner Example');
-    settings.set('externalSignOn.linkedAt', '2026-06-22T12:00:00.000Z');
-    settings.set('externalSignOn.google.clientId', 'google-client-id');
-    settings.set('externalSignOn.google.clientSecret', encryptSecret('plain-google-secret'));
+    settings.set('auth.sso.provider', 'google');
+    settings.set('auth.sso.subject', 'google-subject-1');
+    settings.set('auth.sso.email', 'learner@example.com');
+    settings.set('auth.sso.name', 'Learner Example');
+    settings.set('auth.sso.linkedAt', '2026-06-22T12:00:00.000Z');
+    settings.set('auth.sso.google.clientId', 'google-client-id');
+    settings.set('auth.sso.google.clientSecret', encryptSecret('plain-google-secret'));
     const { getExternalSignOnStatus } = await import('../src/lib/server/external-sign-on');
 
     const status = getExternalSignOnStatus();

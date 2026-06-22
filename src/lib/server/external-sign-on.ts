@@ -1,8 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { join } from 'node:path';
 import type { Cookies } from '@sveltejs/kit';
 import { decryptSecret, encryptSecret } from './crypto';
-import * as repositoryIndex from './repository/index';
+import { repo } from './repository/index';
 
 export type ExternalSignOnCookies = Cookies;
 
@@ -22,12 +21,6 @@ export type ExternalSignOnStatus = {
   entraClientSecretConfigured: boolean;
 };
 
-type SettingsRepository = {
-  getSetting(key: string): string;
-};
-
-const repo = resolveRepository();
-
 const providerLabels: Record<ExternalSignOnProvider, string> = {
   google: 'Google',
   entra: 'Microsoft Entra ID'
@@ -38,21 +31,22 @@ export function isExternalSignOnProvider(value: string): value is ExternalSignOn
 }
 
 export function getExternalSignOnStatus(): ExternalSignOnStatus {
-  const providerSetting = repo.getSetting('externalSignOn.provider');
+  const providerSetting = repo.getSetting('auth.sso.provider');
   const provider = isExternalSignOnProvider(providerSetting) ? providerSetting : '';
+  const subject = repo.getSetting('auth.sso.subject');
 
   return {
-    enabled: repo.getSetting('externalSignOn.enabled') === 'true',
+    enabled: Boolean(provider && subject),
     provider,
     providerLabel: provider ? providerLabels[provider] : '',
-    email: repo.getSetting('externalSignOn.email'),
-    name: repo.getSetting('externalSignOn.name'),
-    linkedAt: repo.getSetting('externalSignOn.linkedAt'),
-    googleClientId: repo.getSetting('externalSignOn.google.clientId'),
-    googleClientSecretConfigured: Boolean(repo.getSetting('externalSignOn.google.clientSecret')),
-    entraTenant: repo.getSetting('externalSignOn.entra.tenant') || 'common',
-    entraClientId: repo.getSetting('externalSignOn.entra.clientId'),
-    entraClientSecretConfigured: Boolean(repo.getSetting('externalSignOn.entra.clientSecret'))
+    email: repo.getSetting('auth.sso.email'),
+    name: repo.getSetting('auth.sso.name'),
+    linkedAt: repo.getSetting('auth.sso.linkedAt'),
+    googleClientId: repo.getSetting('auth.sso.google.clientId'),
+    googleClientSecretConfigured: Boolean(repo.getSetting('auth.sso.google.clientSecret')),
+    entraTenant: repo.getSetting('auth.sso.entra.tenant') || 'common',
+    entraClientId: repo.getSetting('auth.sso.entra.clientId'),
+    entraClientSecretConfigured: Boolean(repo.getSetting('auth.sso.entra.clientSecret'))
   };
 }
 
@@ -69,14 +63,5 @@ export function pkceChallenge(verifier: string) {
 }
 
 function clientSecretSettingKey(provider: ExternalSignOnProvider) {
-  return `externalSignOn.${provider}.clientSecret`;
-}
-
-function resolveRepository(): SettingsRepository {
-  const mockedRepo = (repositoryIndex as unknown as { default?: SettingsRepository }).default;
-  if (mockedRepo) return mockedRepo;
-
-  const dataDir = process.env.SCUBA_EMAIL_DATA_DIR ?? join(process.cwd(), 'data');
-  const dbPath = process.env.SCUBA_EMAIL_DB ?? join(dataDir, 'scuba-email.sqlite');
-  return new repositoryIndex.AppRepository(dbPath);
+  return `auth.sso.${provider}.clientSecret`;
 }
