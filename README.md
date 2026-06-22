@@ -4,7 +4,7 @@ Training Communications Studio is a local-first app for instructors and training
 
 Use it to keep reusable student contacts, organize students by class date, write personalized templates, preview each student's message, and schedule approved one-time sends through your own email account.
 
-## Install For Normal Users
+## Install The Desktop App
 
 Download the installer for your operating system from the project's release page.
 
