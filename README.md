@@ -4,40 +4,52 @@ Training Communications Studio is a local-first app for instructors and training
 
 Use it to keep reusable student contacts, organize students by class date, write personalized templates, preview each student's message, and schedule approved one-time sends through your own email account.
 
-## Install For Normal Users
+## Install The Desktop App
 
-Download the installer for your operating system from the project's release page.
+Download the app from the [latest release](https://github.com/myers-gh1328/email-manager/releases/latest).
+
+On that page, look for **Assets**. That is the list of download files. Choose
+the file for your computer:
 
 ### Windows
 
-1. Download the Windows installer ending in `.exe`.
+1. Download the file ending in `.exe`.
 2. Double-click the installer.
 3. Follow the installer prompts.
 4. Open **Training Communications Studio** from the Start menu.
 5. Create your admin password when the app opens.
 
-If Windows SmartScreen warns that the app is from an unknown publisher, choose **More info** and then **Run anyway** only if you downloaded it from the official release page.
+If Windows warns that the app is from an unknown publisher, choose **More info**
+and then **Run anyway** only if you downloaded it from the official release
+page linked above.
 
 ### macOS
 
-1. Download the macOS file ending in `.dmg`.
+1. Download the file ending in `.dmg`.
 2. Open the downloaded `.dmg`.
 3. Drag **Training Communications Studio** into **Applications**.
 4. Open it from Applications.
 5. Create your admin password when the app opens.
 
-If macOS warns that the app cannot be opened because the developer is unidentified, open **System Settings**, go to **Privacy & Security**, and allow the app only if you downloaded it from the official release page.
+If macOS warns that the app cannot be opened because the developer is
+unidentified, open **System Settings**, go to **Privacy & Security**, and allow
+the app only if you downloaded it from the official release page linked above.
 
 ### Linux
 
 Use the package that matches your system:
 
-- Download the `.AppImage`, mark it executable, and open it.
-- On Debian or Ubuntu, download the `.deb` and install it with your system package installer.
+- Most Linux desktops: download the file ending in `.AppImage`, mark it
+  executable, and open it.
+- Debian or Ubuntu: download the file ending in `.deb` and install it with your
+  system package installer.
 
 Create your admin password when the app opens.
 
 Scheduled emails send while the desktop app is running. If you quit the app, scheduled sending stops until you open it again.
+
+If there are no release downloads yet, the desktop app has not been packaged for
+public download.
 
 ## What It Does
 

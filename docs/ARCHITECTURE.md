@@ -291,7 +291,7 @@ Use these defaults when adding features:
 - Attachments should be added at the template or campaign layer, not inside template rendering.
 - Multi-user support requires a real users table, ownership checks, and audit decisions. Do not bolt roles onto the current single-user auth casually.
 - Provider-specific remote access setup belongs in docs unless the app truly needs provider API integration.
-- More template features should keep preview and missing-variable validation understandable for non-technical instructors.
+- More template features should keep preview and missing-variable validation understandable for instructors.
 
 ## Common Failure Modes
 
