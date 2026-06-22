@@ -252,6 +252,22 @@
           <small>Turn on only when a trusted service, such as your tunnel, is the only way people can reach the app.</small>
         </label>
       </div>
+      <div class="setup-note">
+        <p class="help-text">
+          Secure cookies are controlled by an environment variable, not this form:
+          <code>SCUBA_EMAIL_SECURE_COOKIES=true</code>.
+          Set it wherever you start the app when serving through HTTPS, then restart the app.
+        </p>
+        {#if data.remoteStatus.enabled && data.remoteStatus.blockedReasons.length}
+          <ul>
+            {#each data.remoteStatus.blockedReasons as reason}
+              <li>{reason}</li>
+            {/each}
+          </ul>
+        {:else if data.remoteStatus.enabled}
+          <p class="success">Remote access hardening checks are passing.</p>
+        {/if}
+      </div>
       <button type="submit">Save remote access</button>
     </form>
     </details>

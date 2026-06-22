@@ -53,6 +53,17 @@ describe('remote access readiness', () => {
     expect(status.blockedReasons).toContain('Set SCUBA_EMAIL_SECURE_COOKIES=true when serving over HTTPS');
   });
 
+  test('reports ready remote mode when secure-cookie runtime setting is enabled', () => {
+    vi.stubEnv('SCUBA_EMAIL_APP_SECRET', 'test-secret-with-enough-length');
+    vi.stubEnv('SCUBA_EMAIL_SECURE_COOKIES', 'true');
+
+    expect(remoteAccessStatus(settings)).toEqual({
+      enabled: true,
+      ready: true,
+      blockedReasons: []
+    });
+  });
+
   test('reports local mode when remote access is disabled', () => {
     expect(remoteAccessStatus({ ...settings, remoteAccessEnabled: false })).toEqual({
       enabled: false,
