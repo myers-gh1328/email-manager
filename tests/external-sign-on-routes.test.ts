@@ -19,8 +19,11 @@ const externalSignOnMocks = vi.hoisted(() => ({
 }));
 
 const authMocks = vi.hoisted(() => ({
+  clearLoginFailures: vi.fn(),
   createSession: vi.fn(),
   isAuthenticated: vi.fn(),
+  loginThrottleStatus: vi.fn(),
+  recordLoginFailure: vi.fn(),
   setAdminPassword: vi.fn(),
   verifyAdminPassword: vi.fn()
 }));
@@ -169,8 +172,56 @@ describe('external sign-on routes', () => {
       );
     });
     authMocks.isAuthenticated.mockReturnValue(false);
+    authMocks.loginThrottleStatus.mockReturnValue({ limited: false, retryAfterSeconds: 0 });
     authMocks.verifyAdminPassword.mockReturnValue(false);
     settingsPageMocks.loadSettingsData.mockReturnValue({ settings: baseSettings() });
+  });
+
+  test('login load returns disabled external sign-on status when no identity is linked', async () => {
+    const status = externalSignOnStatus();
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(status);
+    const { load } = await import('../src/routes/login/+page.server');
+
+    const result = load({ url: new URL('https://app.example.com/login') } as never);
+
+    expect(result).toEqual({
+      externalSignOn: status,
+      externalError: false
+    });
+  });
+
+  test('login load returns linked provider details for external sign-on', async () => {
+    const status = externalSignOnStatus({
+      enabled: true,
+      provider: 'google',
+      providerLabel: 'Google',
+      email: 'owner@example.com',
+      linkedAt: '2026-06-22T12:00:00.000Z'
+    });
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(status);
+    const { load } = await import('../src/routes/login/+page.server');
+
+    const result = load({ url: new URL('https://app.example.com/login') } as never);
+
+    expect(result).toMatchObject({
+      externalSignOn: {
+        enabled: true,
+        provider: 'google',
+        providerLabel: 'Google'
+      },
+      externalError: false
+    });
+  });
+
+  test('login load maps external error query to generic error state', async () => {
+    const { load } = await import('../src/routes/login/+page.server');
+
+    expect(load({ url: new URL('https://app.example.com/login?error=external') } as never)).toMatchObject({
+      externalError: true
+    });
+    expect(load({ url: new URL('https://app.example.com/login?error=provider-detail') } as never)).toMatchObject({
+      externalError: false
+    });
   });
 
   test('unknown provider start redirects to login external error', async () => {
