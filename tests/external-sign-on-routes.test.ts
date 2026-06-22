@@ -2,23 +2,64 @@ import { describe, expect, test, vi, beforeEach } from 'vitest';
 
 const externalSignOnMocks = vi.hoisted(() => ({
   assertExternalSignOnIdentityMatches: vi.fn(),
+  clearExternalSignOnIdentity: vi.fn(),
   consumeExternalSignOnRequest: vi.fn(),
   createExternalSignOnAuthorizationUrl: vi.fn(),
   exchangeExternalSignOnCode: vi.fn(),
+  externalSignOnRedirectUri: vi.fn((origin: string, provider: string) => `${origin}/auth/external/${provider}/callback`),
+  getExternalSignOnStatus: vi.fn(),
   isExternalSignOnProvider: vi.fn((provider: string) => provider === 'google' || provider === 'entra'),
   linkExternalSignOnIdentity: vi.fn(),
   pkceChallenge: vi.fn((verifier: string) => `challenge-for-${verifier}`),
   randomUrlToken: vi.fn(),
-  storeExternalSignOnRequest: vi.fn()
+  storeExternalSignOnRequest: vi.fn(),
+  updateExternalSignOnProviderSettings: vi.fn()
 }));
 
 const authMocks = vi.hoisted(() => ({
   createSession: vi.fn(),
-  isAuthenticated: vi.fn()
+  isAuthenticated: vi.fn(),
+  setAdminPassword: vi.fn(),
+  verifyAdminPassword: vi.fn()
+}));
+
+const settingsPageMocks = vi.hoisted(() => ({
+  loadSettingsData: vi.fn(),
+  listAiModels: vi.fn(),
+  required: vi.fn(),
+  testSmtpSettings: vi.fn(),
+  aiApiKeyForModelLoad: vi.fn(),
+  getAiApiKey: vi.fn(),
+  getSettings: vi.fn(),
+  updateAgentAccessSettings: vi.fn(),
+  updateAgentPermissionSettings: vi.fn(),
+  updateAiSettings: vi.fn(),
+  updateDeliverySettings: vi.fn(),
+  updateProfileSettings: vi.fn(),
+  updateRemoteAccessSettings: vi.fn(),
+  updateSmtpSettings: vi.fn(),
+  updateVocabularySettings: vi.fn()
 }));
 
 vi.mock('$lib/server/external-sign-on', () => externalSignOnMocks);
 vi.mock('$lib/server/auth', () => authMocks);
+vi.mock('$lib/server/page-data', () => ({ loadSettingsData: settingsPageMocks.loadSettingsData }));
+vi.mock('$lib/server/llm', () => ({ listAiModels: settingsPageMocks.listAiModels }));
+vi.mock('$lib/server/form-utils', () => ({ required: settingsPageMocks.required }));
+vi.mock('$lib/server/mailer', () => ({ testSmtpSettings: settingsPageMocks.testSmtpSettings }));
+vi.mock('$lib/server/settings', () => ({
+  aiApiKeyForModelLoad: settingsPageMocks.aiApiKeyForModelLoad,
+  getAiApiKey: settingsPageMocks.getAiApiKey,
+  getSettings: settingsPageMocks.getSettings,
+  updateAgentAccessSettings: settingsPageMocks.updateAgentAccessSettings,
+  updateAgentPermissionSettings: settingsPageMocks.updateAgentPermissionSettings,
+  updateAiSettings: settingsPageMocks.updateAiSettings,
+  updateDeliverySettings: settingsPageMocks.updateDeliverySettings,
+  updateProfileSettings: settingsPageMocks.updateProfileSettings,
+  updateRemoteAccessSettings: settingsPageMocks.updateRemoteAccessSettings,
+  updateSmtpSettings: settingsPageMocks.updateSmtpSettings,
+  updateVocabularySettings: settingsPageMocks.updateVocabularySettings
+}));
 
 function event({
   provider = 'google',
@@ -31,6 +72,46 @@ function event({
     cookies: { marker: 'cookies' },
     params: { provider },
     url: new URL(url)
+  };
+}
+
+function actionEvent(entries: Record<string, string>) {
+  return {
+    request: new Request('https://app.example.com/settings', {
+      method: 'POST',
+      body: new URLSearchParams(entries)
+    })
+  };
+}
+
+function baseSettings() {
+  return {
+    publicBaseUrl: '',
+    smtpAuthMethod: 'password',
+    smtpHost: '',
+    smtpPort: '587',
+    smtpUser: '',
+    smtpFrom: '',
+    microsoftTenantId: 'common',
+    aiBaseUrl: '',
+    aiModel: ''
+  };
+}
+
+function externalSignOnStatus(overrides: Record<string, unknown> = {}) {
+  return {
+    enabled: false,
+    provider: '',
+    providerLabel: '',
+    email: '',
+    name: '',
+    linkedAt: '',
+    googleClientId: '',
+    googleClientSecretConfigured: false,
+    entraTenant: 'common',
+    entraClientId: '',
+    entraClientSecretConfigured: false,
+    ...overrides
   };
 }
 
@@ -70,7 +151,22 @@ describe('external sign-on routes', () => {
       email: 'owner@example.com',
       name: 'Owner Example'
     });
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(externalSignOnStatus());
+    externalSignOnMocks.updateExternalSignOnProviderSettings.mockImplementation((input) => {
+      externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(
+        externalSignOnStatus({
+          provider: input.provider,
+          googleClientId: input.googleClientId,
+          googleClientSecretConfigured: Boolean(input.googleClientSecret),
+          entraTenant: input.entraTenant || 'common',
+          entraClientId: input.entraClientId,
+          entraClientSecretConfigured: Boolean(input.entraClientSecret)
+        })
+      );
+    });
     authMocks.isAuthenticated.mockReturnValue(false);
+    authMocks.verifyAdminPassword.mockReturnValue(false);
+    settingsPageMocks.loadSettingsData.mockReturnValue({ settings: baseSettings() });
   });
 
   test('unknown provider start redirects to login external error', async () => {
@@ -272,5 +368,120 @@ describe('external sign-on routes', () => {
     expect(externalSignOnMocks.exchangeExternalSignOnCode).toHaveBeenCalledWith(
       expect.objectContaining({ state: 'state-token' })
     );
+  });
+});
+
+describe('settings external sign-on actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    externalSignOnMocks.isExternalSignOnProvider.mockImplementation(
+      (provider: string) => provider === 'google' || provider === 'entra'
+    );
+    externalSignOnMocks.externalSignOnRedirectUri.mockImplementation(
+      (origin: string, provider: string) => `${origin}/auth/external/${provider}/callback`
+    );
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(externalSignOnStatus());
+    externalSignOnMocks.updateExternalSignOnProviderSettings.mockImplementation((input) => {
+      externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(
+        externalSignOnStatus({
+          provider: input.provider,
+          googleClientId: input.googleClientId,
+          googleClientSecretConfigured: Boolean(input.googleClientSecret),
+          entraTenant: input.entraTenant || 'common',
+          entraClientId: input.entraClientId,
+          entraClientSecretConfigured: Boolean(input.entraClientSecret)
+        })
+      );
+    });
+    authMocks.verifyAdminPassword.mockReturnValue(false);
+    settingsPageMocks.loadSettingsData.mockReturnValue({ settings: baseSettings() });
+  });
+
+  test('settings load returns external sign-on status and redirect URIs', async () => {
+    const status = externalSignOnStatus({ provider: 'google', googleClientId: 'google-client' });
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(status);
+    const { load } = await import('../src/routes/settings/+page.server');
+
+    const result = load({ url: new URL('https://app.example.com/settings') } as never);
+
+    expect(result).toMatchObject({
+      externalSignOn: status,
+      externalSignOnRedirectUris: {
+        google: 'https://app.example.com/auth/external/google/callback',
+        entra: 'https://app.example.com/auth/external/entra/callback'
+      }
+    });
+    expect(externalSignOnMocks.externalSignOnRedirectUri).toHaveBeenCalledWith('https://app.example.com', 'google');
+    expect(externalSignOnMocks.externalSignOnRedirectUri).toHaveBeenCalledWith('https://app.example.com', 'entra');
+  });
+
+  test('removeExternalSignOn requires local admin password and leaves provider config untouched on failure', async () => {
+    externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(
+      externalSignOnStatus({
+        enabled: true,
+        provider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecretConfigured: true
+      })
+    );
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.removeExternalSignOn(actionEvent({ currentPassword: 'wrong-password' }) as never);
+
+    expect(result).toMatchObject({
+      status: 400,
+      data: { message: 'Enter the current local admin password before removing external sign-on.' }
+    });
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('wrong-password');
+    expect(externalSignOnMocks.clearExternalSignOnIdentity).not.toHaveBeenCalled();
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
+  });
+
+  test('connectExternalSignOn requires local admin password before redirect', async () => {
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.connectExternalSignOn(
+      actionEvent({
+        externalSignOnProvider: 'google',
+        googleClientId: 'google-client',
+        googleClientSecret: 'google-secret',
+        currentPassword: ''
+      }) as never
+    );
+
+    expect(result).toMatchObject({
+      status: 400,
+      data: { message: 'Enter the current local admin password before connecting external sign-on.' }
+    });
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
+  });
+
+  test('connectExternalSignOn saves provider settings and redirects to provider link start', async () => {
+    authMocks.verifyAdminPassword.mockReturnValue(true);
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    await expectRedirect(
+      actions.connectExternalSignOn(
+        actionEvent({
+          externalSignOnProvider: 'entra',
+          entraTenant: 'contoso.onmicrosoft.com',
+          entraClientId: 'entra-client',
+          entraClientSecret: 'entra-secret',
+          currentPassword: 'correct-password'
+        }) as never
+      ),
+      303,
+      '/auth/external/entra/start?mode=link'
+    );
+
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
+    expect(externalSignOnMocks.updateExternalSignOnProviderSettings).toHaveBeenCalledWith({
+      provider: 'entra',
+      googleClientId: '',
+      googleClientSecret: '',
+      entraTenant: 'contoso.onmicrosoft.com',
+      entraClientId: 'entra-client',
+      entraClientSecret: 'entra-secret'
+    });
   });
 });
