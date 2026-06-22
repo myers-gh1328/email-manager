@@ -1,6 +1,6 @@
 {
   "name": "training-communications-studio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Local-first class communication and email scheduling for instructors and training providers.",
   "author": "Training Communications Studio contributors",
   "private": true,
@@ -61,7 +61,8 @@
         "AppImage",
         "deb"
       ],
-      "category": "Office"
+      "category": "Office",
+      "maintainer": "Training Communications Studio contributors <myers-gh1328@users.noreply.github.com>"
     },
     "nsis": {
       "oneClick": false,
