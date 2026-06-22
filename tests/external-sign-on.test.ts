@@ -57,4 +57,61 @@ describe('external sign-on status', () => {
     });
     expect(JSON.stringify(status)).not.toContain('plain-google-secret');
   });
+
+  test('saves Google provider settings and preserves blank secret updates', async () => {
+    const {
+      getExternalSignOnClientSecret,
+      getExternalSignOnStatus,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+
+    updateExternalSignOnProviderSettings({
+      provider: 'google',
+      googleClientId: 'first-google-client',
+      googleClientSecret: 'first-google-secret',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
+    updateExternalSignOnProviderSettings({
+      provider: 'google',
+      googleClientId: 'second-google-client',
+      googleClientSecret: '',
+      entraTenant: '',
+      entraClientId: '',
+      entraClientSecret: ''
+    });
+
+    expect(getExternalSignOnStatus()).toMatchObject({
+      provider: 'google',
+      googleClientId: 'second-google-client',
+      googleClientSecretConfigured: true
+    });
+    expect(getExternalSignOnClientSecret('google')).toBe('first-google-secret');
+  });
+
+  test('saves Entra provider settings and normalizes blank tenant to common', async () => {
+    const {
+      getExternalSignOnClientSecret,
+      getExternalSignOnStatus,
+      updateExternalSignOnProviderSettings
+    } = await import('../src/lib/server/external-sign-on');
+
+    updateExternalSignOnProviderSettings({
+      provider: 'entra',
+      googleClientId: '',
+      googleClientSecret: '',
+      entraTenant: '',
+      entraClientId: 'entra-client',
+      entraClientSecret: 'entra-secret'
+    });
+
+    expect(getExternalSignOnStatus()).toMatchObject({
+      provider: 'entra',
+      entraTenant: 'common',
+      entraClientId: 'entra-client',
+      entraClientSecretConfigured: true
+    });
+    expect(getExternalSignOnClientSecret('entra')).toBe('entra-secret');
+  });
 });

@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import type { Cookies } from '@sveltejs/kit';
 import { repo } from './app';
-import { decryptSecret } from './crypto';
+import { decryptSecret, encryptSecret } from './crypto';
 
 export type ExternalSignOnCookies = Cookies;
 
@@ -19,6 +19,15 @@ export type ExternalSignOnStatus = {
   entraTenant: string;
   entraClientId: string;
   entraClientSecretConfigured: boolean;
+};
+
+export type ExternalSignOnProviderSettingsInput = {
+  provider: string;
+  googleClientId: string;
+  googleClientSecret: string;
+  entraTenant: string;
+  entraClientId: string;
+  entraClientSecret: string;
 };
 
 const providerLabels: Record<ExternalSignOnProvider, string> = {
@@ -54,6 +63,31 @@ export function getExternalSignOnClientSecret(provider: ExternalSignOnProvider) 
   return decryptSecret(repo.getSetting(clientSecretSettingKey(provider)));
 }
 
+export function updateExternalSignOnProviderSettings(input: ExternalSignOnProviderSettingsInput) {
+  const provider = clean(input.provider);
+  if (!isExternalSignOnProvider(provider)) {
+    throw new Error('Choose Google or Microsoft Entra ID.');
+  }
+
+  repo.setSetting('auth.sso.provider', provider);
+
+  if (provider === 'google') {
+    repo.setSetting('auth.sso.google.clientId', clean(input.googleClientId));
+    const googleClientSecret = clean(input.googleClientSecret);
+    if (googleClientSecret) {
+      repo.setSetting('auth.sso.google.clientSecret', encryptSecret(googleClientSecret));
+    }
+    return;
+  }
+
+  repo.setSetting('auth.sso.entra.tenant', clean(input.entraTenant) || 'common');
+  repo.setSetting('auth.sso.entra.clientId', clean(input.entraClientId));
+  const entraClientSecret = clean(input.entraClientSecret);
+  if (entraClientSecret) {
+    repo.setSetting('auth.sso.entra.clientSecret', encryptSecret(entraClientSecret));
+  }
+}
+
 export function randomUrlToken() {
   return randomBytes(32).toString('base64url');
 }
@@ -64,4 +98,8 @@ export function pkceChallenge(verifier: string) {
 
 function clientSecretSettingKey(provider: ExternalSignOnProvider) {
   return `auth.sso.${provider}.clientSecret`;
+}
+
+function clean(value: string) {
+  return value.trim();
 }
