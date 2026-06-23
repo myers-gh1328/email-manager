@@ -246,6 +246,7 @@ export function claimNextEligibleDelivery(
   recoverExpiredSendingDeliveries(db);
   const timestamp = input.nowIso ?? now();
   const claimExpiresAt = new Date(new Date(timestamp).getTime() + (input.claimTimeoutMinutes ?? 15) * 60_000).toISOString();
+  const includeScheduledRetries = input.source === 'manual' || input.source === 'agent';
   return transaction(db, () => {
     const row = db
       .prepare(
@@ -261,14 +262,14 @@ export function claimNextEligibleDelivery(
            join contacts c on c.id = d.recipient_id
            where d.campaign_id = ? and c.do_not_email = 0 and (
              d.status = 'pending'
-             or (d.status = 'retry_scheduled' and d.failure_kind = 'transient' and d.next_attempt_at <= ? and d.attempt_count <= d.retry_policy_max_auto_retries)
+             or (? = 1 and d.status = 'retry_scheduled' and d.failure_kind = 'transient' and d.next_attempt_at <= ? and d.attempt_count <= d.retry_policy_max_auto_retries)
            )
            order by coalesce(d.next_attempt_at, d.created_at), d.created_at
            limit 1
          )
          returning *`
       )
-      .get(timestamp, claimExpiresAt, campaignId, timestamp) as Row | undefined;
+      .get(timestamp, claimExpiresAt, campaignId, includeScheduledRetries ? 1 : 0, timestamp) as Row | undefined;
     if (!row) return undefined;
     const attemptId = newId();
     const attemptNumber = Number(row.attempt_count);

@@ -250,6 +250,33 @@ describe('direct email workflow', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  test('direct send operation claim expires after fifteen minutes', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const before = Date.now();
+    const sendOperationId = directEmailOperationId({
+      contactIds: [contact.id],
+      subject: 'Hi',
+      body: 'Hello',
+      previewToken: directEmailPreviewToken({ contactIds: [contact.id], subject: 'Hi', body: 'Hello' })
+    });
+
+    repo.beginSendOperation({
+      operationType: 'direct_email',
+      sendOperationId,
+      idempotencyKey: sendOperationId,
+      requestHash: sendOperationId,
+      recipients: [{ contactId: contact.id, email: contact.email }]
+    });
+
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { get: (...args: unknown[]) => { expires_at: string } } } }).db;
+    const row = db.prepare('select expires_at from send_operations where send_operation_id = ?').get(sendOperationId);
+    const expiresInMs = new Date(row.expires_at).getTime() - before;
+
+    expect(expiresInMs).toBeGreaterThan(14 * 60_000);
+    expect(expiresInMs).toBeLessThanOrEqual(15 * 60_000 + 1000);
+  });
+
   test('enforces direct email recipient cap before sending', async () => {
     const repo = createTestRepository();
     const first = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

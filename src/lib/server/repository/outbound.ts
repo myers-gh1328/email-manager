@@ -23,7 +23,7 @@ export function beginSendOperation(db: DatabaseSync, input: SendOperationInput):
   if (existing) return existing;
   const id = newId();
   const timestamp = now();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60_000).toISOString();
+  const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
   transaction(db, () => {
     db.prepare(
       `insert into send_operations (

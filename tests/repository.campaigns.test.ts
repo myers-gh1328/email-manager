@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { createTestRepository } from './repository-helpers';
 import { AppRepository } from '../src/lib/server/repository';
+import { sendDueCampaignsWithDependencies } from '../src/lib/server/send-due-campaigns';
+import { baseAppSettings } from './settings-helpers';
 
 describe('repository campaigns and deliveries', () => {
   test('records successful campaign delivery once per contact', () => {
@@ -216,6 +218,90 @@ describe('repository campaigns and deliveries', () => {
       failureSummary: 'Temporary failure'
     });
     expect(delivery.nextAttemptAt).toBeTruthy();
+  });
+
+  test('automatic claims do not pick up scheduled retries', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const firstClaim = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'automatic',
+      subject: 'Prep',
+      body: 'Details.',
+      nowIso: '2026-09-30T13:00:00.000Z'
+    });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: firstClaim!.id,
+      attemptId: firstClaim!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+
+    const automaticRetry = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'automatic',
+      subject: 'Prep',
+      body: 'Details.',
+      nowIso: '2026-09-30T13:06:00.000Z'
+    });
+    const manualRetry = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'manual',
+      subject: 'Prep',
+      body: 'Details.',
+      nowIso: '2026-09-30T13:06:00.000Z'
+    });
+
+    expect(automaticRetry).toBeUndefined();
+    expect(manualRetry).toMatchObject({ id: firstClaim!.id, status: 'sending', attemptCount: 2 });
+  });
+
+  test('automatic send-due does not send due scheduled retries', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2000-01-01T00:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const firstClaim = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'automatic',
+      subject: 'Prep',
+      body: 'Details.',
+      nowIso: '2026-09-30T13:00:00.000Z'
+    });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: firstClaim!.id,
+      attemptId: firstClaim!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+    const send = async () => {
+      throw new Error('scheduled retry should not send');
+    };
+
+    const sent = await sendDueCampaignsWithDependencies(repo, baseAppSettings(), send, { surface: 'campaign_auto' });
+
+    expect(sent).toBe(0);
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, status: 'retry_scheduled' }]);
   });
 
   test('loads campaign detail with recipient status including skipped do-not-email contacts', () => {
