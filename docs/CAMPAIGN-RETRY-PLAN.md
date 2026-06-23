@@ -78,6 +78,25 @@ should not consume capacity. SMTP attempts that reach the provider should remain
 charged even if they fail. Rate-limit failures should return a consistent safe
 reason and `retryAfter` value to browser actions and MCP tools.
 
+Default outbound safety settings:
+
+- Direct-email max recipients per batch: 12.
+- Batch pacing: one recipient every 5 seconds.
+- Max outbound attempts per minute: 10.
+- Max outbound attempts per hour: 50.
+- MCP send commit throttle: one send commit every 10 seconds.
+- Manual send-due throttle: one run every 30 seconds.
+
+Users may override these defaults only within hard caps:
+
+- Direct-email max recipients per batch cannot exceed 25.
+- Batch pacing cannot be faster than one recipient every 2 seconds.
+- Max outbound attempts per minute cannot exceed 30.
+- Max outbound attempts per hour cannot exceed 300.
+- MCP send commit throttle cannot be faster than one send commit every 10
+  seconds.
+- Manual send-due throttle cannot be faster than one run every 30 seconds.
+
 Direct email needs its own send-operation identity because it does not have a
 campaign delivery row. Persist or otherwise enforce a short-lived idempotency
 key derived from the preview token, normalized recipient IDs, subject, body, and
@@ -107,6 +126,27 @@ pending recipients may be retried only through an explicit new operation.
 Browser manual actions and MCP commits must use the same operation identity,
 duplicate-submit outcome, rate-limit budget, kill-switch error shape, and
 sanitized failure contract.
+
+Minimum direct-email operation persistence:
+
+- `send_operations.id`
+- `send_operations.operation_type = direct_email`
+- `send_operations.send_operation_id`
+- `send_operations.idempotency_key`
+- `send_operations.status`
+- `send_operations.request_hash`
+- `send_operations.created_at`
+- `send_operations.updated_at`
+- `send_operations.expires_at`
+- `send_operations.result_summary`
+- `send_operations.failure_summary`
+- `send_operation_recipients.operation_id`
+- `send_operation_recipients.contact_id`
+- `send_operation_recipients.email`
+- `send_operation_recipients.status`
+- `send_operation_recipients.provider_message`
+- `send_operation_recipients.failure_kind`
+- `send_operation_recipients.failure_summary`
 
 The kill switch must be visible on the dashboard and settings page. All commit
 paths must recheck it immediately before sending.
@@ -349,6 +389,17 @@ actions: attach or recreate a missing communication record when enough local
 data exists, mark the audit unrecoverable while preserving terminal send state,
 or leave the row attention-needed. None of these repair paths may resend.
 
+Accepted-audit-incomplete repair belongs on Campaign detail. Show it as a
+non-retryable attention state with copy like "Mail server accepted this send,
+but local history was not fully recorded." Allowed repair actions are:
+
+- Recreate the missing communication history row from the accepted attempt
+  snapshot.
+- Attach an existing communication row when the match is unambiguous.
+- Mark the audit unrecoverable while preserving terminal send state.
+
+Repair actions must never send email.
+
 ## Migration Plan
 
 Existing delivery rows need deterministic backfill:
@@ -430,6 +481,8 @@ errors. Saving retry settings must not rewrite unrelated settings groups.
 Default policy allows one initial attempt plus three automatic retries, for four
 total automatic attempts. Tests must cover the boundary before and after the
 third retry.
+
+The default stale-claim timeout is 15 minutes.
 
 ## Retry Scheduling
 
@@ -562,6 +615,13 @@ Communications should remain the audit trail:
 - Show test-mode rerouting where applicable.
 - Do not become the primary retry-control surface.
 
+Direct-email partial batch recovery lives in Communications. Show each direct
+email batch as one grouped send operation with expandable per-recipient status.
+If a batch is interrupted, mark the operation as needing attention. Accepted
+recipients remain locked. Unknown or unresolved recipients can be used to start a
+new explicit direct-email preview/send flow, but the old operation is never
+silently resumed.
+
 Settings should include retry defaults in the scheduler or sending section:
 
 - Automatic retries enabled.
@@ -575,6 +635,12 @@ Settings should include retry defaults in the scheduler or sending section:
 Settings should validate hard caps for maximum automatic retries, minimum and
 maximum backoff, retry expiry window, batch pacing, rate limits, and direct-email
 recipient caps.
+
+Disabling automatic retries pauses retry claims without mutating scheduled retry
+state. Existing `next_attempt_at` values remain visible. Dashboard and campaign
+detail should show retries as paused, not canceled. Re-enabling automatic
+retries makes due retry rows eligible again while preserving policy snapshots,
+attempt counts, and sent-recipient exclusion.
 
 ## Test Mode
 
@@ -736,6 +802,10 @@ Add global outbound gate tests for:
 - Browser manual double-submit does not resend.
 - Rate-limit and recipient-cap failures return consistent safe responses in UI
   and MCP.
+- Default outbound safety values match the documented defaults and cannot exceed
+  documented hard caps.
+- Disabling automatic retries pauses retry claims without clearing
+  `next_attempt_at`; re-enabling makes due rows eligible again.
 - Sanitizer summaries are generated from templates/enums, not raw provider text.
 - Custom SMTP and Fastmail-style Nodemailer errors classify by standards-first
   SMTP/OAuth fields.
@@ -763,6 +833,5 @@ Update user-facing docs when retry settings and controls exist.
 
 ## Open Decisions
 
-Before implementation, decide:
-
-- What should the default stale-claim timeout be?
+No retry policy decisions remain open in this plan. New changes should be
+handled as reviewed follow-up decisions.
