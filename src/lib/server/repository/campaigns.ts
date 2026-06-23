@@ -417,6 +417,32 @@ export function retryCampaignDeliveries(db: DatabaseSync, campaignId: string, re
   return Number(result.changes);
 }
 
+export function countFailedCampaignDeliveriesBetween(db: DatabaseSync, startIso: string, endIso: string) {
+  const row = db
+    .prepare(
+      `select count(*) as value
+       from campaign_deliveries
+       where status in ('failed', 'retry_scheduled', 'needs_attention')
+         and coalesce(last_attempt_at, created_at) >= ?
+         and coalesce(last_attempt_at, created_at) < ?`
+    )
+    .get(startIso, endIso) as Row;
+  return Number(row.value ?? 0);
+}
+
+export function retryFailedCampaignDeliveriesBetween(db: DatabaseSync, startIso: string, endIso: string) {
+  const result = db
+    .prepare(
+      `update campaign_deliveries
+       set status = 'pending', next_attempt_at = null, claim_expires_at = null, error_message = null
+       where status in ('failed', 'retry_scheduled', 'needs_attention')
+         and coalesce(last_attempt_at, created_at) >= ?
+         and coalesce(last_attempt_at, created_at) < ?`
+    )
+    .run(startIso, endIso);
+  return Number(result.changes);
+}
+
 function nextRetryTime(timestamp: string, backoffJson: string, attemptCount: number) {
   let backoff = [300, 1800, 7200];
   try {

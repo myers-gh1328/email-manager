@@ -5,13 +5,23 @@ import { getSettings } from './settings';
 export function loadDashboardData() {
   const settings = getSettings();
   const campaigns = repo.listCampaigns();
+  const retryWindow = localTodayWindow();
   return {
     stats: repo.stats(),
     campaigns,
     schedulerStatus: schedulerStatus(settings, campaigns),
+    failedTodayCount: repo.countFailedCampaignDeliveriesBetween(retryWindow.startIso, retryWindow.endIso),
     remoteStatus: remoteAccessStatus(settings),
     settings
   };
+}
+
+export function localTodayWindow(now = new Date()) {
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { startIso: start.toISOString(), endIso: end.toISOString() };
 }
 
 export function schedulerStatus(settings: ReturnType<typeof getSettings>, campaigns: ReturnType<typeof repo.listCampaigns>) {

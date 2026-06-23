@@ -30,6 +30,7 @@ import {
 import {
   createCampaign,
   claimNextEligibleDelivery,
+  countFailedCampaignDeliveriesBetween,
   claimNextPendingDelivery,
   deleteCampaign,
   ensurePendingDeliveries,
@@ -47,6 +48,7 @@ import {
   markDeliverySent,
   recoverExpiredSendingDeliveries,
   retryCampaignDeliveries,
+  retryFailedCampaignDeliveriesBetween,
   updateDeliveryAttemptSnapshot,
   updateDefaultCampaign,
   updateCampaign
@@ -452,6 +454,14 @@ export class AppRepository {
 
   retryCampaignDeliveries(campaignId: string, recipientIds: string[]) {
     return retryCampaignDeliveries(this.db, campaignId, recipientIds);
+  }
+
+  countFailedCampaignDeliveriesBetween(startIso: string, endIso: string) {
+    return countFailedCampaignDeliveriesBetween(this.db, startIso, endIso);
+  }
+
+  retryFailedCampaignDeliveriesBetween(startIso: string, endIso: string) {
+    return retryFailedCampaignDeliveriesBetween(this.db, startIso, endIso);
   }
 
   recordCommunication(input: CommunicationInput) {

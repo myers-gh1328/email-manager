@@ -15,9 +15,14 @@
       <p class="eyebrow">Overview</p>
       <h2>Upcoming class email work</h2>
     </div>
-    <form method="POST" action="?/sendDueCampaigns" use:enhance>
-      <button type="submit" disabled={!data.settings.schedulerEnabled}>Send due now</button>
-    </form>
+    <div class="button-row">
+      <form method="POST" action="?/retryFailedToday" use:enhance>
+        <button class="secondary" type="submit" disabled={!data.failedTodayCount}>Queue failed today</button>
+      </form>
+      <form method="POST" action="?/sendDueCampaigns" use:enhance>
+        <button type="submit" disabled={!data.settings.schedulerEnabled}>Send due now</button>
+      </form>
+    </div>
   </div>
 
   <div class="metric-grid">
@@ -49,6 +54,7 @@
     {/if}
     <div class="status-row">
       <span>{data.schedulerStatus.dueApprovedCount} approved due now</span>
+      <span>{data.failedTodayCount} failed today</span>
       {#if data.schedulerStatus.nextApproved}
         <span>Next sends {formatDateTime(data.schedulerStatus.nextApproved.scheduledFor)}</span>
       {:else}
@@ -68,7 +74,7 @@
     </section>
   {/if}
 
-  {#if form?.message}<p class="error spaced">{form.message}</p>{/if}
+  {#if form?.message}<p class={form.message.includes('queued') ? 'success spaced' : 'error spaced'}>{form.message}</p>{/if}
   {#if form?.sent}<p class="success spaced">Mail server accepted {form.sent} due email{form.sent === 1 ? '' : 's'}.</p>{/if}
 </section>
 
