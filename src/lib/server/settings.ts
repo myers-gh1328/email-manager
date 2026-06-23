@@ -1,6 +1,7 @@
 import { repo } from './app';
 import { decryptSecret, encryptSecret } from './crypto';
 import { normalizeThemeMode, type ThemeMode } from '../shared/theme';
+import { formText } from './form-utils';
 import {
   agentPermissionKeys,
   defaultAgentPermissions,
@@ -132,7 +133,7 @@ export function updateRemoteAccessSettings(form: FormData) {
 export function normalizedPublicBaseUrl(value: FormDataEntryValue | null) {
   if (value === null) return '';
   if (typeof value !== 'string') {
-    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+    throw new TypeError('Public base URL must be a valid HTTP or HTTPS URL.');
   }
 
   const input = value.trim();
@@ -164,9 +165,9 @@ export function updateSmtpSettings(form: FormData) {
   if (form.has('microsoftTenantId')) set('microsoft.tenantId', form.get('microsoftTenantId') || 'common');
   if (form.has('microsoftClientId')) set('microsoft.clientId', form.get('microsoftClientId'));
 
-  const smtpPassword = String(form.get('smtpPassword') ?? '');
+  const smtpPassword = formText(form.get('smtpPassword'));
   if (smtpPassword) repo.setSetting('smtp.password', encryptSecret(smtpPassword));
-  const microsoftClientSecret = String(form.get('microsoftClientSecret') ?? '');
+  const microsoftClientSecret = formText(form.get('microsoftClientSecret'));
   if (microsoftClientSecret) repo.setSetting('microsoft.clientSecret', encryptSecret(microsoftClientSecret));
 }
 
@@ -176,7 +177,7 @@ export function updateAiSettings(form: FormData) {
   set('ai.baseUrl', form.get('aiBaseUrl'));
   set('ai.model', form.get('aiModel'));
 
-  const aiApiKey = String(form.get('aiApiKey') ?? '');
+  const aiApiKey = formText(form.get('aiApiKey'));
   if (aiApiKey) repo.setSetting('ai.apiKey', encryptSecret(aiApiKey));
 }
 
@@ -204,14 +205,14 @@ export function updateAgentPermissionSettings(form: FormData) {
 
 export function updateVocabularySettings(form: FormData) {
   const labels = normalizeVocabulary({
-    courseTypeLabel: String(form.get('courseTypeLabel') ?? ''),
-    courseTypePluralLabel: String(form.get('courseTypePluralLabel') ?? ''),
-    classSessionLabel: String(form.get('classSessionLabel') ?? ''),
-    classSessionPluralLabel: String(form.get('classSessionPluralLabel') ?? ''),
-    studentLabel: String(form.get('studentLabel') ?? ''),
-    studentPluralLabel: String(form.get('studentPluralLabel') ?? ''),
-    instructorLabel: String(form.get('instructorLabel') ?? ''),
-    instructorPluralLabel: String(form.get('instructorPluralLabel') ?? '')
+    courseTypeLabel: formText(form.get('courseTypeLabel')),
+    courseTypePluralLabel: formText(form.get('courseTypePluralLabel')),
+    classSessionLabel: formText(form.get('classSessionLabel')),
+    classSessionPluralLabel: formText(form.get('classSessionPluralLabel')),
+    studentLabel: formText(form.get('studentLabel')),
+    studentPluralLabel: formText(form.get('studentPluralLabel')),
+    instructorLabel: formText(form.get('instructorLabel')),
+    instructorPluralLabel: formText(form.get('instructorPluralLabel'))
   });
   for (const [key, value] of Object.entries(labels)) {
     set(`vocabulary.${key}`, value);
@@ -254,7 +255,7 @@ export function setThemeMode(value: string) {
 }
 
 function set(key: string, value: FormDataEntryValue | null | string | boolean) {
-  repo.setSetting(key, String(value ?? '').trim());
+  repo.setSetting(key, formText(value).trim());
 }
 
 function checked(form: FormData, key: string) {
@@ -262,11 +263,15 @@ function checked(form: FormData, key: string) {
 }
 
 function normalizeBaseUrl(value: string) {
-  return value.trim().replace(/\/+$/, '');
+  let normalized = value.trim();
+  while (normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 function cappedInt(value: FormDataEntryValue | string | null, fallback: number, min: number, max: number) {
-  const parsed = Number.parseInt(String(value ?? ''), 10);
+  const parsed = Number.parseInt(formText(value), 10);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(min, parsed));
 }

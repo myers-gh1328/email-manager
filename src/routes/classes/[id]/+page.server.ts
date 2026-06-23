@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
-import { required, text } from '$lib/server/form-utils';
+import { errorText, required, text } from '$lib/server/form-utils';
 import {
   buildCampaignEmailPreviews,
   campaignEmailPreviewToken,
@@ -39,9 +39,7 @@ export const actions = {
 	    });
 	    const createdDefaults = syncDefaultCampaignsForClass(repo, params.id);
 	    return {
-	      message: createdDefaults.length
-	        ? `Class updated. Scheduled ${createdDefaults.length} default email${createdDefaults.length === 1 ? '' : 's'}.`
-	        : 'Class updated.'
+	      message: classUpdatedMessage(createdDefaults.length)
 	    };
 	  },
   enrollContact: async ({ params, request }) => {
@@ -90,7 +88,7 @@ export const actions = {
         message: `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
       };
     } catch (error) {
-      return fail(400, { error: true, panel: 'image', message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { error: true, panel: 'image', message: errorText(error) });
     }
   },
   previewClassEmail: async ({ params, request }) => {
@@ -105,7 +103,7 @@ export const actions = {
       defaultPurpose: choice.defaultPurpose,
       defaultLabel: choice.defaultLabel,
       sendOffsetMinutes: choice.sendOffsetMinutes,
-      suggestedScheduledFor: choice.sendOffsetMinutes !== undefined ? scheduledForFromClassOffset(repo.getClassSession(params.id), choice.sendOffsetMinutes) : '',
+      suggestedScheduledFor: suggestedScheduledFor(params.id, choice.sendOffsetMinutes),
       previewToken: classEmailPreviewToken(params.id, choice.templateId)
     };
   },
@@ -125,7 +123,7 @@ export const actions = {
     const campaign = repo.createCampaign({
       classSessionId: params.id,
       templateId,
-      name: defaultPurpose ? `${purposeLabel(defaultPurpose)} · ${template.name}` : `${template.name} class email`,
+      name: classEmailCampaignName(defaultPurpose, template.name),
       scheduledFor: required(form, 'scheduledFor'),
       approved: true,
       source: defaultPurpose ? 'course_default' : 'manual',
@@ -145,6 +143,17 @@ function buildClassEmailPreviews(classSessionId: string, templateId: string) {
   return buildCampaignEmailPreviews(repo, classSessionId, templateId, getSettings().instructorName);
 }
 
+function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number | undefined) {
+  if (sendOffsetMinutes === undefined) return '';
+  return scheduledForFromClassOffset(repo.getClassSession(classSessionId), sendOffsetMinutes);
+}
+
+function classUpdatedMessage(defaultCampaignCount: number) {
+  if (defaultCampaignCount === 0) return 'Class updated.';
+  const plural = defaultCampaignCount === 1 ? '' : 's';
+  return `Class updated. Scheduled ${defaultCampaignCount} default email${plural}.`;
+}
+
 function classEmailPreviewToken(classSessionId: string, templateId: string) {
   const template = repo.getTemplate(templateId);
   const previews = buildClassEmailPreviews(classSessionId, templateId);
@@ -157,14 +166,21 @@ function emailChoice(classSessionId: string, value: string) {
   const match = repo
     .listDefaultTemplatesForClassSession(classSessionId)
     .find((item) => item.purpose === purpose && item.templateId === templateId);
-  if (!match) return { value: templateId, templateId, defaultPurpose: '', defaultLabel: '', sendOffsetMinutes: undefined };
-  return {
-    value,
-    templateId,
-    defaultPurpose: match.purpose,
-    defaultLabel: match.label,
-    sendOffsetMinutes: match.sendOffsetMinutes
-  };
+  if (match) {
+    return {
+      value,
+      templateId,
+      defaultPurpose: match.purpose,
+      defaultLabel: match.label,
+      sendOffsetMinutes: match.sendOffsetMinutes
+    };
+  }
+  return { value: templateId, templateId, defaultPurpose: '', defaultLabel: '', sendOffsetMinutes: undefined };
+}
+
+function classEmailCampaignName(defaultPurpose: string, templateName: string) {
+  if (!defaultPurpose) return `${templateName} class email`;
+  return `${purposeLabel(defaultPurpose)} · ${templateName}`;
 }
 
 function purposeLabel(purpose: string) {

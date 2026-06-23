@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
-import { required } from '$lib/server/form-utils';
+import { text, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, campaignEmailPreviewToken, hasMissingVariables } from '$lib/server/campaign-email';
 import { loadCampaignsData } from '$lib/server/page-data';
 import { getSettings } from '$lib/server/settings';
@@ -60,5 +60,5 @@ function campaignPreviewToken(classSessionId: string, templateId: string) {
 }
 
 function textToken(form: FormData, key: string) {
-  return String(form.get(key) ?? '');
+  return text(form, key);
 }

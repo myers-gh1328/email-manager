@@ -14,5 +14,5 @@ export const baseNavItems = [
 
 export function navigationItems(settings?: NavigationSettings) {
   if (!settings?.emailTestModeEnabled) return baseNavItems;
-  return [...baseNavItems.slice(0, -1), { href: '/test-audit', label: 'Test audit' }, baseNavItems[baseNavItems.length - 1]];
+  return [...baseNavItems.slice(0, -1), { href: '/test-audit', label: 'Test audit' }, baseNavItems.at(-1)!];
 }

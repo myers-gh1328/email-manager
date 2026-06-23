@@ -69,10 +69,12 @@ export function resetOutboundGateForTests() {
 
 function enforceSurfaceThrottle(surface: OutboundSurface, now: number) {
   if (process.env.NODE_ENV === 'test') return;
-  const minimum =
-    surface === 'manual_send_due' ? 30_000 :
-    surface === 'mcp_send_due' || surface === 'mcp_direct_email' ? 10_000 :
-    0;
+  let minimum = 0;
+  if (surface === 'manual_send_due') {
+    minimum = 30_000;
+  } else if (surface === 'mcp_send_due' || surface === 'mcp_direct_email') {
+    minimum = 10_000;
+  }
   if (!minimum) return;
   const last = lastSurfaceRun.get(surface) ?? 0;
   if (last && now - last < minimum) {

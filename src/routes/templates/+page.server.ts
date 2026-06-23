@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
-import { required } from '$lib/server/form-utils';
+import { errorText, formText, required } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
 import { loadTemplatesData } from '$lib/server/page-data';
 
@@ -41,16 +41,16 @@ export const actions = {
       repo.deleteTemplate(required(form, 'templateId'));
       return { message: 'Template deleted.' };
     } catch (error) {
-      return { message: error instanceof Error ? error.message : String(error) };
+      return { message: errorText(error) };
     }
   },
   aiDraft: async ({ request }) => {
     const form = await request.formData();
     try {
-      const templateId = String(form.get('templateId') ?? '');
-      const currentName = String(form.get('name') ?? '').trim();
-      const currentSubject = String(form.get('subject') ?? '').trim();
-      const currentBody = String(form.get('body') ?? '').trim();
+      const templateId = formText(form.get('templateId'));
+      const currentName = formText(form.get('name')).trim();
+      const currentSubject = formText(form.get('subject')).trim();
+      const currentBody = formText(form.get('body')).trim();
       const draft = await suggestTemplate(required(form, 'prompt'), {
         subject: currentSubject,
         body: currentBody
@@ -64,7 +64,7 @@ export const actions = {
         }
       };
     } catch (error) {
-      return fail(400, { message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { message: errorText(error) });
     }
   }
 };

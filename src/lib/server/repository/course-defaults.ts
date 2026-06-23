@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { now } from './ids';
+import { rowString } from './mappers';
 import type { CourseTypeDefaultTemplateInput, Row } from './types';
 
 export function setCourseTypeDefaultTemplate(db: DatabaseSync, input: CourseTypeDefaultTemplateInput) {
@@ -46,11 +47,11 @@ export function listDefaultTemplatesForClassSession(db: DatabaseSync, classSessi
 
 function mapDefaultTemplate(row: Row) {
   return {
-    courseTypeId: String(row.course_type_id),
-    purpose: String(row.purpose),
-    label: String(row.label ?? ''),
-    templateId: String(row.template_id),
-    templateName: String(row.template_name),
+    courseTypeId: rowString(row.course_type_id),
+    purpose: rowString(row.purpose),
+    label: rowString(row.label),
+    templateId: rowString(row.template_id),
+    templateName: rowString(row.template_name),
     sortOrder: Number(row.sort_order ?? 0),
     sendOffsetMinutes: Number(row.send_offset_minutes ?? 0)
   };

@@ -101,11 +101,23 @@ export async function listAiModels(input: { baseUrl: string; apiKey?: string }) 
   });
   if (!response.ok) throw new Error(`AI model list returned ${response.status}`);
   const data = await response.json();
-  const models = Array.isArray(data.data) ? data.data : Array.isArray(data.models) ? data.models : [];
+  const models = modelsFromResponse(data);
   return models
-    .map((model: unknown) => (typeof model === 'string' ? model : typeof (model as { id?: unknown })?.id === 'string' ? (model as { id: string }).id : ''))
+    .map(modelId)
     .filter(Boolean)
     .sort((a: string, b: string) => a.localeCompare(b));
+}
+
+function modelsFromResponse(data: { data?: unknown; models?: unknown }) {
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.models)) return data.models;
+  return [];
+}
+
+function modelId(model: unknown) {
+  if (typeof model === 'string') return model;
+  if (model && typeof model === 'object' && typeof (model as { id?: unknown }).id === 'string') return (model as { id: string }).id;
+  return '';
 }
 
 export async function extractRosterFromImage(imageDataUrl: string) {

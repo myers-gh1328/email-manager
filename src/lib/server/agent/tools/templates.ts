@@ -102,7 +102,7 @@ function withRepositoryEnvelope<T>(settings: AppSettings, callback: () => AgentE
 }
 
 function repositoryErrorEnvelope<T>(settings: AppSettings, error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : 'Unknown repository error.';
   if (/duplicate/i.test(message)) {
     return agentError<T>('conflict', message, undefined, { labels: settings.vocabulary });
   }

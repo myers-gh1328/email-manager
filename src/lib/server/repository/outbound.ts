@@ -1,6 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { OutboundGateError } from '../outbound-errors';
 import { newId, now } from './ids';
+import { rowString } from './mappers';
 import type { Row } from './types';
 
 export interface SendOperationInput {
@@ -43,14 +44,14 @@ export function beginSendOperation(db: DatabaseSync, input: SendOperationInput):
 
 export function getSendOperation(db: DatabaseSync, sendOperationId: string): SendOperationState | undefined {
   const row = db.prepare('select * from send_operations where send_operation_id = ?').get(sendOperationId) as Row | undefined;
-  if (row && String(row.status) === 'sending' && String(row.expires_at) <= now()) {
+  if (row && rowString(row.status) === 'sending' && rowString(row.expires_at) <= now()) {
     db.prepare(
       `update send_operations
        set status = 'needs_attention',
          failure_summary = 'This send was interrupted before it finished. Review before sending again.',
          updated_at = ?
        where id = ? and status = 'sending'`
-    ).run(now(), row.id as string);
+    ).run(now(), rowString(row.id));
     return getSendOperation(db, sendOperationId);
   }
   return row ? mapSendOperation(row) : undefined;
@@ -71,7 +72,12 @@ export function markSendOperationRecipient(
 
 export function finishSendOperation(db: DatabaseSync, operationId: string, input: { sent: number; failed: number }) {
   const timestamp = now();
-  const status = input.failed > 0 && input.sent > 0 ? 'partial' : input.failed > 0 ? 'failed' : 'accepted';
+  let status: SendOperationState['status'] = 'accepted';
+  if (input.failed > 0 && input.sent > 0) {
+    status = 'partial';
+  } else if (input.failed > 0) {
+    status = 'failed';
+  }
   const result = `Accepted ${input.sent}; failed ${input.failed}.`;
   db.prepare(
     `update send_operations
@@ -103,10 +109,10 @@ export function reserveOutboundRateEvent(
 
 function mapSendOperation(row: Row): SendOperationState {
   return {
-    id: String(row.id),
-    status: String(row.status) as SendOperationState['status'],
-    resultSummary: String(row.result_summary ?? ''),
-    failureSummary: String(row.failure_summary ?? '')
+    id: rowString(row.id),
+    status: rowString(row.status) as SendOperationState['status'],
+    resultSummary: rowString(row.result_summary),
+    failureSummary: rowString(row.failure_summary)
   };
 }
 

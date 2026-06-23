@@ -1,10 +1,11 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { now } from './ids';
+import { rowString } from './mappers';
 import type { Row } from './types';
 
 export function getSetting(db: DatabaseSync, key: string) {
   const row = db.prepare('select value from settings where key = ?').get(key) as Row | undefined;
-  return row ? String(row.value) : '';
+  return row ? rowString(row.value) : '';
 }
 
 export function setSetting(db: DatabaseSync, key: string, value: string) {
@@ -21,7 +22,7 @@ export function listSettingKeysByPrefix(db: DatabaseSync, prefix: string) {
   return db
     .prepare('select key from settings where key like ?')
     .all(`${prefix}%`)
-    .map((row) => String((row as Row).key));
+    .map((row) => rowString((row as Row).key));
 }
 
 export function stats(db: DatabaseSync) {

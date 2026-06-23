@@ -161,7 +161,7 @@ function requireAgentPermission(settings: AppSettings, permission: 'prepareEmail
 }
 
 function directEmailValidationError(error: unknown, settings: AppSettings) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = error instanceof Error ? error.message : 'Unknown direct email error.';
   if (/not found/i.test(message)) return agentError('not_found', message, undefined, { labels: settings.vocabulary });
   return agentError('validation_failed', message, undefined, { labels: settings.vocabulary });
 }

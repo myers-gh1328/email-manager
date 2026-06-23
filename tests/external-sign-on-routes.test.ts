@@ -50,7 +50,11 @@ vi.mock('$lib/server/external-sign-on', () => externalSignOnMocks);
 vi.mock('$lib/server/auth', () => authMocks);
 vi.mock('$lib/server/page-data', () => ({ loadSettingsData: settingsPageMocks.loadSettingsData }));
 vi.mock('$lib/server/llm', () => ({ listAiModels: settingsPageMocks.listAiModels }));
-vi.mock('$lib/server/form-utils', () => ({ required: settingsPageMocks.required }));
+vi.mock('$lib/server/form-utils', () => ({
+  errorText: (error: unknown) => error instanceof Error ? error.message : 'Something went wrong.',
+  formText: (value: FormDataEntryValue | null | string | boolean) => typeof value === 'string' || typeof value === 'boolean' ? String(value) : '',
+  required: settingsPageMocks.required
+}));
 vi.mock('$lib/server/mailer', () => ({ testSmtpSettings: settingsPageMocks.testSmtpSettings }));
 vi.mock('$lib/server/settings', () => ({
   aiApiKeyForModelLoad: settingsPageMocks.aiApiKeyForModelLoad,

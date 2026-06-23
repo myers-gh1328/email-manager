@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { sendDueCampaigns } from '$lib/server/background';
 import { repo } from '$lib/server/app';
-import { required } from '$lib/server/form-utils';
+import { errorText, formText, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
 import { OutboundGateError } from '$lib/server/outbound-errors';
 import { getSettings } from '$lib/server/settings';
@@ -37,7 +37,7 @@ export const actions = {
     try {
       repo.deleteCampaign(params.id);
     } catch (error) {
-      return fail(400, { message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { message: errorText(error) });
     }
     throw redirect(303, '/campaigns');
   },
@@ -52,7 +52,7 @@ export const actions = {
   },
   retrySelected: async ({ params, request }) => {
     const form = await request.formData();
-    const recipientIds = form.getAll('recipientIds').map(String).filter(Boolean);
+    const recipientIds = form.getAll('recipientIds').map(formText).filter(Boolean);
     if (!recipientIds.length) return fail(400, { message: 'Select at least one recipient to retry.' });
     const updated = repo.retryCampaignDeliveries(params.id, recipientIds);
     return { message: `${updated} recipient${updated === 1 ? '' : 's'} queued for retry. Sent recipients are always excluded.` };
