@@ -354,7 +354,7 @@ describe('repository campaigns and deliveries', () => {
     });
   });
 
-  test('queues only failed campaign deliveries from today for manual resend', async () => {
+  test('makes only failed campaign deliveries from today retryable for manual resend', async () => {
     const repo = createTestRepository();
     const today = '2026-06-23T14:00:00.000Z';
     const yesterday = '2026-06-22T14:00:00.000Z';
@@ -384,10 +384,10 @@ describe('repository campaigns and deliveries', () => {
     db.prepare('update campaign_deliveries set last_attempt_at = ? where recipient_id = ?').run(yesterday, failedYesterday.id);
 
     const count = repo.countFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
-    const queued = repo.retryFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
+    const retryable = repo.retryFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
 
     expect(count).toBe(1);
-    expect(queued).toBe(1);
+    expect(retryable).toBe(1);
     expect(repo.listDeliveries(campaign.id)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ recipientId: failedToday.id, status: 'pending' }),
@@ -397,7 +397,7 @@ describe('repository campaigns and deliveries', () => {
     );
   });
 
-  test('manual send-due sends a delivery queued from failed today', async () => {
+  test('manual send-due sends a failed-today delivery made retryable', async () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
     const course = repo.createCourseType({ name: 'Divemaster' });

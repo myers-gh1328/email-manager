@@ -8,20 +8,18 @@ import { repo } from '$lib/server/app';
 export const load = () => loadDashboardData();
 
 export const actions = {
-  sendDueCampaigns: async () => {
+  resendFailedToday: async () => {
     if (!getSettings().schedulerEnabled) {
       return fail(400, { message: 'Scheduled sending is disabled in settings.' });
     }
+    const retryWindow = localTodayWindow();
+    const retryable = repo.retryFailedCampaignDeliveriesBetween(retryWindow.startIso, retryWindow.endIso);
+    if (!retryable) return { resent: 0, message: 'No failed emails from today need a resend.' };
     try {
-      return { sent: await sendDueCampaigns({ surface: 'manual_send_due' }) };
+      return { resent: await sendDueCampaigns({ surface: 'manual_send_due' }), retryable };
     } catch (error) {
       if (error instanceof OutboundGateError) return fail(error.retryAfterSeconds ? 429 : 400, { message: error.message, retryAfter: error.retryAfterSeconds });
       throw error;
     }
-  },
-  retryFailedToday: async () => {
-    const retryWindow = localTodayWindow();
-    const queued = repo.retryFailedCampaignDeliveriesBetween(retryWindow.startIso, retryWindow.endIso);
-    return { message: `${queued} failed email${queued === 1 ? '' : 's'} queued for manual resend. Use Send due now when ready.` };
   }
 };
