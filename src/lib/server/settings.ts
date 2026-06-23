@@ -114,8 +114,13 @@ export function updateRemoteAccessSettings(form: FormData) {
   set('server.trustedProxyEnabled', checked(form, 'trustedProxyEnabled'));
 }
 
-function normalizedPublicBaseUrl(value: FormDataEntryValue | null) {
-  const input = String(value ?? '').trim();
+export function normalizedPublicBaseUrl(value: FormDataEntryValue | null) {
+  if (value === null) return '';
+  if (typeof value !== 'string') {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+
+  const input = value.trim();
   if (!input) return '';
 
   let url: URL;
