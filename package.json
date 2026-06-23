@@ -76,7 +76,7 @@
     "@nats-io/transport-node": "^3.4.0",
     "@sveltejs/adapter-node": "^5.3.1",
     "@sveltejs/kit": "^2.21.5",
-    "@sveltejs/vite-plugin-svelte": "^5.1.0",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "imapflow": "^1.4.2",
     "mailparser": "^3.9.11",
     "nodemailer": "^6.10.1",
