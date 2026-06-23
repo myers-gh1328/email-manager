@@ -34,7 +34,7 @@ export function safeErrorSummary(error: unknown) {
 export function sanitizeOutboundText(value: string) {
   return value
     .replace(/(password|passwd|pwd|client_secret|access_token|refresh_token|api[_-]?key)=\S+/gi, '$1=[redacted]')
-    .replace(/Bearer\s+[A-Za-z0-9._~+/=\-]+/gi, 'Bearer [redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')
     .replace(/[A-Za-z]:\\[^\s]+/g, '[local path]')
     .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '[ip]')
     .slice(0, 240);

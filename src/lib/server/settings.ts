@@ -263,7 +263,11 @@ function checked(form: FormData, key: string) {
 }
 
 function normalizeBaseUrl(value: string) {
-  return value.trim().replaceAll(/\/+$/g, '');
+  let normalized = value.trim();
+  while (normalized.endsWith('/')) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 function cappedInt(value: FormDataEntryValue | string | null, fallback: number, min: number, max: number) {
