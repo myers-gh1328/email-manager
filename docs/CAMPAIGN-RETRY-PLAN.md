@@ -72,10 +72,41 @@ The gate should enforce:
 - Safe error sanitization before anything reaches persistence, logs, UI, or MCP
   responses.
 
+Rate limits should reserve capacity before SMTP begins and consume capacity per
+recipient attempt, not merely per form submission. Pre-SMTP validation failures
+should not consume capacity. SMTP attempts that reach the provider should remain
+charged even if they fail. Rate-limit failures should return a consistent safe
+reason and `retryAfter` value to browser actions and MCP tools.
+
 Direct email needs its own send-operation identity because it does not have a
 campaign delivery row. Persist or otherwise enforce a short-lived idempotency
-key derived from the preview token, selected contacts, subject, body, and commit
-operation. Reusing the same key must not send the same batch twice.
+key derived from the preview token, normalized recipient IDs, subject, body, and
+sender/settings version. Reusing the same key must not send the same batch
+twice.
+
+Keep direct-email idempotency identity separate from commit audit identity:
+
+- `sendOperationId`: stable idempotency key for the previewed direct-email
+  batch.
+- `commitAttemptId`: unique audit identifier for each attempted commit of that
+  operation.
+
+`commitAttemptId` must not be part of the idempotency key. Otherwise every
+double-click, browser retry, or repeated agent commit would look unique and
+could send the same previewed batch again.
+
+Direct-email send operations should track per-recipient state under the stable
+`sendOperationId`: pending, sending, accepted, failed, or unknown. If a duplicate
+commit arrives after the operation is complete, return the existing result
+without sending again. If a duplicate arrives while the operation is in flight,
+return an in-progress response. If the app stops midway through a direct-email
+batch, later duplicate commits must not blindly resume; accepted recipients stay
+accepted, unknown in-flight recipients require operator review, and unsent
+pending recipients may be retried only through an explicit new operation.
+
+Browser manual actions and MCP commits must use the same operation identity,
+duplicate-submit outcome, rate-limit budget, kill-switch error shape, and
+sanitized failure contract.
 
 The kill switch must be visible on the dashboard and settings page. All commit
 paths must recheck it immediately before sending.
@@ -110,8 +141,8 @@ Examples:
 - SMTP `4xx` responses such as greylisting, temporary mailbox unavailable, or
   provider throttling.
 - Connection timeout, reset, temporary DNS failure, or temporary TLS failure.
-- Temporary OAuth or provider token endpoint failures such as rate limiting,
-  network failure, or provider `5xx`.
+- Temporary SMTP Microsoft OAuth2/XOAUTH2 token acquisition failures such as
+  rate limiting, network failure, or provider `5xx`.
 
 ### Permanent
 
@@ -123,7 +154,9 @@ Examples:
   domain, sender blocked, or rejected message.
 - Bad SMTP configuration.
 - Bad credentials.
-- Revoked or invalid OAuth grant.
+- SMTP Microsoft OAuth2/XOAUTH2 failures that require settings changes, such as
+  missing refresh token, revoked consent, `invalid_grant`, `invalid_client`, or
+  malformed tenant/client configuration.
 - Missing provider consent.
 - Malformed message or missing required settings.
 
@@ -159,6 +192,13 @@ For campaign sends, there is one effective recipient per SMTP attempt.
 - Provider responses may include accepted, rejected, pending, response code,
   response text, command, and network code. Capture enough structured detail for
   classification without storing secrets.
+- Apply the same classifier to Nodemailer-thrown errors and resolved provider
+  results. Recipient rejection details may arrive on thrown errors through
+  response code, response text, command, rejected recipients, or rejected errors.
+
+Classification must be standards-first and provider-agnostic. Add tests for
+generic custom SMTP and Fastmail-style Nodemailer results so the implementation
+does not become Gmail- or Microsoft-only.
 
 ## Error Redaction
 
@@ -183,7 +223,8 @@ Persist only a small allowlist of structured diagnostic fields:
 - SMTP response code.
 - Enhanced SMTP status code.
 - Sanitized provider category.
-- Safe user-facing summary.
+- Safe user-facing summary generated from classifier enums and templates, not
+  sanitized raw provider text.
 
 User-visible errors should describe the action to take:
 
@@ -218,10 +259,10 @@ The delivery record should expose:
 - Whether the next action is automatic retry, manual retry, or operator fix.
 
 If SMTP acceptance is known but follow-up persistence fails, the durable state
-must be non-retryable. Use an explicit accepted-but-incomplete state on the
-attempt or delivery, such as `accepted_audit_incomplete`, and surface it as
-`needs_attention` for audit repair. It must not be eligible for automatic or
-manual resend.
+must be non-retryable. Use `accepted_audit_incomplete` as the canonical attempt
+status. The delivery should remain terminal for resend purposes, with an
+operator-visible `needs_attention` audit-repair flag. It must not be eligible
+for automatic or manual resend.
 
 ## Persistence Plan
 
@@ -268,21 +309,38 @@ Minimum attempt table contract:
 - Claim expiration time.
 - Rendered subject and body snapshot.
 - Sanitized provider classification fields.
-- Optional communication link, with one canonical relationship direction.
+- Retry policy snapshot columns: max auto retries, backoff snapshot, retry
+  number, policy version, and policy source.
+- `communications.delivery_attempt_id` as a nullable foreign key to delivery
+  attempts. Multiple communication rows should not point to the same attempt
+  unless a future design explicitly supports that.
 
 The delivery row is the active scheduling snapshot source. Copy the relevant
 retry policy onto each attempt for audit. Encode backoff as a validated JSON
 array of seconds or minutes.
 
-If the app exits after claim but before SMTP is called, recovery should mark the
-attempt abandoned/unknown and move the delivery to `needs_attention`.
+Claiming should use one SQLite write transaction. Use a conditional claim update
+such as `UPDATE ... WHERE eligible ... RETURNING`, insert the attempt row before
+commit, and roll back the transaction if any part fails so attempt count does
+not increment without a matching attempt row.
+
+If the app exits after claim, recovery cannot prove whether SMTP was called.
+Treat the expired attempt as `unknown`, not safely abandoned, unless there is a
+durable pre-SMTP marker proving no provider attempt happened. Move the delivery
+to `needs_attention` and require operator review.
+
+Accepted-but-audit-incomplete repair should support explicit operator/admin
+actions: attach or recreate a missing communication record when enough local
+data exists, mark the audit unrecoverable while preserving terminal send state,
+or leave the row attention-needed. None of these repair paths may resend.
 
 ## Migration Plan
 
 Existing delivery rows need deterministic backfill:
 
 - `sent`: terminal. Set attempt count to at least one when unknown. Clear retry
-  fields.
+  fields. Do not create synthetic attempt rows unless there is enough existing
+  communication history to link them accurately.
 - `pending`: attempt count zero. Clear retry fields.
 - `failed`: do not auto-retry old failures by default. Mark as
   `needs_attention` with `failure_kind = unknown`, no scheduled retry, and a
@@ -369,11 +427,18 @@ After the final automatic retry fails, clear the next retry time and move to
 Rows can become stuck in `sending` if the app exits after claiming a delivery.
 This must not produce blind automatic resend.
 
-Use `claim_expires_at` to detect stale claims. When a claim expires:
+Use `claim_expires_at` to detect stale claims. Recovery should run at startup
+and before each scheduler claim pass, with a batch limit so recovery itself
+cannot monopolize the scheduler. Recovery should finalize the attempt row and
+delivery row in one transaction.
+
+When a claim expires:
 
 - Do not mark it sent.
 - Do not immediately retry automatically.
-- Move it to `needs_attention` with a safe summary such as "Send status is
+- Mark the attempt as unknown unless a durable pre-SMTP marker proves it was
+  abandoned before SMTP.
+- Move the delivery to `needs_attention` with a safe summary such as "Send status is
   unknown because the app stopped during delivery."
 - Let the operator manually retry if they confirm it is appropriate.
 
@@ -423,9 +488,21 @@ address, and sent-recipient exclusion.
 Agent-triggered retry must use the same approval packet pattern as other send
 actions and must revalidate the selected recipients at commit time.
 
+Canceling scheduled retries should clear `next_attempt_at`, preserve
+`failure_kind` and attempt history, and move the delivery to `needs_attention`
+with a cancellation summary. Canceled retries can later be manually retried only
+through an explicit scoped retry action.
+
+Bulk retry actions should be grouped by correction category or failure class.
+Avoid one mixed bulk action that hides whether the operator is retrying SMTP
+settings failures, recipient-address failures, stale unknown sends, and
+transient provider failures at the same time.
+
 ## UI Visibility
 
-Dashboard should show operational buckets:
+Dashboard should show global recipient/delivery counts, not campaign counts.
+Buckets should be mutually exclusive after stale-claim recovery and link to the
+campaign detail filtered to the relevant recipients.
 
 - Due first attempts: approved unsent first attempts due now.
 - Automatic retries scheduled: retry rows with a future next retry time.
@@ -447,8 +524,11 @@ Campaign detail should be the retry console:
 
 Communications should remain the audit trail:
 
-- Show campaign attempts grouped under the outbound campaign communication when
-  possible, with a link from each attempt to its campaign recipient row.
+- Show one outbound campaign communication group per campaign recipient, with
+  child attempt rows for each delivery attempt.
+- Include accepted, failed, unknown, abandoned, and
+  accepted-audit-incomplete attempts in the attempt history.
+- Link each attempt to its campaign recipient row.
 - Direct email remains one communication per recipient send operation.
 - Show automatic, manual, or agent initiation.
 - Show test-mode rerouting where applicable.
@@ -461,6 +541,12 @@ Settings should include retry defaults in the scheduler or sending section:
 - Backoff schedule.
 - Retry window or expiry, if added.
 - Manual retry behavior after automatic limits.
+- Batch pacing and rate-limit defaults.
+- Direct-email recipient caps.
+
+Settings should validate hard caps for maximum automatic retries, minimum and
+maximum backoff, retry expiry window, batch pacing, rate limits, and direct-email
+recipient caps.
 
 ## Test Mode
 
@@ -469,6 +555,7 @@ Automatic campaign sends remain paused while email test mode is enabled.
 Manual retry is blocked while email test mode is enabled. A separate test-mode
 retry simulation may be added later, but it must be explicitly named as a test
 send, routed only to the configured test recipient, and recorded as test mode.
+It must not mutate real delivery retry state or consume real retry attempts.
 
 ## Agent And MCP Behavior
 
@@ -491,7 +578,7 @@ states are included, and the current test-mode state.
 
 Example shape:
 
-`APPROVE RETRY <count> RECIPIENTS FOR <campaign>. SENT RECIPIENTS EXCLUDED.`
+`APPROVE RETRY <count> RECIPIENTS FOR <campaign>. SENT <excluded> EXCLUDED. OVERRIDE <yes/no>. STALE UNKNOWN <included/excluded>. TEST MODE OFF.`
 
 Commit actions should revalidate:
 
@@ -503,6 +590,11 @@ Commit actions should revalidate:
 - Rate-limit budget is still available.
 - The approval has not already been committed.
 - The operation idempotency key has not already been used.
+
+The same parity requirements apply to first-time direct-email and send-due
+commits: browser actions and MCP tools must share operation identity,
+duplicate-submit behavior, rate-limit behavior, kill-switch behavior, and safe
+failure responses.
 
 ## Implementation Slices
 
@@ -526,6 +618,8 @@ Commit actions should revalidate:
 Add repository tests for:
 
 - Migration backfill for old sent, pending, failed, and sending rows.
+- Migration does not create synthetic attempts unless existing communication
+  history can be linked accurately.
 - Claiming due first attempts.
 - Claiming due retry rows.
 - Claim creates a durable attempt row before SMTP is called.
@@ -576,6 +670,30 @@ Add UI contract tests where practical for:
 - Retry confirmation copy includes scope and sent-recipient exclusion.
 - Test mode blocks manual retry.
 - Agent retry approval text is distinct from send-due approval text.
+- Dashboard bucket counts are mutually exclusive delivery counts.
+- Cancel retry clears next retry time and preserves history.
+- Communications shows campaign attempt children, including unknown and
+  accepted-audit-incomplete attempts.
+- Retry simulation in test mode does not mutate real delivery state.
+- Settings caps validate maximum backoff, retry expiry, batch pacing, rate
+  limits, and direct-email recipient caps.
+
+Add global outbound gate tests for:
+
+- Kill switch blocks campaign automation, dashboard send-due, campaign-detail
+  send, direct email, MCP send commits, SMTP settings test sends, and test-mode
+  reroutes.
+- Direct-email duplicate commit returns the existing operation result without
+  resending.
+- Direct-email partial batch crash does not blindly resume accepted or unknown
+  recipients.
+- MCP repeated commit does not resend.
+- Browser manual double-submit does not resend.
+- Rate-limit and recipient-cap failures return consistent safe responses in UI
+  and MCP.
+- Sanitizer summaries are generated from templates/enums, not raw provider text.
+- Custom SMTP and Fastmail-style Nodemailer errors classify by standards-first
+  SMTP/OAuth fields.
 
 ## Documentation Updates
 
