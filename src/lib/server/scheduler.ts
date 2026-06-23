@@ -1,4 +1,7 @@
-export type DeliveryStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'skipped';
+export type DeliveryStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'retry_scheduled' | 'needs_attention' | 'skipped';
+export type FailureKind = 'transient' | 'permanent' | 'unknown' | '';
+export type AttemptStatus = 'claimed' | 'accepted' | 'failed' | 'unknown' | 'abandoned' | 'accepted_audit_incomplete';
+export type AttemptSource = 'automatic' | 'manual' | 'agent' | 'migrated';
 
 export interface CampaignDelivery {
   id: string;
@@ -9,6 +12,17 @@ export interface CampaignDelivery {
   sentAt?: string;
   providerMessage?: string;
   errorMessage?: string;
+  attemptCount: number;
+  lastAttemptAt?: string;
+  nextAttemptAt?: string;
+  claimExpiresAt?: string;
+  failureKind?: FailureKind;
+  failureSummary?: string;
+  needsAuditRepair: boolean;
+  retryPolicyMaxAutoRetries: number;
+  retryPolicyBackoff: string;
+  attemptId?: string;
+  attemptNumber?: number;
 }
 
 export interface DeliveryPlanInput {
@@ -25,7 +39,7 @@ export function createDeliveryPlan(input: DeliveryPlanInput): CampaignDelivery[]
   );
   const alreadyPlanned = new Set(
     input.existingDeliveries
-      .filter((delivery) => delivery.campaignId === input.campaignId && delivery.status !== 'failed')
+      .filter((delivery) => delivery.campaignId === input.campaignId)
       .map((delivery) => delivery.recipientId)
   );
   const now = new Date().toISOString();
@@ -37,7 +51,11 @@ export function createDeliveryPlan(input: DeliveryPlanInput): CampaignDelivery[]
       campaignId: input.campaignId,
       recipientId,
       status: 'pending',
-      createdAt: now
+      createdAt: now,
+      attemptCount: 0,
+      needsAuditRepair: false,
+      retryPolicyMaxAutoRetries: 3,
+      retryPolicyBackoff: '[300,1800,7200]'
     }));
 }
 

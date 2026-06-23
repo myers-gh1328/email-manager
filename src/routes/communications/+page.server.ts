@@ -36,13 +36,16 @@ export const actions = {
     if (!contactIds.length) return fail(400, { error: true, message: 'Choose at least one recipient.' });
 
     const content = directEmailContent(form);
+    const settings = getSettings();
     try {
       const result = await sendDirectEmail(repo, (to, subject, text) => sendOutboundEmail({ to, subject, text }), {
         contactIds,
         subject: content.subject,
         body: content.body,
-        instructorName: getSettings().instructorName,
-        previewToken: text(form, 'previewToken')
+        instructorName: settings.instructorName,
+        previewToken: text(form, 'previewToken'),
+        settings,
+        surface: 'direct_email'
       });
       return {
         message: `Accepted ${result.sent} email${result.sent === 1 ? '' : 's'} by the mail server${result.failed ? `; ${result.failed} failed` : ''}.`,

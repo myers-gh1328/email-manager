@@ -31,6 +31,7 @@
     <span class:good={data.schedulerStatus.ready}>{data.schedulerStatus.ready ? 'Automatic sending ready' : 'Automatic sending blocked'}</span>
     <span class:good={data.settings.smtpHost && data.settings.smtpFrom}>{data.settings.smtpHost && data.settings.smtpFrom ? 'SMTP configured' : 'SMTP incomplete'}</span>
     <span class:good={!data.settings.emailTestModeEnabled}>{data.settings.emailTestModeEnabled ? 'Test mode on' : 'Live delivery mode'}</span>
+    <span class:good={!data.settings.outboundKillSwitchEnabled}>{data.settings.outboundKillSwitchEnabled ? 'Outbound paused' : 'Outbound enabled'}</span>
     <span class:good={data.remoteStatus.ready}>{data.remoteStatus.enabled ? (data.remoteStatus.ready ? 'Remote access ready' : 'Remote access needs setup') : 'Local/private mode'}</span>
     <span class:good={data.settings.aiEnabled}>{data.settings.aiEnabled ? 'AI enabled' : 'AI disabled'}</span>
   </div>

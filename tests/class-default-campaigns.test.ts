@@ -72,4 +72,25 @@ describe('class default campaign sync', () => {
 
     expect(repo.listCampaignsForClassSession(session.id)[0]).toMatchObject({ scheduledFor: '2026-08-02T18:00' });
   });
+
+  test('preserves failed delivery state when inherited campaign settings change', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Advanced' });
+    const firstTemplate = repo.createTemplate({ name: 'Old reminder', subject: 'Old', body: 'Old' });
+    const secondTemplate = repo.createTemplate({ name: 'New reminder', subject: 'New', body: 'New' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', startTime: '09:00', location: 'Pool' });
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Diver', email: 'sam@example.com' });
+    repo.enrollContact(session.id, contact.id);
+    repo.setCourseTypeDefaultTemplate({ courseTypeId: course.id, purpose: 'reminder', templateId: firstTemplate.id, sendOffsetMinutes: -24 * 60 });
+    syncDefaultCampaignsForClass(repo, session.id);
+    const campaign = repo.listCampaignsForClassSession(session.id)[0];
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    repo.markDeliveryFailed(delivery.id, 'temporary SMTP error');
+
+    repo.setCourseTypeDefaultTemplate({ courseTypeId: course.id, purpose: 'reminder', templateId: secondTemplate.id, sendOffsetMinutes: -12 * 60 });
+    syncDefaultCampaignsForCourseType(repo, course.id);
+
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed', errorMessage: 'temporary SMTP error' }]);
+    expect(repo.listPendingDeliveries(campaign.id)).toHaveLength(0);
+  });
 });

@@ -120,7 +120,20 @@ The app enforces this in two ways:
 - Campaign deliveries are unique by campaign and recipient.
 - Delivery planning excludes recipients who already have a successful delivery for the campaign.
 
-When changing scheduling or delivery code, preserve this rule. Retrying failed deliveries is acceptable. Resending successful deliveries is not.
+When changing scheduling or delivery code, preserve this rule. Failed
+deliveries may retry only through bounded retry state on the same delivery row.
+Successful deliveries remain terminal for automatic sends, manual sends, agent
+actions, course-default updates, and retry recovery.
+
+Campaign send attempts are tracked in `delivery_attempts`. Claiming a delivery
+increments `attempt_count`, creates an attempt row, and moves the delivery to
+`sending` before SMTP is called. SMTP acceptance finalizes the same attempt and
+marks the delivery `sent`. Transient SMTP failures move the delivery to
+`retry_scheduled` until the retry limit is reached. Permanent and unknown
+failures move to `needs_attention`.
+
+Direct-email sends use `send_operations` and `send_operation_recipients` to
+prevent duplicate preview commits from resending the same batch.
 
 ## Template Rendering
 
@@ -142,9 +155,13 @@ The scheduler starts with the SvelteKit server unless disabled by environment va
 A campaign is eligible only when:
 
 - Scheduled sending is enabled.
+- Outbound email is not paused by the kill switch.
 - The campaign is approved.
 - The scheduled time is now or in the past.
 - The recipient does not have a successful delivery record for that campaign.
+- The delivery is a pending first attempt, or a retry-scheduled transient
+  failure whose next retry time is due and whose attempt count is still under
+  the automatic retry limit.
 
 If the app process is not running, scheduled emails cannot send. This is expected for a local app.
 
@@ -153,6 +170,13 @@ If the app process is not running, scheduled emails cannot send. This is expecte
 SMTP settings are configured by the user. The app sends individual messages, one recipient at a time.
 
 All outbound email attempts should be recorded as communications tied to the recipient contact. Store the rendered subject and body snapshot so the contact history shows what the student actually received or what failed to send.
+
+Every SMTP path goes through the outbound safety gate before provider delivery.
+The gate enforces the operator-visible kill switch, direct-email recipient cap,
+per-minute and per-hour attempt limits, batch pacing, and manual/MCP throttles.
+The default limits are 12 direct recipients, 5 seconds between recipients, 10
+attempts per minute, and 50 attempts per hour. Settings may loosen those values
+only up to the documented hard caps.
 
 Accepted outbound messages should include an app-generated `Message-ID` in the
 SMTP payload and the communication row. Reply sync depends on that ID rather

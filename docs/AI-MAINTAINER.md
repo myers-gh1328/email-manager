@@ -86,7 +86,12 @@ Successful campaign deliveries must not resend. Preserve all of these:
 
 - Campaign delivery rows are unique by campaign and recipient.
 - Delivery planning excludes recipients with successful delivery status.
-- Failed deliveries may retry, but successful deliveries must remain terminal.
+- Failed deliveries may retry only through bounded retry state on the same
+  delivery row. Transient failures can schedule retries; permanent and unknown
+  failures require attention.
+- Every campaign SMTP attempt should have a `delivery_attempts` row. Direct
+  email duplicate commits should resolve through `send_operations`, not by
+  sending again.
 - Manual send-due and background send-due paths must use the same delivery logic.
 
 Any change to campaigns, delivery planning, background sending, or repository delivery status needs tests.
@@ -193,7 +198,9 @@ Use `docs/AGENT-DEV-ENV.md` when a change affects layout, navigation, forms, sch
 2. Preserve email test mode behavior: outbound mail routes to the configured safe recipient and automatic scheduled sends pause while test mode is enabled.
 3. Preserve communication history recording for direct and campaign sends.
 4. Preserve provider-message/error-message capture without logging secrets.
-5. Run mailer, direct-email, scheduler, background, and repository campaign tests.
+5. Preserve the outbound gate: kill switch, rate limits, direct-recipient cap,
+   pacing, direct-email idempotency, and agent/manual throttles.
+6. Run mailer, direct-email, outbound-gate, scheduler, background, and repository campaign tests.
 
 ### Change Templates
 
@@ -243,6 +250,7 @@ Use narrower tests while iterating:
 - Auth routing: `npm test -- tests/auth-routing.test.ts`
 - Mailer behavior: `npm test -- tests/mailer.test.ts`
 - Direct email behavior: `npm test -- tests/direct-email.test.ts`
+- Outbound gate behavior: `npm test -- tests/outbound-gate.test.ts`
 - Scheduler planning: `npm test -- tests/scheduler.test.ts`
 - Background campaign communications: `npm test -- tests/background.communications.test.ts`
 - Repository contacts/templates/campaigns/communications: run the matching repository test file.

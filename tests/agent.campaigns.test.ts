@@ -37,19 +37,11 @@ describe('agent campaign send-due tools', () => {
     expect(result.error.details).toEqual({ permission: 'prepareEmail' });
   });
 
-  it('uses the shared send-due path and does not resend successful deliveries', async () => {
+  it('uses the shared send-due path and does not resend successful or failed deliveries', async () => {
     const repo = createTestRepository();
     const { campaign, sentContact, retryContact, retryDelivery } = seedDueCampaign(repo);
     repo.markDeliverySent(repo.listDeliveries(campaign.id).find((delivery) => delivery.recipientId === sentContact.id)!.id, 'already-sent');
     repo.markDeliveryFailed(retryDelivery.id, 'temporary SMTP error');
-    sendOutboundEmail.mockResolvedValueOnce({
-      providerMessage: 'accepted-retry',
-      originalRecipient: retryContact.email,
-      effectiveRecipient: retryContact.email,
-      testMode: false,
-      finalText: 'Hi Lee',
-      finalHtml: ''
-    });
 
     const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
@@ -62,32 +54,23 @@ describe('agent campaign send-due tools', () => {
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.data).toEqual({ sent: 1 });
-    expect(sendOutboundEmail).toHaveBeenCalledTimes(1);
-    expect(sendOutboundEmail).toHaveBeenCalledWith(expect.objectContaining({ to: retryContact.email }));
+    expect(result.data).toEqual({ sent: 0 });
+    expect(sendOutboundEmail).not.toHaveBeenCalled();
     expect(repo.listDeliveries(campaign.id).filter((delivery) => delivery.recipientId === sentContact.id)).toMatchObject([
       { status: 'sent', providerMessage: 'already-sent' }
     ]);
     expect(repo.listDeliveries(campaign.id).filter((delivery) => delivery.recipientId === retryContact.id)).toMatchObject([
-      { id: retryDelivery.id, status: 'sent', providerMessage: 'accepted-retry' }
+      { id: retryDelivery.id, status: 'failed', errorMessage: 'temporary SMTP error' }
     ]);
   });
 
-  it('allows failed campaign deliveries to retry through MCP', async () => {
+  it('does not let MCP send-due retry failed campaign deliveries', async () => {
     const repo = createTestRepository();
     const { campaign, retryContact, retryDelivery } = seedDueCampaign(repo);
     for (const delivery of repo.listDeliveries(campaign.id)) {
       if (delivery.recipientId !== retryContact.id) repo.markDeliverySent(delivery.id, 'already-sent');
     }
     repo.markDeliveryFailed(retryDelivery.id, 'temporary SMTP error');
-    sendOutboundEmail.mockResolvedValueOnce({
-      providerMessage: 'accepted-retry',
-      originalRecipient: retryContact.email,
-      effectiveRecipient: retryContact.email,
-      testMode: false,
-      finalText: 'Hi Lee',
-      finalHtml: ''
-    });
 
     const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
@@ -99,7 +82,13 @@ describe('agent campaign send-due tools', () => {
     );
 
     expect(result.ok).toBe(true);
-    expect(repo.listDeliveries(campaign.id).find((delivery) => delivery.id === retryDelivery.id)).toMatchObject({ status: 'sent' });
+    if (!result.ok) return;
+    expect(result.data).toEqual({ sent: 0 });
+    expect(sendOutboundEmail).not.toHaveBeenCalled();
+    expect(repo.listDeliveries(campaign.id).find((delivery) => delivery.id === retryDelivery.id)).toMatchObject({
+      status: 'failed',
+      errorMessage: 'temporary SMTP error'
+    });
   });
 
   it('requires exact confirmation and sendEmail permission for send-due commit', async () => {

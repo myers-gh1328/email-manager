@@ -42,21 +42,30 @@
 
     <div class="preview-list">
       <h3>Recipients</h3>
-      {#each data.recipients as recipient}
-        <article>
-          <div class="row-card tall no-shadow">
-            <div>
-              <strong>{recipient.name}</strong>
-              <p>{recipient.email}</p>
-              {#if recipient.reason}<p class="error">{recipient.reason}</p>{/if}
-              {#if recipient.delivery?.providerMessage}<p>{recipient.delivery.providerMessage}</p>{/if}
+      <form method="POST" action="?/retrySelected" use:enhance>
+        {#each data.recipients as recipient}
+          <article>
+            <div class="row-card tall no-shadow">
+              <div>
+                {#if ['failed', 'retry_scheduled', 'needs_attention'].includes(recipient.status)}
+                  <label class="check"><input name="recipientIds" type="checkbox" value={recipient.contactId} /> <strong>{recipient.name}</strong></label>
+                {:else}
+                  <strong>{recipient.name}</strong>
+                {/if}
+                <p>{recipient.email}</p>
+                {#if recipient.reason}<p class="error">{recipient.reason}</p>{/if}
+                {#if recipient.delivery?.failureSummary}<p>{recipient.delivery.failureSummary}</p>{/if}
+                {#if recipient.delivery?.attemptCount}<p>Attempts: {recipient.delivery.attemptCount}{recipient.delivery.nextAttemptAt ? ` · Next retry ${formatDateTime(recipient.delivery.nextAttemptAt)}` : ''}</p>{/if}
+                {#if recipient.delivery?.providerMessage}<p>{recipient.delivery.providerMessage}</p>{/if}
+              </div>
+              <span class:good={recipient.status === 'sent'} class:warn={recipient.status === 'skipped' || recipient.status === 'needs_attention'} class="pill">{recipient.status}</span>
             </div>
-            <span class:good={recipient.status === 'sent'} class:warn={recipient.status === 'skipped'} class="pill">{recipient.status}</span>
-          </div>
-        </article>
-      {:else}
-        <p class="empty">No recipients enrolled.</p>
-      {/each}
+          </article>
+        {:else}
+          <p class="empty">No recipients enrolled.</p>
+        {/each}
+        <button class="secondary" type="submit">Retry selected</button>
+      </form>
     </div>
   </div>
 

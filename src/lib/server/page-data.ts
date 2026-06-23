@@ -27,6 +27,7 @@ export function schedulerStatus(settings: ReturnType<typeof getSettings>, campai
       : Boolean(settings.smtpUser ? settings.smtpPasswordConfigured : true);
   const blockedReasons = [
     !settings.schedulerEnabled ? 'Scheduled sending is disabled' : '',
+    settings.outboundKillSwitchEnabled ? 'Outbound email is paused' : '',
     settings.emailTestModeEnabled ? 'Email test mode is redirecting outbound mail' : '',
     !smtpConfigured ? 'SMTP is incomplete' : '',
     smtpConfigured && !smtpAuthConfigured && settings.smtpAuthMethod === 'microsoft-oauth2' ? 'Microsoft Outlook is not connected' : '',

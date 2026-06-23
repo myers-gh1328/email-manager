@@ -13,6 +13,8 @@ import { listAiModels } from '$lib/server/llm';
 import { syncRepliesNow } from '$lib/server/reply-sync';
 import { required } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
+import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
+import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
 import { aiApiKeyForModelLoad, getSettings, getAiApiKey } from '$lib/server/settings';
 import {
@@ -179,9 +181,11 @@ export const actions = {
   testSmtp: async ({ request }) => {
     const form = await request.formData();
     try {
+      assertOutboundBatchAllowed({ surface: 'smtp_test', settings: getSettings(), recipientCount: 1 });
       const providerMessage = await testSmtpSettings(required(form, 'testEmail'));
       return { message: `SMTP accepted the test email: ${providerMessage}` };
     } catch (error) {
+      if (error instanceof OutboundGateError) return fail(error.retryAfterSeconds ? 429 : 400, { message: error.message });
       return fail(400, { message: error instanceof Error ? error.message : String(error) });
     }
   },

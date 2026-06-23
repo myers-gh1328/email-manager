@@ -135,12 +135,40 @@
       </div>
       <div class="toggle-grid">
         <label class="check with-help">
+          <span><input name="outboundKillSwitchEnabled" type="checkbox" checked={data.settings.outboundKillSwitchEnabled} /> Pause all outbound email</span>
+          <small>Blocks campaign sends, direct email, SMTP tests, and test-mode reroutes until turned off.</small>
+        </label>
+        <label class="check with-help">
           <span><input name="schedulerEnabled" type="checkbox" checked={data.settings.schedulerEnabled} /> Scheduled sending</span>
           <small>When on, approved scheduled campaigns can send automatically while the app server is running.</small>
         </label>
         <label class="check with-help">
           <span><input name="emailTestModeEnabled" type="checkbox" checked={data.settings.emailTestModeEnabled} /> Email test mode</span>
           <small>Redirects outbound email to the From address and pauses automatic scheduled sends.</small>
+        </label>
+      </div>
+      <div class="split">
+        <label>
+          Direct email recipient limit
+          <input name="outboundDirectMaxRecipients" type="number" min="1" max="25" value={data.settings.outboundDirectMaxRecipients} />
+          <span class="help-text">Default 12. Hard maximum 25.</span>
+        </label>
+        <label>
+          Seconds between sends
+          <input name="outboundPacingSeconds" type="number" min="2" max="300" value={data.settings.outboundPacingSeconds} />
+          <span class="help-text">Default 5. Cannot be faster than 2 seconds.</span>
+        </label>
+      </div>
+      <div class="split">
+        <label>
+          Max sends per minute
+          <input name="outboundMaxPerMinute" type="number" min="1" max="30" value={data.settings.outboundMaxPerMinute} />
+          <span class="help-text">Default 10. Hard maximum 30.</span>
+        </label>
+        <label>
+          Max sends per hour
+          <input name="outboundMaxPerHour" type="number" min="1" max="300" value={data.settings.outboundMaxPerHour} />
+          <span class="help-text">Default 50. Hard maximum 300.</span>
         </label>
       </div>
       <button type="submit">Save delivery controls</button>
