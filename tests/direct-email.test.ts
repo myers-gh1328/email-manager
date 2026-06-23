@@ -153,6 +153,37 @@ describe('direct email workflow', () => {
     });
   });
 
+  test('does not record a failed send when accepted direct-email history recording fails', async () => {
+    const backingRepo = createTestRepository();
+    const maya = backingRepo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const repo = {
+      getContact: backingRepo.getContact.bind(backingRepo),
+      recordCommunication: vi.fn(() => {
+        throw new Error('history unavailable');
+      })
+    };
+    const send = vi.fn(async () => 'smtp-accepted');
+
+    await expect(
+      sendDirectEmail(repo, send, {
+        contactIds: [maya.id],
+        subject: 'Hi {{firstName}}',
+        body: 'Hello {{fullName}}.',
+        instructorName: 'Alex',
+        previewToken: directEmailPreviewToken({
+          contactIds: [maya.id],
+          subject: 'Hi {{firstName}}',
+          body: 'Hello {{fullName}}.'
+        })
+      })
+    ).rejects.toThrow('history unavailable');
+
+    expect(send).toHaveBeenCalledOnce();
+    expect(repo.recordCommunication).toHaveBeenCalledTimes(1);
+    expect(repo.recordCommunication).toHaveBeenCalledWith(expect.objectContaining({ status: 'accepted' }));
+    expect(repo.recordCommunication).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+  });
+
   test('requires preview of the exact direct email before sending', async () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

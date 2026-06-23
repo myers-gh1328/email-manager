@@ -55,26 +55,9 @@ async function sendDelivery(
   body: string,
   sendEmail: typeof sendOutboundEmail
 ) {
+  let result: Awaited<ReturnType<typeof sendOutboundEmail>>;
   try {
-    const result = await sendEmail({ to: contact.email, subject, text: body });
-    if (!result.testMode) {
-      repository.markDeliverySent(deliveryId, result.providerMessage);
-      repository.recordCommunication({
-        contactId: contact.id,
-        channel: 'email',
-        source: 'campaign',
-        sourceId: campaignId,
-        originalRecipient: result.originalRecipient,
-        effectiveRecipient: result.effectiveRecipient,
-        testMode: result.testMode,
-        subject,
-        body: result.finalText,
-        status: 'accepted',
-        messageId: result.messageId,
-        providerMessage: result.providerMessage
-      });
-    }
-    return 1;
+    result = await sendEmail({ to: contact.email, subject, text: body });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     repository.markDeliveryFailed(deliveryId, errorMessage);
@@ -93,4 +76,23 @@ async function sendDelivery(
     });
     return 0;
   }
+
+  if (!result.testMode) {
+    repository.markDeliverySent(deliveryId, result.providerMessage);
+    repository.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: campaignId,
+      originalRecipient: result.originalRecipient,
+      effectiveRecipient: result.effectiveRecipient,
+      testMode: result.testMode,
+      subject,
+      body: result.finalText,
+      status: 'accepted',
+      messageId: result.messageId,
+      providerMessage: result.providerMessage
+    });
+  }
+  return 1;
 }

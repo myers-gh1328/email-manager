@@ -135,4 +135,30 @@ describe('background campaign communication logging', () => {
       errorMessage: 'SMTP rejected'
     });
   });
+
+  test('does not mark delivery failed when sent-state recording fails after SMTP acceptance', async () => {
+    repo.markDeliverySent.mockImplementationOnce(() => {
+      throw new Error('database unavailable');
+    });
+    const { sendDueCampaigns } = await import('../src/lib/server/background');
+
+    await expect(sendDueCampaigns()).rejects.toThrow('database unavailable');
+
+    expect(repo.markDeliveryFailed).not.toHaveBeenCalled();
+    expect(repo.recordCommunication).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'failed' }));
+  });
+
+  test('does not record failed communication when accepted-history recording fails after SMTP acceptance', async () => {
+    repo.recordCommunication.mockImplementationOnce(() => {
+      throw new Error('history unavailable');
+    });
+    const { sendDueCampaigns } = await import('../src/lib/server/background');
+
+    await expect(sendDueCampaigns()).rejects.toThrow('history unavailable');
+
+    expect(repo.markDeliverySent).toHaveBeenCalledWith('delivery-1', 'provider-123');
+    expect(repo.markDeliveryFailed).not.toHaveBeenCalled();
+    expect(repo.recordCommunication).toHaveBeenCalledTimes(1);
+    expect(repo.recordCommunication).toHaveBeenCalledWith(expect.objectContaining({ status: 'accepted' }));
+  });
 });

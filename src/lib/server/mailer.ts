@@ -51,16 +51,21 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
     text: finalText,
     html: finalHtml
   });
+  assertRecipientAccepted(result, effectiveRecipient);
 
   const providerMessage = result.messageId || 'smtp-accepted';
   if (settings.emailTestModeEnabled) {
-    repo.recordEmailTestAudit({
-      originalRecipient,
-      effectiveRecipient,
-      subject: input.subject,
-      body: finalText,
-      providerMessage
-    });
+    try {
+      repo.recordEmailTestAudit({
+        originalRecipient,
+        effectiveRecipient,
+        subject: input.subject,
+        body: finalText,
+        providerMessage
+      });
+    } catch {
+      console.error('Email test audit recording failed after SMTP acceptance.');
+    }
   }
 
   return {
@@ -72,6 +77,15 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
     finalHtml,
     messageId
   };
+}
+
+function assertRecipientAccepted(result: unknown, effectiveRecipient: string) {
+  if (!result || typeof result !== 'object') return;
+  const accepted = Array.isArray((result as { accepted?: unknown }).accepted) ? (result as { accepted: unknown[] }).accepted.map(String) : undefined;
+  const rejected = Array.isArray((result as { rejected?: unknown }).rejected) ? (result as { rejected: unknown[] }).rejected.map(String) : undefined;
+  if (rejected?.includes(effectiveRecipient) || (accepted && accepted.length > 0 && !accepted.includes(effectiveRecipient)) || accepted?.length === 0) {
+    throw new Error('SMTP provider did not accept the recipient.');
+  }
 }
 
 export async function testSmtpSettings(to: string) {

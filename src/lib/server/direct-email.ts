@@ -97,23 +97,9 @@ export async function sendDirectEmail(
   let sent = 0;
   let failed = 0;
   for (const preview of previews) {
+    let result: Awaited<ReturnType<SendEmail>> | undefined = undefined;
     try {
-      const result = await sendEmail(preview.contact.email, preview.subject, preview.body);
-      const normalized = typeof result === 'string' ? { providerMessage: result, finalText: preview.body, testMode: false } : result;
-      repo.recordCommunication({
-        contactId: preview.contact.id,
-        channel: 'email',
-        source: 'direct',
-        originalRecipient: preview.contact.email,
-        effectiveRecipient: 'effectiveRecipient' in normalized ? normalized.effectiveRecipient : preview.contact.email,
-        testMode: normalized.testMode,
-        subject: preview.subject,
-        body: normalized.finalText,
-        status: 'accepted',
-        messageId: 'messageId' in normalized ? normalized.messageId : undefined,
-        providerMessage: normalized.providerMessage
-      });
-      sent += 1;
+      result = await sendEmail(preview.contact.email, preview.subject, preview.body);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       repo.recordCommunication({
@@ -130,6 +116,23 @@ export async function sendDirectEmail(
       });
       failed += 1;
     }
+
+    if (result === undefined) continue;
+    const normalized = typeof result === 'string' ? { providerMessage: result, finalText: preview.body, testMode: false } : result;
+    repo.recordCommunication({
+      contactId: preview.contact.id,
+      channel: 'email',
+      source: 'direct',
+      originalRecipient: preview.contact.email,
+      effectiveRecipient: 'effectiveRecipient' in normalized ? normalized.effectiveRecipient : preview.contact.email,
+      testMode: normalized.testMode,
+      subject: preview.subject,
+      body: normalized.finalText,
+      status: 'accepted',
+      messageId: 'messageId' in normalized ? normalized.messageId : undefined,
+      providerMessage: normalized.providerMessage
+    });
+    sent += 1;
   }
 
   return { sent, failed, previews };
