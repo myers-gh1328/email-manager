@@ -118,7 +118,35 @@ export function migrate(db: DatabaseSync) {
       sent_at text,
       provider_message text,
       error_message text,
+      attempt_count integer not null default 0,
+      last_attempt_at text,
+      next_attempt_at text,
+      claim_expires_at text,
+      failure_kind text not null default '',
+      failure_summary text not null default '',
+      needs_audit_repair integer not null default 0,
+      retry_policy_max_auto_retries integer not null default 3,
+      retry_policy_backoff text not null default '[300,1800,7200]',
       unique (campaign_id, recipient_id)
+    );
+
+    create table if not exists delivery_attempts (
+      id text primary key,
+      delivery_id text not null references campaign_deliveries(id) on delete cascade,
+      attempt_number integer not null,
+      source text not null,
+      status text not null,
+      claimed_at text not null,
+      finalized_at text,
+      claim_expires_at text not null,
+      subject text not null default '',
+      body text not null default '',
+      provider_message text not null default '',
+      failure_kind text not null default '',
+      failure_summary text not null default '',
+      retry_policy_max_auto_retries integer not null default 3,
+      retry_policy_backoff text not null default '[300,1800,7200]',
+      unique (delivery_id, attempt_number)
     );
 
     create table if not exists communications (
@@ -137,6 +165,7 @@ export function migrate(db: DatabaseSync) {
       message_id text not null default '',
       provider_message text,
       error_message text,
+      delivery_attempt_id text references delivery_attempts(id) on delete set null,
       created_at text not null
     );
 
@@ -171,6 +200,31 @@ export function migrate(db: DatabaseSync) {
       body text not null,
       provider_message text,
       created_at text not null
+    );
+
+    create table if not exists send_operations (
+      id text primary key,
+      operation_type text not null,
+      send_operation_id text not null unique,
+      idempotency_key text not null,
+      status text not null,
+      request_hash text not null,
+      created_at text not null,
+      updated_at text not null,
+      expires_at text not null,
+      result_summary text not null default '',
+      failure_summary text not null default ''
+    );
+
+    create table if not exists send_operation_recipients (
+      operation_id text not null references send_operations(id) on delete cascade,
+      contact_id text not null,
+      email text not null,
+      status text not null,
+      provider_message text not null default '',
+      failure_kind text not null default '',
+      failure_summary text not null default '',
+      primary key (operation_id, contact_id)
     );
 
     create table if not exists external_mappings (
@@ -238,6 +292,18 @@ export function migrate(db: DatabaseSync) {
   addColumnIfMissing(db, 'campaigns', 'send_offset_minutes', 'integer not null default 0');
   addColumnIfMissing(db, 'external_event_ingestions', 'event_fingerprint', "text not null default ''");
   addColumnIfMissing(db, 'external_event_ingestions', 'raw_event', "text not null default ''");
+  addColumnIfMissing(db, 'campaign_deliveries', 'attempt_count', 'integer not null default 0');
+  addColumnIfMissing(db, 'campaign_deliveries', 'last_attempt_at', 'text');
+  addColumnIfMissing(db, 'campaign_deliveries', 'next_attempt_at', 'text');
+  addColumnIfMissing(db, 'campaign_deliveries', 'claim_expires_at', 'text');
+  addColumnIfMissing(db, 'campaign_deliveries', 'failure_kind', "text not null default ''");
+  addColumnIfMissing(db, 'campaign_deliveries', 'failure_summary', "text not null default ''");
+  addColumnIfMissing(db, 'campaign_deliveries', 'needs_audit_repair', 'integer not null default 0');
+  addColumnIfMissing(db, 'campaign_deliveries', 'retry_policy_max_auto_retries', 'integer not null default 3');
+  addColumnIfMissing(db, 'campaign_deliveries', 'retry_policy_backoff', "text not null default '[300,1800,7200]'");
+  addColumnIfMissing(db, 'communications', 'delivery_attempt_id', 'text references delivery_attempts(id) on delete set null');
+
+  backfillCampaignRetryState(db);
 
   assertNoDuplicateContacts(db);
   assertNoDuplicateClassSessions(db);
@@ -267,6 +333,16 @@ export function migrate(db: DatabaseSync) {
       where message_id != '';
     create index if not exists idx_communication_replies_communication_id
       on communication_replies(communication_id, received_at);
+    create index if not exists idx_campaign_deliveries_status_next_attempt
+      on campaign_deliveries(status, next_attempt_at);
+    create index if not exists idx_campaign_deliveries_campaign_status_next_attempt
+      on campaign_deliveries(campaign_id, status, next_attempt_at);
+    create index if not exists idx_campaign_deliveries_claim_expires
+      on campaign_deliveries(claim_expires_at);
+    create index if not exists idx_delivery_attempts_delivery
+      on delivery_attempts(delivery_id, attempt_number);
+    create index if not exists idx_send_operations_send_operation_id
+      on send_operations(send_operation_id);
   `);
 }
 
@@ -307,4 +383,35 @@ function assertNoDuplicateClassSessions(db: DatabaseSync) {
     const keys = duplicates.map((row) => `${row.course_type_id}/${row.starts_on}/${row.start_time || 'no-time'}/${row.location_id || row.location}`);
     throw new Error(`Duplicate class sessions must be merged before migration: ${keys.join(', ')}`);
   }
+}
+
+function backfillCampaignRetryState(db: DatabaseSync) {
+  db.prepare(
+    `update campaign_deliveries
+     set attempt_count = case when attempt_count = 0 then 1 else attempt_count end,
+       failure_kind = case when failure_kind = '' then 'unknown' else failure_kind end,
+       failure_summary = case when failure_summary = '' then 'Previous failed delivery requires review.' else failure_summary end,
+       status = 'needs_attention',
+       next_attempt_at = null,
+       claim_expires_at = null
+     where status = 'failed' and attempt_count = 0`
+  ).run();
+  db.prepare(
+    `update campaign_deliveries
+     set attempt_count = case when attempt_count = 0 then 1 else attempt_count end,
+       next_attempt_at = null,
+       claim_expires_at = null,
+       failure_kind = '',
+       failure_summary = ''
+     where status = 'sent'`
+  ).run();
+  db.prepare(
+    `update campaign_deliveries
+     set status = 'needs_attention',
+       attempt_count = case when attempt_count = 0 then 1 else attempt_count end,
+       failure_kind = case when failure_kind = '' then 'unknown' else failure_kind end,
+       failure_summary = case when failure_summary = '' then 'Send status is unknown because the app stopped during delivery.' else failure_summary end,
+       next_attempt_at = null
+     where status = 'sending' and claim_expires_at is null`
+  ).run();
 }

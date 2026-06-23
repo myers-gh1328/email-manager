@@ -22,11 +22,11 @@ export function startBackgroundScheduler() {
   }, 300_000);
 }
 
-export async function sendDueCampaigns() {
+export async function sendDueCampaigns(options: { surface?: 'campaign_auto' | 'manual_send_due' | 'mcp_send_due' } = {}) {
   if (sendingDue) return 0;
   sendingDue = true;
   try {
-    return await sendDueCampaignsWithDependencies(repo, getSettings());
+    return await sendDueCampaignsWithDependencies(repo, getSettings(), undefined, { surface: options.surface ?? 'campaign_auto' });
   } finally {
     sendingDue = false;
   }

@@ -16,6 +16,11 @@ export interface AppSettings {
   schedulerEnabled: boolean;
   emailTestModeEnabled: boolean;
   emailSignature: string;
+  outboundKillSwitchEnabled: boolean;
+  outboundDirectMaxRecipients: number;
+  outboundPacingSeconds: number;
+  outboundMaxPerMinute: number;
+  outboundMaxPerHour: number;
   remoteAccessEnabled: boolean;
   trustedProxyEnabled: boolean;
   smtpHost: string;
@@ -52,6 +57,11 @@ export function getSettings(): AppSettings {
     schedulerEnabled: repo.getSetting('scheduler.enabled') === 'true',
     emailTestModeEnabled: repo.getSetting('email.testModeEnabled') === 'true',
     emailSignature: repo.getSetting('email.signature'),
+    outboundKillSwitchEnabled: repo.getSetting('outbound.killSwitchEnabled') === 'true',
+    outboundDirectMaxRecipients: cappedInt(repo.getSetting('outbound.directMaxRecipients'), 12, 1, 25),
+    outboundPacingSeconds: cappedInt(repo.getSetting('outbound.pacingSeconds'), 5, 2, 300),
+    outboundMaxPerMinute: cappedInt(repo.getSetting('outbound.maxPerMinute'), 10, 1, 30),
+    outboundMaxPerHour: cappedInt(repo.getSetting('outbound.maxPerHour'), 50, 1, 300),
     remoteAccessEnabled: repo.getSetting('server.remoteAccessEnabled') === 'true',
     trustedProxyEnabled: repo.getSetting('server.trustedProxyEnabled') === 'true',
     smtpHost: repo.getSetting('smtp.host'),
@@ -106,6 +116,11 @@ export function updateProfileSettings(form: FormData) {
 export function updateDeliverySettings(form: FormData) {
   set('scheduler.enabled', checked(form, 'schedulerEnabled'));
   set('email.testModeEnabled', checked(form, 'emailTestModeEnabled'));
+  set('outbound.killSwitchEnabled', checked(form, 'outboundKillSwitchEnabled'));
+  set('outbound.directMaxRecipients', String(cappedInt(form.get('outboundDirectMaxRecipients'), 12, 1, 25)));
+  set('outbound.pacingSeconds', String(cappedInt(form.get('outboundPacingSeconds'), 5, 2, 300)));
+  set('outbound.maxPerMinute', String(cappedInt(form.get('outboundMaxPerMinute'), 10, 1, 30)));
+  set('outbound.maxPerHour', String(cappedInt(form.get('outboundMaxPerHour'), 50, 1, 300)));
 }
 
 export function updateRemoteAccessSettings(form: FormData) {
@@ -222,4 +237,10 @@ function checked(form: FormData, key: string) {
 
 function normalizeBaseUrl(value: string) {
   return value.trim().replace(/\/+$/, '');
+}
+
+function cappedInt(value: FormDataEntryValue | string | null, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(value ?? ''), 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
 }

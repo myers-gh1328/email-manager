@@ -66,8 +66,8 @@ export function recordCommunication(db: DatabaseSync, input: CommunicationInput)
   db.prepare(
     `insert into communications (
       id, contact_id, channel, source, source_id, original_recipient, effective_recipient, test_mode, subject, body, status,
-      sent_at, message_id, provider_message, error_message, created_at
-    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      sent_at, message_id, provider_message, error_message, delivery_attempt_id, created_at
+    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.contactId,
@@ -84,6 +84,7 @@ export function recordCommunication(db: DatabaseSync, input: CommunicationInput)
     input.messageId ?? '',
     input.providerMessage ?? null,
     input.errorMessage ?? null,
+    input.deliveryAttemptId ?? null,
     timestamp
   );
   return listCommunicationById(db, id);

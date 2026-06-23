@@ -182,6 +182,42 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, status: 'failed', errorMessage: 'SMTP rejected' }]);
   });
 
+  test('classified transient attempt failure schedules a bounded retry', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+
+    const claimed = repo.claimNextEligibleDelivery(campaign.id, { source: 'automatic', subject: 'Prep', body: 'Details.' });
+    expect(claimed).toMatchObject({ recipientId: contact.id, status: 'sending', attemptCount: 1 });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: claimed!.id,
+      attemptId: claimed!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+
+    const [delivery] = repo.listDeliveries(campaign.id);
+    expect(delivery).toMatchObject({
+      status: 'retry_scheduled',
+      attemptCount: 1,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure'
+    });
+    expect(delivery.nextAttemptAt).toBeTruthy();
+  });
+
   test('loads campaign detail with recipient status including skipped do-not-email contacts', () => {
     const repo = createTestRepository();
     const sendable = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });

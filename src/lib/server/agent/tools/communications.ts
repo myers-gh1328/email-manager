@@ -97,7 +97,9 @@ export async function commitDirectEmailTool(repo: AppRepository, input: CommitDi
   return commitPreparedApproval(repo, input.approvalId, input.confirmationText, async () => {
     const sendInput = {
       ...operation,
-      previewToken: directEmailPreviewToken(operation)
+      previewToken: directEmailPreviewToken(operation),
+      settings,
+      surface: 'mcp_direct_email' as const
     };
     return await sendDirectEmail(
       repo,

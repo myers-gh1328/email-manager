@@ -1,5 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
-import { createDeliveryPlan, type CampaignDelivery } from '../scheduler';
+import { createDeliveryPlan, type AttemptSource, type CampaignDelivery, type FailureKind } from '../scheduler';
 import { getClassSession, listEnrollments } from './contacts';
 import { newId, now } from './ids';
 import { mapCampaign, mapDelivery } from './mappers';
@@ -238,6 +238,61 @@ export function claimNextPendingDelivery(db: DatabaseSync, campaignId: string): 
   return row ? mapDelivery(row) : undefined;
 }
 
+export function claimNextEligibleDelivery(
+  db: DatabaseSync,
+  campaignId: string,
+  input: { source: AttemptSource; subject: string; body: string; nowIso?: string; claimTimeoutMinutes?: number }
+): CampaignDelivery | undefined {
+  recoverExpiredSendingDeliveries(db);
+  const timestamp = input.nowIso ?? now();
+  const claimExpiresAt = new Date(new Date(timestamp).getTime() + (input.claimTimeoutMinutes ?? 15) * 60_000).toISOString();
+  return transaction(db, () => {
+    const row = db
+      .prepare(
+        `update campaign_deliveries
+         set status = 'sending',
+           attempt_count = attempt_count + 1,
+           last_attempt_at = ?,
+           claim_expires_at = ?,
+           error_message = null
+         where id = (
+           select d.id
+           from campaign_deliveries d
+           join contacts c on c.id = d.recipient_id
+           where d.campaign_id = ? and c.do_not_email = 0 and (
+             d.status = 'pending'
+             or (d.status = 'retry_scheduled' and d.failure_kind = 'transient' and d.next_attempt_at <= ? and d.attempt_count <= d.retry_policy_max_auto_retries)
+           )
+           order by coalesce(d.next_attempt_at, d.created_at), d.created_at
+           limit 1
+         )
+         returning *`
+      )
+      .get(timestamp, claimExpiresAt, campaignId, timestamp) as Row | undefined;
+    if (!row) return undefined;
+    const attemptId = newId();
+    const attemptNumber = Number(row.attempt_count);
+    db.prepare(
+      `insert into delivery_attempts (
+        id, delivery_id, attempt_number, source, status, claimed_at, claim_expires_at, subject, body,
+        retry_policy_max_auto_retries, retry_policy_backoff
+      ) values (?, ?, ?, ?, 'claimed', ?, ?, ?, ?, ?, ?)`
+    ).run(
+      attemptId,
+      String(row.id),
+      attemptNumber,
+      input.source,
+      timestamp,
+      claimExpiresAt,
+      input.subject,
+      input.body,
+      Number(row.retry_policy_max_auto_retries ?? 3),
+      String(row.retry_policy_backoff ?? '[300,1800,7200]')
+    );
+    return mapDelivery({ ...row, attempt_id: attemptId, attempt_number: attemptNumber, claim_expires_at: claimExpiresAt });
+  });
+}
+
 export function markDeliverySent(db: DatabaseSync, deliveryId: string, providerMessage: string) {
   db.prepare(
     `update campaign_deliveries
@@ -252,4 +307,135 @@ export function markDeliveryFailed(db: DatabaseSync, deliveryId: string, errorMe
      set status = 'failed', error_message = ?
      where id = ? and status != 'sent'`
   ).run(errorMessage, deliveryId);
+}
+
+export function finalizeDeliveryAttemptAccepted(db: DatabaseSync, input: { deliveryId: string; attemptId: string; providerMessage: string }) {
+  const timestamp = now();
+  transaction(db, () => {
+    db.prepare(
+      `update delivery_attempts
+       set status = 'accepted', finalized_at = ?, provider_message = ?
+       where id = ? and delivery_id = ?`
+    ).run(timestamp, input.providerMessage, input.attemptId, input.deliveryId);
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'sent', sent_at = ?, provider_message = ?, error_message = null,
+         next_attempt_at = null, claim_expires_at = null, failure_kind = '', failure_summary = ''
+       where id = ? and status != 'sent'`
+    ).run(timestamp, input.providerMessage, input.deliveryId);
+  });
+}
+
+export function updateDeliveryAttemptSnapshot(db: DatabaseSync, input: { attemptId: string; subject: string; body: string }) {
+  db.prepare('update delivery_attempts set subject = ?, body = ? where id = ? and status = ?').run(input.subject, input.body, input.attemptId, 'claimed');
+}
+
+export function finalizeDeliveryAttemptFailed(
+  db: DatabaseSync,
+  input: { deliveryId: string; attemptId: string; failureKind: Exclude<FailureKind, ''>; failureSummary: string; retryable: boolean }
+) {
+  const timestamp = now();
+  const delivery = db.prepare('select * from campaign_deliveries where id = ?').get(input.deliveryId) as Row | undefined;
+  if (!delivery) throw new Error(`Campaign delivery not found: ${input.deliveryId}`);
+  const attemptCount = Number(delivery.attempt_count ?? 1);
+  const maxRetries = Number(delivery.retry_policy_max_auto_retries ?? 3);
+  const retryable = input.retryable && input.failureKind === 'transient' && attemptCount <= maxRetries;
+  const nextAttemptAt = retryable ? nextRetryTime(timestamp, String(delivery.retry_policy_backoff ?? '[300,1800,7200]'), attemptCount) : null;
+  transaction(db, () => {
+    db.prepare(
+      `update delivery_attempts
+       set status = ?, finalized_at = ?, failure_kind = ?, failure_summary = ?
+       where id = ? and delivery_id = ?`
+    ).run(input.failureKind === 'unknown' ? 'unknown' : 'failed', timestamp, input.failureKind, input.failureSummary, input.attemptId, input.deliveryId);
+    db.prepare(
+      `update campaign_deliveries
+       set status = ?, error_message = ?, failure_kind = ?, failure_summary = ?, next_attempt_at = ?,
+         claim_expires_at = null
+       where id = ? and status != 'sent'`
+    ).run(retryable ? 'retry_scheduled' : 'needs_attention', input.failureSummary, input.failureKind, input.failureSummary, nextAttemptAt, input.deliveryId);
+  });
+}
+
+export function markAcceptedAttemptAuditIncomplete(db: DatabaseSync, input: { deliveryId: string; attemptId?: string; summary: string }) {
+  const timestamp = now();
+  transaction(db, () => {
+    if (input.attemptId) {
+      db.prepare(
+        `update delivery_attempts set status = 'accepted_audit_incomplete', finalized_at = ?, failure_summary = ? where id = ? and delivery_id = ?`
+      ).run(timestamp, input.summary, input.attemptId, input.deliveryId);
+    }
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'sent', sent_at = coalesce(sent_at, ?), needs_audit_repair = 1, failure_kind = 'unknown',
+         failure_summary = ?, next_attempt_at = null, claim_expires_at = null
+       where id = ? and status != 'sent'`
+    ).run(timestamp, input.summary, input.deliveryId);
+  });
+}
+
+export function recoverExpiredSendingDeliveries(db: DatabaseSync, nowIso = now(), limit = 25) {
+  const rows = db
+    .prepare(
+      `select * from campaign_deliveries
+       where status = 'sending' and claim_expires_at is not null and claim_expires_at <= ?
+       order by claim_expires_at
+       limit ?`
+    )
+    .all(nowIso, limit) as Row[];
+  for (const row of rows) {
+    transaction(db, () => {
+      db.prepare(
+        `update delivery_attempts
+         set status = 'unknown', finalized_at = ?, failure_kind = 'unknown',
+           failure_summary = 'Send status is unknown because the app stopped during delivery.'
+         where delivery_id = ? and status = 'claimed'`
+      ).run(nowIso, String(row.id));
+      db.prepare(
+        `update campaign_deliveries
+         set status = 'needs_attention', failure_kind = 'unknown',
+           failure_summary = 'Send status is unknown because the app stopped during delivery.',
+           error_message = 'Send status is unknown because the app stopped during delivery.',
+           next_attempt_at = null, claim_expires_at = null
+         where id = ? and status = 'sending'`
+      ).run(String(row.id));
+    });
+  }
+  return rows.length;
+}
+
+export function retryCampaignDeliveries(db: DatabaseSync, campaignId: string, recipientIds: string[]) {
+  const placeholders = recipientIds.map(() => '?').join(', ');
+  if (!placeholders) return 0;
+  const result = db
+    .prepare(
+      `update campaign_deliveries
+       set status = 'pending', next_attempt_at = null, claim_expires_at = null, error_message = null
+       where campaign_id = ? and recipient_id in (${placeholders}) and status in ('failed', 'retry_scheduled', 'needs_attention')`
+    )
+    .run(campaignId, ...recipientIds);
+  return Number(result.changes);
+}
+
+function nextRetryTime(timestamp: string, backoffJson: string, attemptCount: number) {
+  let backoff = [300, 1800, 7200];
+  try {
+    const parsed = JSON.parse(backoffJson);
+    if (Array.isArray(parsed) && parsed.every((value) => Number.isFinite(Number(value)))) backoff = parsed.map(Number);
+  } catch {
+    backoff = [300, 1800, 7200];
+  }
+  const seconds = backoff[Math.max(0, Math.min(backoff.length - 1, attemptCount - 1))] ?? 7200;
+  return new Date(new Date(timestamp).getTime() + seconds * 1000).toISOString();
+}
+
+function transaction<T>(db: DatabaseSync, work: () => T): T {
+  db.exec('begin immediate');
+  try {
+    const result = work();
+    db.exec('commit');
+    return result;
+  } catch (error) {
+    db.exec('rollback');
+    throw error;
+  }
 }

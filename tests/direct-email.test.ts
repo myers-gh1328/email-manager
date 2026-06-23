@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { createTestRepository } from './repository-helpers';
 import { directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '../src/lib/server/direct-email';
+import { baseAppSettings } from './settings-helpers';
 
 describe('direct email workflow', () => {
   test('previews personalized freeform email for multiple contacts', () => {
@@ -198,6 +199,46 @@ describe('direct email workflow', () => {
         previewToken: directEmailPreviewToken({ contactIds: [contact.id], subject: 'Original', body: 'Hello' })
       })
     ).rejects.toThrow('Preview this exact email before sending.');
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test('returns existing direct send operation result without resending duplicate commits', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const send = vi.fn(async () => 'smtp-accepted');
+    const input = {
+      contactIds: [contact.id],
+      subject: 'Hi',
+      body: 'Hello',
+      instructorName: 'Alex',
+      previewToken: directEmailPreviewToken({ contactIds: [contact.id], subject: 'Hi', body: 'Hello' }),
+      settings: baseAppSettings({ outboundMaxPerMinute: 10, outboundMaxPerHour: 50 })
+    };
+
+    const first = await sendDirectEmail(repo, send, input);
+    const second = await sendDirectEmail(repo, send, input);
+
+    expect(first).toMatchObject({ sent: 1, failed: 0 });
+    expect(second).toMatchObject({ sent: 1, failed: 0 });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  test('enforces direct email recipient cap before sending', async () => {
+    const repo = createTestRepository();
+    const first = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const second = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });
+    const send = vi.fn();
+
+    await expect(
+      sendDirectEmail(repo, send, {
+        contactIds: [first.id, second.id],
+        subject: 'Hi',
+        body: 'Hello',
+        instructorName: 'Alex',
+        previewToken: directEmailPreviewToken({ contactIds: [first.id, second.id], subject: 'Hi', body: 'Hello' }),
+        settings: baseAppSettings({ outboundDirectMaxRecipients: 1 })
+      })
+    ).rejects.toThrow('Send to 1 or fewer recipients at a time.');
     expect(send).not.toHaveBeenCalled();
   });
 

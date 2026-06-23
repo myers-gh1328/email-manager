@@ -29,9 +29,12 @@ import {
 } from './contacts';
 import {
   createCampaign,
+  claimNextEligibleDelivery,
   claimNextPendingDelivery,
   deleteCampaign,
   ensurePendingDeliveries,
+  finalizeDeliveryAttemptAccepted,
+  finalizeDeliveryAttemptFailed,
   getCampaign,
   getCampaignDetail,
   hasSentDeliveries,
@@ -39,8 +42,12 @@ import {
   listCampaignsForClassSession,
   listDeliveries,
   listPendingDeliveries,
+  markAcceptedAttemptAuditIncomplete,
   markDeliveryFailed,
   markDeliverySent,
+  recoverExpiredSendingDeliveries,
+  retryCampaignDeliveries,
+  updateDeliveryAttemptSnapshot,
   updateDefaultCampaign,
   updateCampaign
 } from './campaigns';
@@ -51,6 +58,7 @@ import {
   removeCourseTypeDefaultTemplate,
   setCourseTypeDefaultTemplate
 } from './course-defaults';
+import { beginSendOperation, finishSendOperation, getSendOperation, markSendOperationRecipient, type SendOperationInput } from './outbound';
 import {
   createChecklistItem,
   createCourseTypeChecklistItem,
@@ -399,6 +407,13 @@ export class AppRepository {
     return claimNextPendingDelivery(this.db, campaignId);
   }
 
+  claimNextEligibleDelivery(
+    campaignId: string,
+    input: Parameters<typeof claimNextEligibleDelivery>[2]
+  ) {
+    return claimNextEligibleDelivery(this.db, campaignId, input);
+  }
+
   listDeliveries(campaignId: string) {
     return listDeliveries(this.db, campaignId);
   }
@@ -413,6 +428,30 @@ export class AppRepository {
 
   markDeliveryFailed(deliveryId: string, errorMessage: string) {
     return markDeliveryFailed(this.db, deliveryId, errorMessage);
+  }
+
+  finalizeDeliveryAttemptAccepted(input: Parameters<typeof finalizeDeliveryAttemptAccepted>[1]) {
+    return finalizeDeliveryAttemptAccepted(this.db, input);
+  }
+
+  updateDeliveryAttemptSnapshot(input: Parameters<typeof updateDeliveryAttemptSnapshot>[1]) {
+    return updateDeliveryAttemptSnapshot(this.db, input);
+  }
+
+  finalizeDeliveryAttemptFailed(input: Parameters<typeof finalizeDeliveryAttemptFailed>[1]) {
+    return finalizeDeliveryAttemptFailed(this.db, input);
+  }
+
+  markAcceptedAttemptAuditIncomplete(input: Parameters<typeof markAcceptedAttemptAuditIncomplete>[1]) {
+    return markAcceptedAttemptAuditIncomplete(this.db, input);
+  }
+
+  recoverExpiredSendingDeliveries(nowIso?: string, limit?: number) {
+    return recoverExpiredSendingDeliveries(this.db, nowIso, limit);
+  }
+
+  retryCampaignDeliveries(campaignId: string, recipientIds: string[]) {
+    return retryCampaignDeliveries(this.db, campaignId, recipientIds);
   }
 
   recordCommunication(input: CommunicationInput) {
@@ -433,6 +472,22 @@ export class AppRepository {
 
   recordEmailTestAudit(input: EmailTestAuditInput) {
     return recordEmailTestAudit(this.db, input);
+  }
+
+  beginSendOperation(input: SendOperationInput) {
+    return beginSendOperation(this.db, input);
+  }
+
+  getSendOperation(sendOperationId: string) {
+    return getSendOperation(this.db, sendOperationId);
+  }
+
+  markSendOperationRecipient(operationId: string, contactId: string, input: Parameters<typeof markSendOperationRecipient>[3]) {
+    return markSendOperationRecipient(this.db, operationId, contactId, input);
+  }
+
+  finishSendOperation(operationId: string, input: Parameters<typeof finishSendOperation>[2]) {
+    return finishSendOperation(this.db, operationId, input);
   }
 
   listEmailTestAudits() {

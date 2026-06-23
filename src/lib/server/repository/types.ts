@@ -118,6 +118,7 @@ export interface CommunicationInput {
   channel: 'email';
   source: 'direct' | 'campaign';
   sourceId?: string;
+  deliveryAttemptId?: string;
   originalRecipient?: string;
   effectiveRecipient?: string;
   testMode?: boolean;
