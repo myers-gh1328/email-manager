@@ -1,5 +1,5 @@
-import { describe, expect, test, beforeEach } from 'vitest';
-import { assertOutboundBatchAllowed, reserveOutboundAttempt, resetOutboundGateForTests } from '../src/lib/server/outbound-gate';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
+import { assertOutboundBatchAllowed, paceOutboundAttempt, reserveOutboundAttempt, resetOutboundGateForTests } from '../src/lib/server/outbound-gate';
 import { createTestRepository } from './repository-helpers';
 
 describe('outbound gate', () => {
@@ -13,6 +13,16 @@ describe('outbound gate', () => {
         settings: { outboundKillSwitchEnabled: true, outboundDirectMaxRecipients: 12 }
       })
     ).toThrow('Outbound email is paused in settings.');
+  });
+
+  test('direct recipient cap blocks oversized direct sends', () => {
+    expect(() =>
+      assertOutboundBatchAllowed({
+        surface: 'direct_email',
+        recipientCount: 13,
+        settings: { outboundKillSwitchEnabled: false, outboundDirectMaxRecipients: 12 }
+      })
+    ).toThrow('Send to 12 or fewer recipients at a time.');
   });
 
   test('rate limit consumes one budget per reserved attempt', () => {
@@ -44,5 +54,13 @@ describe('outbound gate', () => {
     expect(() =>
       repo.reserveOutboundRateEvent({ maxPerMinute: 10, maxPerHour: 1, nowIso: '2026-06-23T13:00:01.000Z' })
     ).not.toThrow();
+  });
+
+  test('pacing resolves immediately when disabled or running tests', async () => {
+    expect(paceOutboundAttempt({ surface: 'direct_email', settings: { outboundPacingSeconds: 0 } })).toBeUndefined();
+
+    vi.stubEnv('NODE_ENV', 'test');
+    expect(paceOutboundAttempt({ surface: 'direct_email', settings: { outboundPacingSeconds: 5 } })).toBeUndefined();
+    vi.unstubAllEnvs();
   });
 });

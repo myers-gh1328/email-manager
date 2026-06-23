@@ -304,6 +304,56 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, status: 'retry_scheduled' }]);
   });
 
+  test('manual send-due can intentionally send due scheduled retries', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep {{firstName}}', body: 'Details for {{courseName}}.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2000-01-01T00:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const firstClaim = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'automatic',
+      subject: 'Prep',
+      body: 'Details.',
+      nowIso: '2026-09-30T13:00:00.000Z'
+    });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: firstClaim!.id,
+      attemptId: firstClaim!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare("update campaign_deliveries set next_attempt_at = '2000-01-01T00:05:00.000Z' where id = ?").run(firstClaim!.id);
+    const send = async () => ({
+      providerMessage: 'provider-456',
+      originalRecipient: 'lee@example.com',
+      effectiveRecipient: 'lee@example.com',
+      testMode: false,
+      finalText: 'Details for Divemaster.',
+      finalHtml: '',
+      messageId: '<retry@example.com>'
+    });
+
+    const sent = await sendDueCampaignsWithDependencies(repo, baseAppSettings({ schedulerEnabled: true }), send, { surface: 'manual_send_due' });
+
+    expect(sent).toBe(1);
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, status: 'sent', providerMessage: 'provider-456' }]);
+    expect(repo.listContactCommunications(contact.id)[0]).toMatchObject({
+      status: 'accepted',
+      subject: 'Prep Lee'
+    });
+  });
+
   test('loads campaign detail with recipient status including skipped do-not-email contacts', () => {
     const repo = createTestRepository();
     const sendable = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
