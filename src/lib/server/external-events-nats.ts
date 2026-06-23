@@ -10,6 +10,13 @@ export interface ExternalEventsConfig {
   importMode: ExternalEventMode;
 }
 
+interface NatsConnectOptions {
+  servers: string;
+  name: string;
+  user?: string;
+  pass?: string;
+}
+
 let started = false;
 
 export function getExternalEventsConfig(env: NodeJS.ProcessEnv = process.env): ExternalEventsConfig {
@@ -46,7 +53,7 @@ export function startExternalEventSubscriber(config = getExternalEventsConfig())
 async function runNatsSubscriber(config: ExternalEventsConfig) {
   const { repo } = await import('./app');
   const { connect } = await importOptionalNats();
-  const connection = await connect({ servers: config.url, name: config.consumer });
+  const connection = await connect(buildNatsConnectOptions(config));
   const decoder = new TextDecoder();
 
   for (const subject of config.subjects) {
@@ -59,9 +66,32 @@ async function runNatsSubscriber(config: ExternalEventsConfig) {
   }
 }
 
-async function importOptionalNats(): Promise<{ connect: (options: { servers: string; name: string }) => Promise<any> }> {
+export function buildNatsConnectOptions(config: ExternalEventsConfig): NatsConnectOptions {
+  try {
+    const parsed = new URL(config.url);
+    if (parsed.protocol !== 'nats:') {
+      return { servers: config.url, name: config.consumer };
+    }
+
+    const host = parsed.host;
+    const user = decodeURIComponent(parsed.username);
+    const pass = decodeURIComponent(parsed.password);
+    const options: NatsConnectOptions = {
+      servers: host,
+      name: config.consumer
+    };
+
+    if (user) options.user = user;
+    if (pass) options.pass = pass;
+    return options;
+  } catch {
+    return { servers: config.url, name: config.consumer };
+  }
+}
+
+async function importOptionalNats(): Promise<{ connect: (options: NatsConnectOptions) => Promise<any> }> {
   const importer = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>;
-  const transport = (await importer('@nats-io/transport-node')) as { connect: (options: { servers: string; name: string }) => Promise<any> };
+  const transport = (await importer('@nats-io/transport-node')) as { connect: (options: NatsConnectOptions) => Promise<any> };
   return { connect: transport.connect };
 }
 
