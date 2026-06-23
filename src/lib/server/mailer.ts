@@ -82,15 +82,23 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
 function assertRecipientAccepted(result: unknown, effectiveRecipient: string) {
   if (!result || typeof result !== 'object') return;
   const expected = normalizeAddress(effectiveRecipient);
-  const accepted = Array.isArray((result as { accepted?: unknown }).accepted) ? (result as { accepted: unknown[] }).accepted.map((value) => normalizeAddress(String(value))) : undefined;
-  const rejected = Array.isArray((result as { rejected?: unknown }).rejected) ? (result as { rejected: unknown[] }).rejected.map((value) => normalizeAddress(String(value))) : undefined;
+  const accepted = Array.isArray((result as { accepted?: unknown }).accepted)
+    ? (result as { accepted: unknown[] }).accepted.map((value) => normalizeAddress(addressText(value)))
+    : undefined;
+  const rejected = Array.isArray((result as { rejected?: unknown }).rejected)
+    ? (result as { rejected: unknown[] }).rejected.map((value) => normalizeAddress(addressText(value)))
+    : undefined;
   if (rejected?.includes(expected) || accepted?.length === 0 || (accepted && accepted.length > 0 && !accepted.includes(expected))) {
     throw new Error('SMTP provider did not accept the recipient.');
   }
 }
 
+function addressText(value: unknown) {
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '';
+}
+
 function normalizeAddress(value: string) {
-  const bracketed = value.match(/<([^>]+)>/)?.[1] ?? value;
+  const bracketed = /<([^<>]+)>/.exec(value)?.[1] ?? value;
   return bracketed.trim().toLowerCase();
 }
 

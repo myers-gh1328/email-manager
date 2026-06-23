@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass, syncDefaultCampaignsForCourseType } from '$lib/server/class-default-campaigns';
-import { required, text } from '$lib/server/form-utils';
+import { errorText, required, text } from '$lib/server/form-utils';
 import { loadClassesData } from '$lib/server/page-data';
 
 export const load = ({ url }) => {
@@ -51,7 +51,7 @@ export const actions = {
     }
     const sync = syncDefaultCampaignsForCourseType(repo, courseTypeId);
     return {
-      message: `Course email defaults updated. Scheduled ${sync.created}, updated ${sync.updated}, removed ${sync.deleted}${sync.skippedSent ? `, skipped ${sync.skippedSent} already-sent` : ''}.`
+      message: courseDefaultsMessage(sync)
     };
   },
   createChecklistItem: async ({ request }) => {
@@ -138,6 +138,11 @@ function sendOffsetMinutes(form: FormData, purpose: string) {
   return direction === 'before' ? -minutes : minutes;
 }
 
+function courseDefaultsMessage(sync: { created: number; updated: number; deleted: number; skippedSent: number }) {
+  const skipped = sync.skippedSent ? `, skipped ${sync.skippedSent} already-sent` : '';
+  return `Course email defaults updated. Scheduled ${sync.created}, updated ${sync.updated}, removed ${sync.deleted}${skipped}.`;
+}
+
 function locationInput(form: FormData) {
   return {
     name: required(form, 'name'),
@@ -151,7 +156,7 @@ function locationInput(form: FormData) {
 }
 
 function classActionError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = errorText(error);
   return message.startsWith('Duplicate class session:')
     ? 'A class with that course, date, time, and location already exists.'
     : message;

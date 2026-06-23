@@ -4,6 +4,7 @@ import { sendOutboundEmail } from './mailer';
 import { assertOutboundBatchAllowed, paceOutboundAttempt, reserveOutboundAttempt, type OutboundSurface } from './outbound-gate';
 import { classifyOutboundFailure } from './outbound-errors';
 import type { AppRepository } from './repository';
+import type { AttemptSource } from './scheduler';
 import type { AppSettings } from './settings';
 
 export async function sendDueCampaignsWithDependencies(
@@ -71,11 +72,17 @@ function claimNext(
 ) {
   return repository.claimNextEligibleDelivery
     ? repository.claimNextEligibleDelivery(campaignId, {
-        source: surface === 'mcp_send_due' ? 'agent' : surface === 'manual_send_due' ? 'manual' : 'automatic',
+        source: attemptSourceForSurface(surface),
         subject: '',
         body: ''
       })
     : repository.claimNextPendingDelivery(campaignId);
+}
+
+function attemptSourceForSurface(surface: OutboundSurface): AttemptSource {
+  if (surface === 'mcp_send_due') return 'agent';
+  if (surface === 'manual_send_due') return 'manual';
+  return 'automatic';
 }
 
 async function sendDelivery(

@@ -1,6 +1,6 @@
 export type TemplateVariables = Record<string, string | number | null | undefined>;
 
-const variablePattern = /\{\{\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\}\}/g;
+const variablePattern = /\{\{\s*([a-zA-Z]\w*)\s*\}\}/g;
 
 export function renderTemplate(template: string, variables: TemplateVariables): string {
   return template.replace(variablePattern, (_match, key: string) => {
@@ -20,9 +20,9 @@ export function findMissingVariables(template: string, variables: TemplateVariab
     }
   }
 
-  return [...missing].sort();
+  return [...missing].sort((left, right) => left.localeCompare(right));
 }
 
 export function listTemplateVariables(template: string): string[] {
-  return [...new Set([...template.matchAll(variablePattern)].map((match) => match[1]))].sort();
+  return [...new Set([...template.matchAll(variablePattern)].map((match) => match[1]))].sort((left, right) => left.localeCompare(right));
 }

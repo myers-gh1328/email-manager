@@ -1,11 +1,22 @@
 export function required(form: FormData, key: string) {
-  const value = String(form.get(key) ?? '').trim();
+  const value = formText(form.get(key)).trim();
   if (!value) throw new Error(`${key} is required`);
   return value;
 }
 
 export function text(form: FormData, key: string) {
-  return String(form.get(key) ?? '').trim();
+  return formText(form.get(key)).trim();
+}
+
+export function formText(value: FormDataEntryValue | null | string | boolean) {
+  if (typeof value === 'string' || typeof value === 'boolean') return String(value);
+  return '';
+}
+
+export function errorText(error: unknown, fallback = 'Something went wrong.') {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return fallback;
 }
 
 export function variablesFor(
@@ -27,7 +38,7 @@ export function variablesFor(
   instructorName: string
 ) {
   const endsOn = classSession.endsOn || classSession.startsOn;
-  const classDateRange = endsOn !== classSession.startsOn ? `${classSession.startsOn} - ${endsOn}` : classSession.startsOn;
+  const classDateRange = endsOn === classSession.startsOn ? classSession.startsOn : `${classSession.startsOn} - ${endsOn}`;
   return {
     firstName: contact.firstName,
     fullName: `${contact.firstName} ${contact.lastName}`.trim(),

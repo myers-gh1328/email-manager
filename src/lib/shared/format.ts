@@ -4,7 +4,7 @@ export function formatDateTime(value: string) {
 
 export function formatClassSchedule(session: { startsOn: string; endsOn?: string; startTime?: string }) {
   const endsOn = session.endsOn || session.startsOn;
-  const dateRange = endsOn !== session.startsOn ? `${session.startsOn} - ${endsOn}` : session.startsOn;
+  const dateRange = endsOn === session.startsOn ? session.startsOn : `${session.startsOn} - ${endsOn}`;
   return session.startTime ? `${dateRange} · ${session.startTime}` : dateRange;
 }
 

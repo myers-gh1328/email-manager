@@ -27,14 +27,14 @@ export function classifyOutboundFailure(error: unknown): ClassifiedFailure {
 }
 
 export function safeErrorSummary(error: unknown) {
-  const raw = error instanceof Error ? error.message : String(error ?? '');
+  const raw = error instanceof Error ? error.message : stringValue(error);
   return sanitizeOutboundText(raw) || 'The mail server response was unclear. Review before retrying.';
 }
 
 export function sanitizeOutboundText(value: string) {
   return value
     .replace(/(password|passwd|pwd|client_secret|access_token|refresh_token|api[_-]?key)=\S+/gi, '$1=[redacted]')
-    .replace(/Bearer\s+[A-Za-z0-9._~+/=-]+/gi, 'Bearer [redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._~+/=\-]+/gi, 'Bearer [redacted]')
     .replace(/[A-Za-z]:\\[^\s]+/g, '[local path]')
     .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '[ip]')
     .slice(0, 240);
@@ -49,11 +49,17 @@ function numericCode(error: unknown) {
 }
 
 function isTemporaryNetworkError(error: unknown) {
-  const code = String((error as { code?: unknown })?.code ?? '').toUpperCase();
+  const code = stringValue(error && typeof error === 'object' ? (error as { code?: unknown }).code : undefined).toUpperCase();
   return ['ETIMEDOUT', 'ECONNRESET', 'EAI_AGAIN', 'ESOCKET', 'ECONNECTION'].includes(code);
 }
 
 function isPermanentAuthError(error: unknown) {
-  const text = `${String((error as { code?: unknown })?.code ?? '')} ${error instanceof Error ? error.message : String(error ?? '')}`.toLowerCase();
+  const code = stringValue(error && typeof error === 'object' ? (error as { code?: unknown }).code : undefined);
+  const message = error instanceof Error ? error.message : stringValue(error);
+  const text = `${code} ${message}`.toLowerCase();
   return text.includes('invalid_grant') || text.includes('invalid_client') || text.includes('auth') || text.includes('credential');
+}
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '';
 }

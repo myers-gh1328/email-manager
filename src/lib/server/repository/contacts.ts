@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
-import { mapClassSession, mapContact, mapCourseType, mapLocation } from './mappers';
+import { mapClassSession, mapContact, mapCourseType, mapLocation, rowString } from './mappers';
 import type {
   ClassSessionInput,
   ContactHistoryItem,
@@ -52,7 +52,7 @@ export function findDuplicateContact(db: DatabaseSync, input: Pick<ContactInput,
        limit 1`
     )
     .get(email, excludeId ?? null, excludeId ?? null) as Row | undefined;
-  return row ? { id: String(row.id), email: String(row.email) } : undefined;
+  return row ? { id: rowString(row.id), email: rowString(row.email) } : undefined;
 }
 
 export function getContact(db: DatabaseSync, id: string) {
@@ -224,12 +224,12 @@ export function findDuplicateClassSession(
         .get(input.courseTypeId, startsOn, startTime, normalizeLocation(location), excludeId ?? null, excludeId ?? null);
   return row
     ? {
-        id: String((row as Row).id),
-        courseTypeId: String((row as Row).course_type_id),
-        startsOn: String((row as Row).starts_on),
-        startTime: String((row as Row).start_time ?? ''),
-        locationId: String((row as Row).location_id ?? ''),
-        location: String((row as Row).location ?? '')
+        id: rowString((row as Row).id),
+        courseTypeId: rowString((row as Row).course_type_id),
+        startsOn: rowString((row as Row).starts_on),
+        startTime: rowString((row as Row).start_time),
+        locationId: rowString((row as Row).location_id),
+        location: rowString((row as Row).location)
       }
     : undefined;
 }
@@ -320,18 +320,18 @@ export function getContactHistory(db: DatabaseSync, contactId: string): ContactH
     )
     .all(contactId)
     .map((row) => ({
-      classSessionId: String((row as Row).class_session_id),
-      courseName: String((row as Row).course_name),
-      startsOn: String((row as Row).starts_on),
-      endsOn: String((row as Row).ends_on || (row as Row).starts_on),
-      startTime: String((row as Row).start_time ?? ''),
-      location: String((row as Row).location),
-      locationAddress: String((row as Row).location_address ?? ''),
-      locationPhone: String((row as Row).location_phone ?? ''),
-      locationWebsite: String((row as Row).location_website ?? ''),
-      locationParkingNotes: String((row as Row).location_parking_notes ?? ''),
-      locationMeetingInstructions: String((row as Row).location_meeting_instructions ?? ''),
-      locationNotes: String((row as Row).location_notes ?? '')
+      classSessionId: rowString((row as Row).class_session_id),
+      courseName: rowString((row as Row).course_name),
+      startsOn: rowString((row as Row).starts_on),
+      endsOn: rowString((row as Row).ends_on || (row as Row).starts_on),
+      startTime: rowString((row as Row).start_time),
+      location: rowString((row as Row).location),
+      locationAddress: rowString((row as Row).location_address),
+      locationPhone: rowString((row as Row).location_phone),
+      locationWebsite: rowString((row as Row).location_website),
+      locationParkingNotes: rowString((row as Row).location_parking_notes),
+      locationMeetingInstructions: rowString((row as Row).location_meeting_instructions),
+      locationNotes: rowString((row as Row).location_notes)
     }));
 }
 

@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '$lib/server/direct-email';
-import { required, text } from '$lib/server/form-utils';
+import { errorText, formText, required, text } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
 import { sendOutboundEmail } from '$lib/server/mailer';
 import { loadCommunicationsData } from '$lib/server/page-data';
@@ -59,7 +59,7 @@ export const actions = {
     } catch (error) {
       return fail(400, {
         error: true,
-        message: error instanceof Error ? error.message : String(error),
+        message: errorText(error),
         selectedContactIds: contactIds,
         selectedTemplateId: content.templateId,
         subject: content.subject,
@@ -95,7 +95,7 @@ export const actions = {
     } catch (error) {
       return fail(400, {
         error: true,
-        message: error instanceof Error ? error.message : String(error),
+        message: errorText(error),
         selectedContactIds: selectedContactIds(form),
         selectedTemplateId: text(form, 'templateId'),
         subject: text(form, 'subject'),
@@ -111,7 +111,7 @@ export const actions = {
 };
 
 function selectedContactIds(form: FormData) {
-  return form.getAll('contactIds').map(String).filter(Boolean);
+  return form.getAll('contactIds').map(formText).filter(Boolean);
 }
 
 function directEmailContent(form: FormData) {

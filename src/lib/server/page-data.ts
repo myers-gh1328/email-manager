@@ -21,15 +21,12 @@ export function schedulerStatus(settings: ReturnType<typeof getSettings>, campai
     .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0];
   const dueApprovedCount = approved.filter((campaign) => new Date(campaign.scheduledFor).getTime() <= Date.now()).length;
   const smtpConfigured = Boolean(settings.smtpHost && settings.smtpFrom);
-  const smtpAuthConfigured =
-    settings.smtpAuthMethod === 'microsoft-oauth2'
-      ? Boolean(settings.smtpUser && settings.microsoftRefreshTokenConfigured)
-      : Boolean(settings.smtpUser ? settings.smtpPasswordConfigured : true);
+  const smtpAuthConfigured = smtpAuthenticationConfigured(settings);
   const blockedReasons = [
-    !settings.schedulerEnabled ? 'Scheduled sending is disabled' : '',
+    settings.schedulerEnabled ? '' : 'Scheduled sending is disabled',
     settings.outboundKillSwitchEnabled ? 'Outbound email is paused' : '',
     settings.emailTestModeEnabled ? 'Email test mode is redirecting outbound mail' : '',
-    !smtpConfigured ? 'SMTP is incomplete' : '',
+    smtpConfigured ? '' : 'SMTP is incomplete',
     smtpConfigured && !smtpAuthConfigured && settings.smtpAuthMethod === 'microsoft-oauth2' ? 'Microsoft Outlook is not connected' : '',
     smtpConfigured && !smtpAuthConfigured && settings.smtpAuthMethod !== 'microsoft-oauth2' ? 'SMTP authentication is incomplete' : ''
   ].filter(Boolean);
@@ -42,6 +39,14 @@ export function schedulerStatus(settings: ReturnType<typeof getSettings>, campai
   };
 }
 
+function smtpAuthenticationConfigured(settings: ReturnType<typeof getSettings>) {
+  if (settings.smtpAuthMethod === 'microsoft-oauth2') {
+    return Boolean(settings.smtpUser && settings.microsoftRefreshTokenConfigured);
+  }
+  if (settings.smtpUser) return settings.smtpPasswordConfigured;
+  return true;
+}
+
 export function remoteAccessStatus(settings: ReturnType<typeof getSettings>) {
   if (!settings.remoteAccessEnabled) {
     return { enabled: false, ready: true, blockedReasons: [] as string[] };
@@ -50,8 +55,8 @@ export function remoteAccessStatus(settings: ReturnType<typeof getSettings>) {
   const publicBaseUrl = settings.publicBaseUrl.trim();
   const secureCookiesRequired = publicBaseUrl.toLowerCase().startsWith('https://');
   const blockedReasons = [
-    !publicBaseUrl ? 'Set a public base URL for remote access' : '',
-    !appSecret.configured ? 'Configure a persistent app secret before remote access' : '',
+    publicBaseUrl ? '' : 'Set a public base URL for remote access',
+    appSecret.configured ? '' : 'Configure a persistent app secret before remote access',
     secureCookiesRequired && process.env.SCUBA_EMAIL_SECURE_COOKIES !== 'true'
       ? 'Set SCUBA_EMAIL_SECURE_COOKIES=true when serving over HTTPS'
       : ''

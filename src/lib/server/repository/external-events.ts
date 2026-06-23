@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { now } from './ids';
+import { rowString } from './mappers';
 import type { ExternalEntityType, ExternalEventIngestionInput, ExternalMappingInput, Row } from './types';
 
 export function getExternalMapping(db: DatabaseSync, source: string, entityType: ExternalEntityType, externalId: string) {
@@ -10,10 +11,10 @@ export function getExternalMapping(db: DatabaseSync, source: string, entityType:
   if (!row) return undefined;
 
   return {
-    source: String(row.source),
-    entityType: String(row.entity_type) as ExternalEntityType,
-    externalId: String(row.external_id),
-    localId: String(row.local_id)
+    source: rowString(row.source),
+    entityType: rowString(row.entity_type) as ExternalEntityType,
+    externalId: rowString(row.external_id),
+    localId: rowString(row.local_id)
   };
 }
 
@@ -38,15 +39,15 @@ export function getExternalEventIngestion(db: DatabaseSync, source: string, even
   if (!row) return undefined;
 
   return {
-    source: String(row.event_source),
-    eventId: String(row.event_id),
-    eventType: String(row.event_type),
-    status: String(row.status) as ExternalEventIngestionInput['status'],
-    message: String(row.message ?? ''),
-    occurredAt: String(row.occurred_at),
-    processedAt: String(row.processed_at),
-    eventFingerprint: String(row.event_fingerprint ?? ''),
-    rawEvent: String(row.raw_event ?? '')
+    source: rowString(row.event_source),
+    eventId: rowString(row.event_id),
+    eventType: rowString(row.event_type),
+    status: rowString(row.status) as ExternalEventIngestionInput['status'],
+    message: rowString(row.message),
+    occurredAt: rowString(row.occurred_at),
+    processedAt: rowString(row.processed_at),
+    eventFingerprint: rowString(row.event_fingerprint),
+    rawEvent: rowString(row.raw_event)
   };
 }
 

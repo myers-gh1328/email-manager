@@ -15,8 +15,7 @@ interface SendDueCampaignsOperation {
   campaignIds: string[];
 }
 
-export function prepareSendDueCampaignsTool(repo: AppRepository, input: Record<string, never> = {}, settingsOverride?: AppSettings) {
-  void input;
+export function prepareSendDueCampaignsTool(repo: AppRepository, _input: Record<string, never> = {}, settingsOverride?: AppSettings) {
   const settings = settingsOverride ?? getSettings();
   const denied = requireAgentPermission(settings, 'prepareEmail');
   if (denied) return denied;
@@ -65,10 +64,10 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
     );
   }
   const operation = JSON.parse(approval.operationJson) as SendDueCampaignsOperation;
-  const preparedIds = [...operation.campaignIds].sort();
+  const preparedIds = [...operation.campaignIds].sort((left, right) => left.localeCompare(right));
   const currentIds = dueApprovedCampaigns(repo)
     .map((campaign) => campaign.id)
-    .sort();
+    .sort((left, right) => left.localeCompare(right));
   if (!sameStringSet(preparedIds, currentIds)) {
     return agentError(
       'approval_changed',

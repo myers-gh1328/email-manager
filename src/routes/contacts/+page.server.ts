@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
-import { required, text } from '$lib/server/form-utils';
+import { errorText, required, text } from '$lib/server/form-utils';
 import { extractRosterFromImage } from '$lib/server/llm';
 import { loadContactsData } from '$lib/server/page-data';
 import { importContactRows, parseRosterCsv } from '$lib/server/roster-import';
@@ -53,7 +53,7 @@ export const actions = {
         message: `Imported screenshot contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`
       };
     } catch (error) {
-      return fail(400, { error: true, message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { error: true, message: errorText(error) });
     }
   },
   updateContact: async ({ request }) => {
@@ -80,7 +80,7 @@ export const actions = {
 };
 
 function contactActionError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = errorText(error);
   return message.startsWith('Duplicate contact email:')
     ? 'A contact with that email address already exists.'
     : message;

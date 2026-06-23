@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { AppRepository } from './repository';
-import type { ContactInput } from './repository';
+import type { AppRepository, ContactInput } from './repository';
 import { formatPhoneNumber } from '$lib/shared/phone';
 
 export type ExternalEventType = 'contact.upsert' | 'class.upsert' | 'class_user.upsert';
@@ -27,7 +26,7 @@ export interface ExternalEventOptions {
 
 const supportedEventTypes = new Set(['contact.upsert', 'class.upsert', 'class_user.upsert']);
 
-export function parseExternalEvent(input: string | unknown): ExternalEventEnvelope {
+export function parseExternalEvent(input: unknown): ExternalEventEnvelope {
   const value = typeof input === 'string' ? JSON.parse(input) : input;
   if (!isRecord(value)) throw new Error('Event payload must be an object.');
   const data = value.data;
@@ -40,7 +39,7 @@ export function parseExternalEvent(input: string | unknown): ExternalEventEnvelo
   };
 }
 
-export function applyExternalEvent(repo: AppRepository, rawEvent: string | unknown, options: ExternalEventOptions = {}): ExternalEventResult {
+export function applyExternalEvent(repo: AppRepository, rawEvent: unknown, options: ExternalEventOptions = {}): ExternalEventResult {
   let event: ExternalEventEnvelope;
   try {
     event = parseExternalEvent(rawEvent);
@@ -279,7 +278,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'Unknown error.';
 }
 
 function eventFingerprint(event: ExternalEventEnvelope) {
@@ -290,7 +291,7 @@ function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
   if (isRecord(value)) {
     return `{${Object.keys(value)
-      .sort()
+      .sort((left, right) => left.localeCompare(right))
       .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
       .join(',')}}`;
   }

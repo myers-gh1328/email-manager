@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
+import { rowString } from './mappers';
 import type { AgentApproval, AgentApprovalInput, AgentAuditEvent, AgentAuditEventInput, Row } from './types';
 
 function prefixedId(prefix: 'appr' | 'audit') {
@@ -8,32 +9,32 @@ function prefixedId(prefix: 'appr' | 'audit') {
 
 function mapAgentApproval(row: Row): AgentApproval {
   return {
-    id: String(row.id),
-    toolName: String(row.tool_name),
-    risk: String(row.risk) as AgentApproval['risk'],
-    summary: String(row.summary),
-    operationJson: String(row.operation_json),
-    reviewJson: String(row.review_json),
-    confirmationText: String(row.confirmation_text),
-    status: String(row.status) as AgentApproval['status'],
-    createdAt: String(row.created_at),
-    expiresAt: String(row.expires_at),
-    committedAt: String(row.committed_at ?? ''),
-    resultJson: String(row.result_json ?? '')
+    id: rowString(row.id),
+    toolName: rowString(row.tool_name),
+    risk: rowString(row.risk) as AgentApproval['risk'],
+    summary: rowString(row.summary),
+    operationJson: rowString(row.operation_json),
+    reviewJson: rowString(row.review_json),
+    confirmationText: rowString(row.confirmation_text),
+    status: rowString(row.status) as AgentApproval['status'],
+    createdAt: rowString(row.created_at),
+    expiresAt: rowString(row.expires_at),
+    committedAt: rowString(row.committed_at),
+    resultJson: rowString(row.result_json)
   };
 }
 
 function mapAgentAuditEvent(row: Row): AgentAuditEvent {
   return {
-    id: String(row.id),
-    toolName: String(row.tool_name),
-    risk: String(row.risk) as AgentAuditEvent['risk'],
-    action: String(row.action) as AgentAuditEvent['action'],
-    summary: String(row.summary),
-    entityType: String(row.entity_type ?? ''),
-    entityId: String(row.entity_id ?? ''),
-    status: String(row.status),
-    createdAt: String(row.created_at)
+    id: rowString(row.id),
+    toolName: rowString(row.tool_name),
+    risk: rowString(row.risk) as AgentAuditEvent['risk'],
+    action: rowString(row.action) as AgentAuditEvent['action'],
+    summary: rowString(row.summary),
+    entityType: rowString(row.entity_type),
+    entityId: rowString(row.entity_id),
+    status: rowString(row.status),
+    createdAt: rowString(row.created_at)
   };
 }
 
@@ -168,14 +169,14 @@ export function listAgentAuditEvents(db: DatabaseSync, input: { limit?: number; 
            order by created_at desc, rowid desc
            limit ?`
         )
-        .all(String(cursorRow.created_at), String(cursorRow.created_at), Number(cursorRow.rowid), queryLimit)
+        .all(rowString(cursorRow.created_at), rowString(cursorRow.created_at), Number(cursorRow.rowid), queryLimit)
     : db.prepare('select * from agent_audit_events order by created_at desc, rowid desc limit ?').all(queryLimit);
   const pageRows = rows.slice(0, limit);
   const items = pageRows.map((row) => mapAgentAuditEvent(row as Row));
 
   return {
     items,
-    nextCursor: rows.length > limit ? items[items.length - 1].id : ''
+    nextCursor: rows.length > limit ? items.at(-1)!.id : ''
   };
 }
 

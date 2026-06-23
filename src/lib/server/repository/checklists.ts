@@ -1,5 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
+import { rowString } from './mappers';
 import type {
   ChecklistItem,
   ChecklistItemInput,
@@ -58,7 +59,7 @@ export function listCourseTypeChecklistItems(db: DatabaseSync, courseTypeId: str
 export function listChecklistForClassSession(db: DatabaseSync, classSessionId: string): ChecklistItem[] {
   const courseRow = db.prepare('select course_type_id from class_sessions where id = ?').get(classSessionId) as Row | undefined;
   if (!courseRow) throw new Error(`Class session not found: ${classSessionId}`);
-  return [...listChecklistItems(db), ...listCourseTypeChecklistItems(db, String(courseRow.course_type_id))];
+  return [...listChecklistItems(db), ...listCourseTypeChecklistItems(db, rowString(courseRow.course_type_id))];
 }
 
 export function listEnrollmentChecklistState(db: DatabaseSync, classSessionId: string): EnrollmentChecklistState[] {
@@ -78,20 +79,20 @@ export function listEnrollmentChecklistState(db: DatabaseSync, classSessionId: s
     .prepare('select contact_id, item_scope, item_id from enrollment_checklist_completions where class_session_id = ?')
     .all(classSessionId) as Row[];
   const completed = new Set(
-    completionRows.map((row) => completionKey(String(row.contact_id), String(row.item_scope), String(row.item_id)))
+    completionRows.map((row) => completionKey(rowString(row.contact_id), rowString(row.item_scope), rowString(row.item_id)))
   );
 
   return roster.flatMap((contact) =>
     items.map((item) => ({
       classSessionId,
-      contactId: String(contact.id),
+      contactId: rowString(contact.id),
       contactName: `${contact.first_name} ${contact.last_name}`,
-      contactEmail: String(contact.email),
+      contactEmail: rowString(contact.email),
       itemScope: item.scope,
       itemId: item.id,
       label: item.label,
       sortOrder: item.sortOrder,
-      completed: completed.has(completionKey(String(contact.id), item.scope, item.id))
+      completed: completed.has(completionKey(rowString(contact.id), item.scope, item.id))
     }))
   );
 }
@@ -156,21 +157,21 @@ function completionKey(contactId: string, itemScope: string, itemId: string) {
 
 function mapGlobalChecklistItem(row: Row): ChecklistItem {
   return {
-    id: String(row.id),
-    label: String(row.label),
+    id: rowString(row.id),
+    label: rowString(row.label),
     scope: 'global',
     sortOrder: Number(row.sort_order),
-    createdAt: String(row.created_at)
+    createdAt: rowString(row.created_at)
   };
 }
 
 function mapCourseTypeChecklistItem(row: Row): ChecklistItem {
   return {
-    id: String(row.id),
-    courseTypeId: String(row.course_type_id),
-    label: String(row.label),
+    id: rowString(row.id),
+    courseTypeId: rowString(row.course_type_id),
+    label: rowString(row.label),
     scope: 'course_type',
     sortOrder: Number(row.sort_order),
-    createdAt: String(row.created_at)
+    createdAt: rowString(row.created_at)
   };
 }

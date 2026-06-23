@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
-import { required, text } from '$lib/server/form-utils';
+import { errorText, required, text } from '$lib/server/form-utils';
 import {
   buildCampaignEmailPreviews,
   campaignEmailPreviewToken,
@@ -90,7 +90,7 @@ export const actions = {
         message: `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
       };
     } catch (error) {
-      return fail(400, { error: true, panel: 'image', message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { error: true, panel: 'image', message: errorText(error) });
     }
   },
   previewClassEmail: async ({ params, request }) => {
@@ -105,7 +105,7 @@ export const actions = {
       defaultPurpose: choice.defaultPurpose,
       defaultLabel: choice.defaultLabel,
       sendOffsetMinutes: choice.sendOffsetMinutes,
-      suggestedScheduledFor: choice.sendOffsetMinutes !== undefined ? scheduledForFromClassOffset(repo.getClassSession(params.id), choice.sendOffsetMinutes) : '',
+      suggestedScheduledFor: suggestedScheduledFor(params.id, choice.sendOffsetMinutes),
       previewToken: classEmailPreviewToken(params.id, choice.templateId)
     };
   },
@@ -143,6 +143,11 @@ export const actions = {
 
 function buildClassEmailPreviews(classSessionId: string, templateId: string) {
   return buildCampaignEmailPreviews(repo, classSessionId, templateId, getSettings().instructorName);
+}
+
+function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number | undefined) {
+  if (sendOffsetMinutes === undefined) return '';
+  return scheduledForFromClassOffset(repo.getClassSession(classSessionId), sendOffsetMinutes);
 }
 
 function classEmailPreviewToken(classSessionId: string, templateId: string) {

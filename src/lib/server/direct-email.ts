@@ -90,7 +90,7 @@ export function previewDirectEmail(repo: DirectEmailRepository, input: DirectEma
 
 export function directEmailPreviewToken(input: Pick<DirectEmailInput, 'contactIds' | 'subject' | 'body'>) {
   return signedPreviewToken({
-    contactIds: [...new Set(input.contactIds)].sort(),
+    contactIds: [...new Set(input.contactIds)].sort((left, right) => left.localeCompare(right)),
     subject: input.subject,
     body: input.body
   });
@@ -228,11 +228,11 @@ function signedPreviewToken(payload: unknown) {
 }
 
 function acceptedCount(summary: string) {
-  return Number(summary.match(/Accepted (\d+)/)?.[1] ?? 0);
+  return Number(/Accepted (\d+)/.exec(summary)?.[1] ?? 0);
 }
 
 function failedCount(summary: string) {
-  return Number(summary.match(/failed (\d+)/i)?.[1] ?? 0);
+  return Number(/failed (\d+)/i.exec(summary)?.[1] ?? 0);
 }
 
 function previewTokenSecret() {

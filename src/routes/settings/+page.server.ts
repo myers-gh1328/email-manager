@@ -11,13 +11,15 @@ import {
 } from '$lib/server/external-sign-on';
 import { listAiModels } from '$lib/server/llm';
 import { syncRepliesNow } from '$lib/server/reply-sync';
-import { required } from '$lib/server/form-utils';
+import { errorText, formText, required } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
 import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
 import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
-import { aiApiKeyForModelLoad, getSettings, getAiApiKey } from '$lib/server/settings';
 import {
+  aiApiKeyForModelLoad,
+  getAiApiKey,
+  getSettings,
   updateAgentAccessSettings,
   updateAgentPermissionSettings,
   updateAiSettings,
@@ -59,7 +61,7 @@ export const actions = {
       updateRemoteAccessSettings(await request.formData());
       return { message: 'Remote access settings saved.' };
     } catch (error) {
-      return fail(400, { message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { message: errorText(error) });
     }
   },
   updateSmtp: async ({ request }) => {
@@ -97,7 +99,7 @@ export const actions = {
   },
   saveExternalSignOnProvider: async ({ request }) => {
     const form = await request.formData();
-    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+    if (!verifyAdminPassword(formText(form.get('currentPassword')))) {
       return fail(400, { message: 'Enter the current local admin password before saving external sign-on settings.' });
     }
 
@@ -110,7 +112,7 @@ export const actions = {
   },
   connectExternalSignOn: async ({ request, cookies }) => {
     const form = await request.formData();
-    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+    if (!verifyAdminPassword(formText(form.get('currentPassword')))) {
       return fail(400, { message: 'Enter the current local admin password before connecting external sign-on.' });
     }
 
@@ -142,7 +144,7 @@ export const actions = {
   },
   removeExternalSignOn: async ({ request }) => {
     const form = await request.formData();
-    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+    if (!verifyAdminPassword(formText(form.get('currentPassword')))) {
       return fail(400, { message: 'Enter the current local admin password before removing external sign-on.' });
     }
 
@@ -151,8 +153,8 @@ export const actions = {
   },
   loadAiModels: async ({ request }) => {
     const form = await request.formData();
-	    const baseUrl = String(form.get('aiBaseUrl') ?? '');
-	    const postedApiKey = String(form.get('aiApiKey') ?? '');
+	    const baseUrl = formText(form.get('aiBaseUrl'));
+	    const postedApiKey = formText(form.get('aiApiKey'));
 	    const settings = getSettings();
 	    try {
 	      const models = await listAiModels({
@@ -164,13 +166,13 @@ export const actions = {
         message: `Loaded ${models.length} model${models.length === 1 ? '' : 's'} from the AI endpoint.`,
         aiModels: models,
         aiBaseUrl: baseUrl,
-        aiModel: String(form.get('aiModel') ?? '')
+        aiModel: formText(form.get('aiModel'))
       };
     } catch (error) {
       return fail(400, {
-        message: error instanceof Error ? error.message : String(error),
+        message: errorText(error),
         aiBaseUrl: baseUrl,
-        aiModel: String(form.get('aiModel') ?? '')
+        aiModel: formText(form.get('aiModel'))
       });
     }
   },
@@ -186,15 +188,15 @@ export const actions = {
       return { message: `SMTP accepted the test email: ${providerMessage}` };
     } catch (error) {
       if (error instanceof OutboundGateError) return fail(error.retryAfterSeconds ? 429 : 400, { message: error.message });
-      return fail(400, { message: error instanceof Error ? error.message : String(error) });
+      return fail(400, { message: errorText(error) });
     }
   },
   changePassword: async ({ request }) => {
     const form = await request.formData();
-    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+    if (!verifyAdminPassword(formText(form.get('currentPassword')))) {
       return fail(403, { message: 'Enter the current local admin password before changing the password.' });
     }
-    const password = String(form.get('password') ?? '');
+    const password = formText(form.get('password'));
     if (password.length < 10) return fail(400, { message: 'Use at least 10 characters.' });
     setAdminPassword(password);
     return { message: 'Admin password updated.' };
@@ -203,12 +205,12 @@ export const actions = {
 
 function externalSignOnProviderSettingsFromForm(form: FormData) {
   return {
-    provider: String(form.get('externalSignOnProvider') ?? ''),
-    googleClientId: String(form.get('googleClientId') ?? ''),
-    googleClientSecret: String(form.get('googleClientSecret') ?? ''),
-    entraTenant: String(form.get('entraTenant') ?? ''),
-    entraClientId: String(form.get('entraClientId') ?? ''),
-    entraClientSecret: String(form.get('entraClientSecret') ?? '')
+    provider: formText(form.get('externalSignOnProvider')),
+    googleClientId: formText(form.get('googleClientId')),
+    googleClientSecret: formText(form.get('googleClientSecret')),
+    entraTenant: formText(form.get('entraTenant')),
+    entraClientId: formText(form.get('entraClientId')),
+    entraClientSecret: formText(form.get('entraClientSecret'))
   };
 }
 
