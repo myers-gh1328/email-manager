@@ -488,6 +488,20 @@ describe('settings external sign-on actions', () => {
     expect(externalSignOnMocks.externalSignOnRedirectUri).toHaveBeenCalledWith('https://app.example.com', 'entra');
   });
 
+  test('updateRemoteAccess reports validation errors without saving a success message', async () => {
+    settingsPageMocks.updateRemoteAccessSettings.mockImplementationOnce(() => {
+      throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+    });
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.updateRemoteAccess(actionEvent({ publicBaseUrl: 'not-a-url' }) as never);
+
+    expect(result).toMatchObject({
+      status: 400,
+      data: { message: 'Public base URL must be a valid HTTP or HTTPS URL.' }
+    });
+  });
+
   test('removeExternalSignOn requires local admin password and leaves provider config untouched on failure', async () => {
     externalSignOnMocks.getExternalSignOnStatus.mockReturnValue(
       externalSignOnStatus({
@@ -528,6 +542,41 @@ describe('settings external sign-on actions', () => {
     });
     expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('wrong-password');
     expect(externalSignOnMocks.updateExternalSignOnProviderSettings).not.toHaveBeenCalled();
+  });
+
+  test('changePassword requires current local admin password before replacing password', async () => {
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    const result = await actions.changePassword(
+      actionEvent({
+        currentPassword: 'wrong-password',
+        password: 'new local password'
+      }) as never
+    );
+
+    expect(result).toMatchObject({
+      status: 403,
+      data: { message: 'Enter the current local admin password before changing the password.' }
+    });
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('wrong-password');
+    expect(authMocks.setAdminPassword).not.toHaveBeenCalled();
+  });
+
+  test('changePassword updates password after current password verification', async () => {
+    authMocks.verifyAdminPassword.mockReturnValue(true);
+    const { actions } = await import('../src/routes/settings/+page.server');
+
+    await expect(
+      actions.changePassword(
+        actionEvent({
+          currentPassword: 'correct-password',
+          password: 'new local password'
+        }) as never
+      )
+    ).resolves.toEqual({ message: 'Admin password updated.' });
+
+    expect(authMocks.verifyAdminPassword).toHaveBeenCalledWith('correct-password');
+    expect(authMocks.setAdminPassword).toHaveBeenCalledWith('new local password');
   });
 
   test('saveExternalSignOnProvider saves settings after local admin password verification', async () => {

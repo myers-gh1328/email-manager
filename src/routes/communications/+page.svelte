@@ -140,7 +140,8 @@
     <h3>Compose email</h3>
     <fieldset class="contact-picker">
       <legend>Recipients</legend>
-      <input bind:value={recipientSearch} placeholder="Search recipients" />
+      <label class="sr-only" for="recipient-search">Search recipients</label>
+      <input id="recipient-search" bind:value={recipientSearch} placeholder="Search recipients" />
       {#each filteredContacts as contact}
         <label class="check">
           <input

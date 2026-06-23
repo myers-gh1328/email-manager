@@ -124,9 +124,35 @@ export function updateDeliverySettings(form: FormData) {
 }
 
 export function updateRemoteAccessSettings(form: FormData) {
-  set('server.publicBaseUrl', form.get('publicBaseUrl'));
+  set('server.publicBaseUrl', normalizedPublicBaseUrl(form.get('publicBaseUrl')));
   set('server.remoteAccessEnabled', checked(form, 'remoteAccessEnabled'));
   set('server.trustedProxyEnabled', checked(form, 'trustedProxyEnabled'));
+}
+
+export function normalizedPublicBaseUrl(value: FormDataEntryValue | null) {
+  if (value === null) return '';
+  if (typeof value !== 'string') {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+
+  const input = value.trim();
+  if (!input) return '';
+
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+  if (url.pathname !== '/' || url.search || url.hash) {
+    throw new Error('Public base URL must include only the scheme and host.');
+  }
+
+  return url.origin;
 }
 
 export function updateSmtpSettings(form: FormData) {

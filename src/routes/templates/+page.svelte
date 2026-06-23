@@ -28,7 +28,7 @@
 </script>
 
 <svelte:head>
-  <title>Templates · Scuba Email Studio</title>
+  <title>Templates · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">

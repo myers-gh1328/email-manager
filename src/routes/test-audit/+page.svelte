@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-  <title>Test audit · Scuba Email Studio</title>
+  <title>Test audit · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band">

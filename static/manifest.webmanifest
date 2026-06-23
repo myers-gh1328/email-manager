@@ -1,7 +1,7 @@
 {
-  "name": "Scuba Email Studio",
-  "short_name": "Scuba Email",
-  "description": "Local-first scuba class email and student communication manager.",
+  "name": "Training Communications Studio",
+  "short_name": "Training Comms",
+  "description": "Local-first class email and student communication manager.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

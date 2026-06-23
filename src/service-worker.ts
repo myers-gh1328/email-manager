@@ -2,7 +2,7 @@
 
 import { build, files, version } from '$service-worker';
 
-const cacheName = `scuba-email-studio-${version}`;
+const cacheName = `training-communications-studio-${version}`;
 const cachedAssets = [...build, ...files];
 const cachedAssetPaths = new Set(cachedAssets.map((asset) => new URL(asset, self.location.origin).pathname));
 
@@ -12,14 +12,13 @@ self.addEventListener('install', (event) => {
       return cache.addAll(cachedAssets);
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key)));
-    }).then(() => self.clients.claim())
+    })
   );
 });
 
