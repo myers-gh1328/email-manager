@@ -27,7 +27,12 @@ installer artifacts are built by the release workflow.
 
 ## Creating A Release
 
-1. Update `package.json` with the new version.
+1. Update `package.json` and `package-lock.json` with the new version. Prefer:
+
+   ```bash
+   npm version 0.1.0 --no-git-tag-version
+   ```
+
 2. Commit the version change through a pull request.
 3. After the PR merges, create and push a matching tag:
 
@@ -39,6 +44,20 @@ installer artifacts are built by the release workflow.
 4. The release workflow builds desktop packages for Windows, macOS, and Linux.
 5. The GitHub release is created as a draft so artifacts can be reviewed before
    publishing.
+
+Manual release workflow runs must point at an existing reviewed tag. The
+workflow validates that the requested tag exists and that it matches
+`package.json`.
+
+## Required Repository Rules
+
+The `main` branch should require pull requests and these status checks before
+merge:
+
+- `App gate`
+- `SonarCloud Code Analysis`
+
+Release tags should be created only after the version PR has merged.
 
 ## Desktop Targets
 

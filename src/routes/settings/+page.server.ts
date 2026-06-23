@@ -53,8 +53,12 @@ export const actions = {
     return { message: 'Delivery settings saved.' };
   },
   updateRemoteAccess: async ({ request }) => {
-    updateRemoteAccessSettings(await request.formData());
-    return { message: 'Remote access settings saved.' };
+    try {
+      updateRemoteAccessSettings(await request.formData());
+      return { message: 'Remote access settings saved.' };
+    } catch (error) {
+      return fail(400, { message: error instanceof Error ? error.message : String(error) });
+    }
   },
   updateSmtp: async ({ request }) => {
     updateSmtpSettings(await request.formData());
@@ -183,6 +187,9 @@ export const actions = {
   },
   changePassword: async ({ request }) => {
     const form = await request.formData();
+    if (!verifyAdminPassword(String(form.get('currentPassword') ?? ''))) {
+      return fail(403, { message: 'Enter the current local admin password before changing the password.' });
+    }
     const password = String(form.get('password') ?? '');
     if (password.length < 10) return fail(400, { message: 'Use at least 10 characters.' });
     setAdminPassword(password);

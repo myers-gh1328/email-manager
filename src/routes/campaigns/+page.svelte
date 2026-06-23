@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-  <title>Campaigns · Scuba Email Studio</title>
+  <title>Campaigns · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">

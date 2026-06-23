@@ -6,7 +6,7 @@
 	</script>
 
 <svelte:head>
-  <title>Dashboard · Scuba Email Studio</title>
+  <title>Dashboard · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band">

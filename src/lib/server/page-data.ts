@@ -46,10 +46,14 @@ export function remoteAccessStatus(settings: ReturnType<typeof getSettings>) {
     return { enabled: false, ready: true, blockedReasons: [] as string[] };
   }
   const appSecret = getAppSecretStatus();
+  const publicBaseUrl = settings.publicBaseUrl.trim();
+  const secureCookiesRequired = publicBaseUrl.toLowerCase().startsWith('https://');
   const blockedReasons = [
-    !settings.publicBaseUrl ? 'Set a public base URL for remote access' : '',
+    !publicBaseUrl ? 'Set a public base URL for remote access' : '',
     !appSecret.configured ? 'Configure a persistent app secret before remote access' : '',
-    process.env.SCUBA_EMAIL_SECURE_COOKIES !== 'true' ? 'Set SCUBA_EMAIL_SECURE_COOKIES=true when serving over HTTPS' : ''
+    secureCookiesRequired && process.env.SCUBA_EMAIL_SECURE_COOKIES !== 'true'
+      ? 'Set SCUBA_EMAIL_SECURE_COOKIES=true when serving over HTTPS'
+      : ''
   ].filter(Boolean);
   return {
     enabled: true,

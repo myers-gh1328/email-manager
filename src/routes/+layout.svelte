@@ -70,7 +70,7 @@
     <aside class="sidebar" class:open={navOpen}>
       <div class="sidebar-heading">
         <div>
-          <p class="eyebrow">Scuba Email Studio</p>
+          <p class="eyebrow">Training Communications Studio</p>
           <h1>Class communications</h1>
         </div>
         <button
