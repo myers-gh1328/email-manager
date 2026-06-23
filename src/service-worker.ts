@@ -4,6 +4,7 @@ import { build, files, version } from '$service-worker';
 
 const cacheName = `scuba-email-studio-${version}`;
 const cachedAssets = [...build, ...files];
+const cachedAssetPaths = new Set(cachedAssets.map((asset) => new URL(asset, self.location.origin).pathname));
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -28,9 +29,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== location.origin) return;
+  if (!cachedAssetPaths.has(url.pathname)) return;
 
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(url.pathname).then((cached) => {
       return cached ?? fetch(request);
     })
   );
