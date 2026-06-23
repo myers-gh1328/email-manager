@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { applyExternalEvent } from '../src/lib/server/external-events';
-import { getExternalEventsConfig } from '../src/lib/server/external-events-nats';
+import { buildNatsConnectOptions, getExternalEventsConfig } from '../src/lib/server/external-events-nats';
 import { createTestRepository } from './repository-helpers';
 
 const occurredAt = '2026-06-21T15:00:00Z';
@@ -31,6 +31,24 @@ describe('external event ingestion', () => {
       subjects: ['scuba.contacts', 'scuba.classes'],
       consumer: 'local-importer',
       importMode: 'apply'
+    });
+  });
+
+  test('maps NATS URL userinfo into client auth options', () => {
+    expect(
+      buildNatsConnectOptions({
+        enabled: true,
+        provider: 'nats',
+        url: 'nats://user%40example:p%40ss%3Aword@127.0.0.1:4222',
+        subjects: ['scuba.contacts'],
+        consumer: 'local-importer',
+        importMode: 'review'
+      })
+    ).toEqual({
+      servers: '127.0.0.1:4222',
+      name: 'local-importer',
+      user: 'user@example',
+      pass: 'p@ss:word'
     });
   });
 
