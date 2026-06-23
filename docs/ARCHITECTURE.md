@@ -125,6 +125,10 @@ Automatic background sending must not retry failed deliveries every scheduler
 tick. Failed deliveries may be retried only through an explicit send-due action
 from the UI or an approved agent commit.
 
+The proposed design for bounded automatic retries is documented in
+`docs/CAMPAIGN-RETRY-PLAN.md`. Implementing that plan requires an explicit
+architecture update because it changes the current manual-only retry contract.
+
 ## Template Rendering
 
 Templates use double-brace variables such as `{{firstName}}` and `{{courseName}}`.
