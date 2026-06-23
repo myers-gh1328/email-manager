@@ -32,4 +32,17 @@ describe('outbound gate', () => {
       repo.reserveOutboundRateEvent({ maxPerMinute: 1, maxPerHour: 50, nowIso: '2026-06-23T12:00:01.000Z' })
     ).toThrow('Outbound rate limit reached.');
   });
+
+  test('repository-backed rate limit enforces hourly cap and prunes old reservations', () => {
+    const repo = createTestRepository();
+
+    repo.reserveOutboundRateEvent({ maxPerMinute: 10, maxPerHour: 1, nowIso: '2026-06-23T12:00:00.000Z' });
+
+    expect(() =>
+      repo.reserveOutboundRateEvent({ maxPerMinute: 10, maxPerHour: 1, nowIso: '2026-06-23T12:30:00.000Z' })
+    ).toThrow('Outbound hourly limit reached.');
+    expect(() =>
+      repo.reserveOutboundRateEvent({ maxPerMinute: 10, maxPerHour: 1, nowIso: '2026-06-23T13:00:01.000Z' })
+    ).not.toThrow();
+  });
 });

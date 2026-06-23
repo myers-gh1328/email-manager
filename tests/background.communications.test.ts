@@ -32,6 +32,7 @@ vi.mock('../src/lib/server/mailer', () => ({
 describe('background campaign communication logging', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
     repo.listCampaigns.mockReturnValue([
       {
         id: 'campaign-1',
@@ -106,6 +107,7 @@ describe('background campaign communication logging', () => {
     const { sendDueCampaigns } = await import('../src/lib/server/background');
 
     const firstRun = sendDueCampaigns();
+    await vi.waitFor(() => expect(sendOutboundEmail).toHaveBeenCalledTimes(1));
     const secondRun = sendDueCampaigns();
     releaseSend();
 

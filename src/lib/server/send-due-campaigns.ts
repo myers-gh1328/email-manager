@@ -103,8 +103,7 @@ async function sendDelivery(
   let result: Awaited<ReturnType<typeof sendOutboundEmail>>;
   try {
     reserveRate(repository, gate);
-    const pacing = paceOutboundAttempt(gate);
-    if (pacing) await pacing;
+    await paceOutboundAttempt(gate);
     result = await sendEmail({ to: contact.email, subject, text: body });
   } catch (error) {
     const classified = classifyOutboundFailure(error);

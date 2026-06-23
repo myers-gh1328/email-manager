@@ -141,8 +141,7 @@ export async function sendDirectEmail(
     try {
       if (input.settings) {
         reserveRate(repo, input.settings);
-        const pacing = paceOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
-        if (pacing) await pacing;
+        await paceOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
       }
       result = await sendEmail(preview.contact.email, preview.subject, preview.body);
     } catch (error) {
@@ -204,7 +203,7 @@ function reserveRate(repo: DirectEmailRepository, settings: NonNullable<DirectEm
 export function directEmailOperationId(input: Pick<DirectEmailInput, 'contactIds' | 'subject' | 'body' | 'previewToken'>) {
   return signedPreviewToken({
     previewToken: input.previewToken ?? '',
-    contactIds: [...new Set(input.contactIds)].sort(),
+    contactIds: [...new Set(input.contactIds)].sort((left, right) => left.localeCompare(right)),
     subject: input.subject,
     body: input.body
   });
