@@ -11,7 +11,7 @@ export function startBackgroundScheduler() {
   if (started || isAgentDev || process.env.SCUBA_EMAIL_DISABLE_BACKGROUND === 'true') return;
   started = true;
   setInterval(() => {
-    void sendDueCampaigns().catch((error) => {
+    void sendDueCampaigns({ retryFailed: false }).catch((error) => {
       console.error('Scheduled send failed', error);
     });
   }, 60_000);
@@ -22,11 +22,11 @@ export function startBackgroundScheduler() {
   }, 300_000);
 }
 
-export async function sendDueCampaigns() {
+export async function sendDueCampaigns(options: { retryFailed?: boolean } = {}) {
   if (sendingDue) return 0;
   sendingDue = true;
   try {
-    return await sendDueCampaignsWithDependencies(repo, getSettings());
+    return await sendDueCampaignsWithDependencies(repo, getSettings(), undefined, options);
   } finally {
     sendingDue = false;
   }

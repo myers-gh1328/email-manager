@@ -57,7 +57,7 @@ describe('repository campaigns and deliveries', () => {
     expect(due[0].id).toBe(planned[0].id);
   });
 
-  test('reuses failed delivery rows for retry instead of inserting duplicates', () => {
+  test('leaves failed delivery rows failed unless retry is explicitly requested', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
     const course = repo.createCourseType({ name: 'Divemaster' });
@@ -75,6 +75,29 @@ describe('repository campaigns and deliveries', () => {
 
     repo.markDeliveryFailed(delivery.id, 'temporary SMTP error');
     const retry = repo.ensurePendingDeliveries(campaign.id);
+
+    expect(retry).toHaveLength(0);
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed' }]);
+  });
+
+  test('reuses failed delivery rows for explicit retry instead of inserting duplicates', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+
+    repo.markDeliveryFailed(delivery.id, 'temporary SMTP error');
+    const retry = repo.ensurePendingDeliveries(campaign.id, { retryFailed: true });
 
     expect(retry).toHaveLength(1);
     expect(retry[0].id).toBe(delivery.id);
@@ -127,11 +150,38 @@ describe('repository campaigns and deliveries', () => {
     expect(firstClaim).toBeDefined();
     repo.markDeliveryFailed(firstClaim!.id, 'temporary SMTP error');
 
-    repo.ensurePendingDeliveries(campaign.id);
+    repo.ensurePendingDeliveries(campaign.id, { retryFailed: true });
     const retryClaim = repo.claimNextPendingDelivery(campaign.id);
 
     expect(retryClaim).toMatchObject({ id: firstClaim!.id, recipientId: contact.id, status: 'sending' });
     expect(repo.listDeliveries(campaign.id)).toHaveLength(1);
+  });
+
+  test('automatic planning does not claim failed deliveries again on later passes', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+
+    repo.ensurePendingDeliveries(campaign.id, { retryFailed: false });
+    const firstClaim = repo.claimNextPendingDelivery(campaign.id);
+    expect(firstClaim).toBeDefined();
+    repo.markDeliveryFailed(firstClaim!.id, 'SMTP rejected');
+
+    repo.ensurePendingDeliveries(campaign.id, { retryFailed: false });
+    const secondClaim = repo.claimNextPendingDelivery(campaign.id);
+
+    expect(secondClaim).toBeUndefined();
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, status: 'failed', errorMessage: 'SMTP rejected' }]);
   });
 
   test('loads campaign detail with recipient status including skipped do-not-email contacts', () => {

@@ -174,7 +174,7 @@ function deliveryCounts(db: DatabaseSync, campaignId: string) {
   );
 }
 
-export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string): CampaignDelivery[] {
+export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string, options: { retryFailed?: boolean } = {}): CampaignDelivery[] {
   const campaign = getCampaign(db, campaignId);
   const enrolledRecipients = listEnrollments(db, campaign.classSessionId).filter((contact) => !contact.doNotEmail);
   const existing = listDeliveries(db, campaignId);
@@ -186,7 +186,8 @@ export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string): C
   const pending = createDeliveryPlan({
     campaignId,
     recipientIds: recipients.map((contact) => contact.id),
-    existingDeliveries: existing
+    existingDeliveries: existing,
+    retryFailed: options.retryFailed
   });
 
   for (const delivery of pending) {

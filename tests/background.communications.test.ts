@@ -68,6 +68,7 @@ describe('background campaign communication logging', () => {
 
     await sendDueCampaigns();
 
+    expect(repo.ensurePendingDeliveries).toHaveBeenCalledWith('campaign-1', { retryFailed: false });
     expect(repo.recordCommunication).toHaveBeenCalledWith({
       contactId: 'contact-1',
       channel: 'email',
@@ -119,6 +120,7 @@ describe('background campaign communication logging', () => {
 
     await sendDueCampaigns();
 
+    expect(repo.ensurePendingDeliveries).toHaveBeenCalledWith('campaign-1', { retryFailed: false });
     expect(repo.recordCommunication).toHaveBeenCalledWith({
       contactId: 'contact-1',
       channel: 'email',

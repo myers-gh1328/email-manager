@@ -15,6 +15,7 @@ export interface DeliveryPlanInput {
   campaignId: string;
   recipientIds: string[];
   existingDeliveries: CampaignDelivery[];
+  retryFailed?: boolean;
 }
 
 export function createDeliveryPlan(input: DeliveryPlanInput): CampaignDelivery[] {
@@ -25,7 +26,7 @@ export function createDeliveryPlan(input: DeliveryPlanInput): CampaignDelivery[]
   );
   const alreadyPlanned = new Set(
     input.existingDeliveries
-      .filter((delivery) => delivery.campaignId === input.campaignId && delivery.status !== 'failed')
+      .filter((delivery) => delivery.campaignId === input.campaignId && (delivery.status !== 'failed' || !input.retryFailed))
       .map((delivery) => delivery.recipientId)
   );
   const now = new Date().toISOString();

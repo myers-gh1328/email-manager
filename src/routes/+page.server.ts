@@ -10,6 +10,6 @@ export const actions = {
     if (!getSettings().schedulerEnabled) {
       return fail(400, { message: 'Scheduled sending is disabled in settings.' });
     }
-    return { sent: await sendDueCampaigns() };
+    return { sent: await sendDueCampaigns({ retryFailed: true }) };
   }
 };
