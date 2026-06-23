@@ -354,6 +354,84 @@ describe('repository campaigns and deliveries', () => {
     });
   });
 
+  test('queues only failed campaign deliveries from today for manual resend', async () => {
+    const repo = createTestRepository();
+    const today = '2026-06-23T14:00:00.000Z';
+    const yesterday = '2026-06-22T14:00:00.000Z';
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    const failedToday = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const sentToday = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const failedYesterday = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });
+    repo.enrollContact(session.id, failedToday.id);
+    repo.enrollContact(session.id, sentToday.id);
+    repo.enrollContact(session.id, failedYesterday.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2000-01-01T00:00:00.000Z',
+      approved: true
+    });
+    const deliveries = repo.ensurePendingDeliveries(campaign.id);
+    const byRecipient = new Map(deliveries.map((delivery) => [delivery.recipientId, delivery]));
+    repo.markDeliveryFailed(byRecipient.get(failedToday.id)!.id, 'Temporary failure');
+    repo.markDeliverySent(byRecipient.get(sentToday.id)!.id, 'accepted');
+    repo.markDeliveryFailed(byRecipient.get(failedYesterday.id)!.id, 'Old temporary failure');
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare('update campaign_deliveries set last_attempt_at = ? where recipient_id in (?, ?)').run(today, failedToday.id, sentToday.id);
+    db.prepare('update campaign_deliveries set last_attempt_at = ? where recipient_id = ?').run(yesterday, failedYesterday.id);
+
+    const count = repo.countFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
+    const queued = repo.retryFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
+
+    expect(count).toBe(1);
+    expect(queued).toBe(1);
+    expect(repo.listDeliveries(campaign.id)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ recipientId: failedToday.id, status: 'pending' }),
+        expect.objectContaining({ recipientId: sentToday.id, status: 'sent' }),
+        expect.objectContaining({ recipientId: failedYesterday.id, status: 'failed' })
+      ])
+    );
+  });
+
+  test('manual send-due sends a delivery queued from failed today', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep {{firstName}}', body: 'Details for {{courseName}}.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2000-01-01T00:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    repo.markDeliveryFailed(delivery.id, 'Temporary failure');
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare('update campaign_deliveries set last_attempt_at = ? where id = ?').run('2026-06-23T14:00:00.000Z', delivery.id);
+    repo.retryFailedCampaignDeliveriesBetween('2026-06-23T00:00:00.000Z', '2026-06-24T00:00:00.000Z');
+    const send = async () => ({
+      providerMessage: 'provider-retry',
+      originalRecipient: 'lee@example.com',
+      effectiveRecipient: 'lee@example.com',
+      testMode: false,
+      finalText: 'Details for Divemaster.',
+      finalHtml: '',
+      messageId: '<retry-today@example.com>'
+    });
+
+    const sent = await sendDueCampaignsWithDependencies(repo, baseAppSettings({ schedulerEnabled: true }), send, { surface: 'manual_send_due' });
+
+    expect(sent).toBe(1);
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'sent', providerMessage: 'provider-retry' }]);
+  });
+
   test('loads campaign detail with recipient status including skipped do-not-email contacts', () => {
     const repo = createTestRepository();
     const sendable = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
