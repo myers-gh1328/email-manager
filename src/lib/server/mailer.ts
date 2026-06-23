@@ -81,11 +81,17 @@ export async function sendOutboundEmail(input: OutboundEmailInput): Promise<Outb
 
 function assertRecipientAccepted(result: unknown, effectiveRecipient: string) {
   if (!result || typeof result !== 'object') return;
-  const accepted = Array.isArray((result as { accepted?: unknown }).accepted) ? (result as { accepted: unknown[] }).accepted.map(String) : undefined;
-  const rejected = Array.isArray((result as { rejected?: unknown }).rejected) ? (result as { rejected: unknown[] }).rejected.map(String) : undefined;
-  if (rejected?.includes(effectiveRecipient) || (accepted && accepted.length > 0 && !accepted.includes(effectiveRecipient)) || accepted?.length === 0) {
+  const expected = normalizeAddress(effectiveRecipient);
+  const accepted = Array.isArray((result as { accepted?: unknown }).accepted) ? (result as { accepted: unknown[] }).accepted.map((value) => normalizeAddress(String(value))) : undefined;
+  const rejected = Array.isArray((result as { rejected?: unknown }).rejected) ? (result as { rejected: unknown[] }).rejected.map((value) => normalizeAddress(String(value))) : undefined;
+  if (rejected?.includes(expected) || accepted?.length === 0 || (accepted && accepted.length > 0 && !accepted.includes(expected))) {
     throw new Error('SMTP provider did not accept the recipient.');
   }
+}
+
+function normalizeAddress(value: string) {
+  const bracketed = value.match(/<([^>]+)>/)?.[1] ?? value;
+  return bracketed.trim().toLowerCase();
 }
 
 export async function testSmtpSettings(to: string) {

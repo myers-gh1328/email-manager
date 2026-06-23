@@ -227,6 +227,11 @@ export function migrate(db: DatabaseSync) {
       primary key (operation_id, contact_id)
     );
 
+    create table if not exists outbound_rate_events (
+      id text primary key,
+      occurred_at text not null
+    );
+
     create table if not exists external_mappings (
       source text not null,
       entity_type text not null,
@@ -343,6 +348,8 @@ export function migrate(db: DatabaseSync) {
       on delivery_attempts(delivery_id, attempt_number);
     create index if not exists idx_send_operations_send_operation_id
       on send_operations(send_operation_id);
+    create index if not exists idx_outbound_rate_events_occurred_at
+      on outbound_rate_events(occurred_at);
   `);
 }
 

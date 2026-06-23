@@ -21,6 +21,7 @@ export async function sendDueCampaignsWithDependencies(
     | 'finalizeDeliveryAttemptFailed'
     | 'markAcceptedAttemptAuditIncomplete'
     | 'updateDeliveryAttemptSnapshot'
+    | 'reserveOutboundRateEvent'
     | 'recordCommunication'
   >,
   settings: Pick<
@@ -86,6 +87,7 @@ async function sendDelivery(
     | 'finalizeDeliveryAttemptFailed'
     | 'markAcceptedAttemptAuditIncomplete'
     | 'updateDeliveryAttemptSnapshot'
+    | 'reserveOutboundRateEvent'
     | 'recordCommunication'
   >,
   campaignId: string,
@@ -100,7 +102,7 @@ async function sendDelivery(
   if (attemptId) repository.updateDeliveryAttemptSnapshot({ attemptId, subject, body });
   let result: Awaited<ReturnType<typeof sendOutboundEmail>>;
   try {
-    reserveOutboundAttempt(gate);
+    reserveRate(repository, gate);
     const pacing = paceOutboundAttempt(gate);
     if (pacing) await pacing;
     result = await sendEmail({ to: contact.email, subject, text: body });
@@ -165,4 +167,18 @@ async function sendDelivery(
     }
   }
   return 1;
+}
+
+function reserveRate(
+  repository: Partial<Pick<AppRepository, 'reserveOutboundRateEvent'>>,
+  gate: { settings: Parameters<typeof reserveOutboundAttempt>[0]['settings']; surface: OutboundSurface }
+) {
+  if (repository.reserveOutboundRateEvent) {
+    repository.reserveOutboundRateEvent({
+      maxPerMinute: gate.settings.outboundMaxPerMinute ?? 10,
+      maxPerHour: gate.settings.outboundMaxPerHour ?? 50
+    });
+    return;
+  }
+  reserveOutboundAttempt(gate);
 }

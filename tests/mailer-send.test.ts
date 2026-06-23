@@ -37,6 +37,17 @@ describe('sendOutboundEmail failure boundaries', () => {
       'SMTP provider did not accept the recipient.'
     );
   });
+
+  test('accepts provider-recipient casing and display-name normalization', async () => {
+    const { sendOutboundEmail } = await loadMailer({
+      sendMailResult: { messageId: 'provider-123', accepted: ['Maya Patel <MAYA@EXAMPLE.COM>'], rejected: [] }
+    });
+
+    await expect(sendOutboundEmail({ to: 'maya@example.com', subject: 'Hi', text: 'Hello' })).resolves.toMatchObject({
+      providerMessage: 'provider-123',
+      effectiveRecipient: 'maya@example.com'
+    });
+  });
 });
 
 async function loadMailer({

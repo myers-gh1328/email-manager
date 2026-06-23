@@ -58,7 +58,7 @@ import {
   removeCourseTypeDefaultTemplate,
   setCourseTypeDefaultTemplate
 } from './course-defaults';
-import { beginSendOperation, finishSendOperation, getSendOperation, markSendOperationRecipient, type SendOperationInput } from './outbound';
+import { beginSendOperation, finishSendOperation, getSendOperation, markSendOperationRecipient, reserveOutboundRateEvent, type SendOperationInput } from './outbound';
 import {
   createChecklistItem,
   createCourseTypeChecklistItem,
@@ -488,6 +488,10 @@ export class AppRepository {
 
   finishSendOperation(operationId: string, input: Parameters<typeof finishSendOperation>[2]) {
     return finishSendOperation(this.db, operationId, input);
+  }
+
+  reserveOutboundRateEvent(input: Parameters<typeof reserveOutboundRateEvent>[1]) {
+    return reserveOutboundRateEvent(this.db, input);
   }
 
   listEmailTestAudits() {

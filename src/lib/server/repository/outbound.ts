@@ -1,4 +1,5 @@
 import type { DatabaseSync } from 'node:sqlite';
+import { OutboundGateError } from '../outbound-errors';
 import { newId, now } from './ids';
 import type { Row } from './types';
 
@@ -42,6 +43,16 @@ export function beginSendOperation(db: DatabaseSync, input: SendOperationInput):
 
 export function getSendOperation(db: DatabaseSync, sendOperationId: string): SendOperationState | undefined {
   const row = db.prepare('select * from send_operations where send_operation_id = ?').get(sendOperationId) as Row | undefined;
+  if (row && String(row.status) === 'sending' && String(row.expires_at) <= now()) {
+    db.prepare(
+      `update send_operations
+       set status = 'needs_attention',
+         failure_summary = 'This send was interrupted before it finished. Review before sending again.',
+         updated_at = ?
+       where id = ? and status = 'sending'`
+    ).run(now(), row.id as string);
+    return getSendOperation(db, sendOperationId);
+  }
   return row ? mapSendOperation(row) : undefined;
 }
 
@@ -67,6 +78,27 @@ export function finishSendOperation(db: DatabaseSync, operationId: string, input
      set status = ?, result_summary = ?, updated_at = ?
      where id = ?`
   ).run(status, result, timestamp, operationId);
+}
+
+export function reserveOutboundRateEvent(
+  db: DatabaseSync,
+  input: { maxPerMinute: number; maxPerHour: number; nowIso?: string }
+) {
+  const timestamp = input.nowIso ?? now();
+  const minuteCutoff = new Date(new Date(timestamp).getTime() - 60_000).toISOString();
+  const hourCutoff = new Date(new Date(timestamp).getTime() - 3_600_000).toISOString();
+  transaction(db, () => {
+    db.prepare('delete from outbound_rate_events where occurred_at <= ?').run(hourCutoff);
+    const minute = db.prepare('select count(*) as value from outbound_rate_events where occurred_at > ?').get(minuteCutoff) as Row;
+    const hour = db.prepare('select count(*) as value from outbound_rate_events where occurred_at > ?').get(hourCutoff) as Row;
+    if (Number(minute.value) >= input.maxPerMinute) {
+      throw new OutboundGateError('Outbound rate limit reached. Try again in a minute.', 'rate_limited', 60);
+    }
+    if (Number(hour.value) >= input.maxPerHour) {
+      throw new OutboundGateError('Outbound hourly limit reached. Try again later.', 'rate_limited', 3600);
+    }
+    db.prepare('insert into outbound_rate_events (id, occurred_at) values (?, ?)').run(newId(), timestamp);
+  });
 }
 
 function mapSendOperation(row: Row): SendOperationState {

@@ -39,6 +39,7 @@ interface DirectEmailRepository {
   getSendOperation?(sendOperationId: string): { id: string; status: string; resultSummary: string; failureSummary: string } | undefined;
   markSendOperationRecipient?(operationId: string, contactId: string, input: { status: 'accepted' | 'failed' | 'unknown'; providerMessage?: string; failureKind?: string; failureSummary?: string }): void;
   finishSendOperation?(operationId: string, input: { sent: number; failed: number }): void;
+  reserveOutboundRateEvent?(input: { maxPerMinute: number; maxPerHour: number; nowIso?: string }): void;
 }
 
 export interface DirectEmailInput {
@@ -119,6 +120,9 @@ export async function sendDirectEmail(
   if (existingOperation?.status === 'sending') {
     throw new Error('This send is already in progress.');
   }
+  if (existingOperation?.status === 'needs_attention') {
+    throw new Error(existingOperation.failureSummary || 'This send needs review before sending again.');
+  }
   if (existingOperation?.resultSummary) {
     return { sent: acceptedCount(existingOperation.resultSummary), failed: failedCount(existingOperation.resultSummary), previews };
   }
@@ -136,7 +140,7 @@ export async function sendDirectEmail(
     let result: Awaited<ReturnType<SendEmail>> | undefined = undefined;
     try {
       if (input.settings) {
-        reserveOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
+        reserveRate(repo, input.settings);
         const pacing = paceOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
         if (pacing) await pacing;
       }
@@ -184,6 +188,17 @@ export async function sendDirectEmail(
   if (operation) repo.finishSendOperation?.(operation.id, { sent, failed });
 
   return { sent, failed, previews };
+}
+
+function reserveRate(repo: DirectEmailRepository, settings: NonNullable<DirectEmailInput['settings']>) {
+  if (repo.reserveOutboundRateEvent) {
+    repo.reserveOutboundRateEvent({
+      maxPerMinute: settings.outboundMaxPerMinute,
+      maxPerHour: settings.outboundMaxPerHour
+    });
+    return;
+  }
+  reserveOutboundAttempt({ surface: 'direct_email', settings });
 }
 
 export function directEmailOperationId(input: Pick<DirectEmailInput, 'contactIds' | 'subject' | 'body' | 'previewToken'>) {

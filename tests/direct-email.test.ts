@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 import { createTestRepository } from './repository-helpers';
-import { directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '../src/lib/server/direct-email';
+import { directEmailOperationId, directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '../src/lib/server/direct-email';
 import { baseAppSettings } from './settings-helpers';
 
 describe('direct email workflow', () => {
@@ -221,6 +221,33 @@ describe('direct email workflow', () => {
     expect(first).toMatchObject({ sent: 1, failed: 0 });
     expect(second).toMatchObject({ sent: 1, failed: 0 });
     expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  test('expired direct send operation requires review instead of resending', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const send = vi.fn();
+    const input = {
+      contactIds: [contact.id],
+      subject: 'Hi',
+      body: 'Hello',
+      instructorName: 'Alex',
+      previewToken: directEmailPreviewToken({ contactIds: [contact.id], subject: 'Hi', body: 'Hello' }),
+      settings: baseAppSettings()
+    };
+    const sendOperationId = directEmailOperationId(input);
+    repo.beginSendOperation({
+      operationType: 'direct_email',
+      sendOperationId,
+      idempotencyKey: sendOperationId,
+      requestHash: sendOperationId,
+      recipients: [{ contactId: contact.id, email: contact.email }]
+    });
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare("update send_operations set expires_at = '2000-01-01T00:00:00.000Z' where status = 'sending'").run();
+
+    await expect(sendDirectEmail(repo, send, input)).rejects.toThrow('interrupted before it finished');
+    expect(send).not.toHaveBeenCalled();
   });
 
   test('enforces direct email recipient cap before sending', async () => {
