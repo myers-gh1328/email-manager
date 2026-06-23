@@ -264,6 +264,11 @@ status. The delivery should remain terminal for resend purposes, with an
 operator-visible `needs_attention` audit-repair flag. It must not be eligible
 for automatic or manual resend.
 
+Do not implement this by changing the delivery status to a retryable
+`needs_attention` value. Keep the delivery terminal/non-retryable when SMTP
+acceptance is known, and add an explicit durable audit-repair marker such as
+`needs_audit_repair` or `audit_repair_status`.
+
 ## Persistence Plan
 
 Add retry state to campaign deliveries:
@@ -274,6 +279,7 @@ Add retry state to campaign deliveries:
 - `claim_expires_at`
 - `failure_kind`
 - `failure_summary`
+- `needs_audit_repair` or equivalent audit-repair marker
 - `retry_policy_max_auto_retries`
 - `retry_policy_backoff`
 
@@ -319,6 +325,15 @@ The delivery row is the active scheduling snapshot source. Copy the relevant
 retry policy onto each attempt for audit. Encode backoff as a validated JSON
 array of seconds or minutes.
 
+Status and failure-kind values must be constrained consistently:
+
+- Define central TypeScript unions for delivery status, attempt status, failure
+  kind, and audit-repair status.
+- Validate repository mappers so unknown persisted values fail loudly in tests.
+- Add SQLite `CHECK` constraints where practical.
+- Add migration assertions that no legacy or misspelled statuses remain after
+  backfill.
+
 Claiming should use one SQLite write transaction. Use a conditional claim update
 such as `UPDATE ... WHERE eligible ... RETURNING`, insert the attempt row before
 commit, and roll back the transaction if any part fails so attempt count does
@@ -347,6 +362,19 @@ Existing delivery rows need deterministic backfill:
   safe migrated summary.
 - `sending`: treat as stale and needing attention unless there is a safer local
   recovery rule at migration time.
+
+Existing campaign communications need deterministic attempt backfill:
+
+- For `communications.source = 'campaign'`, join `communications.source_id` to
+  `campaign_deliveries.campaign_id` and `communications.contact_id` to
+  `campaign_deliveries.recipient_id`.
+- Create or link a synthetic migrated attempt only when that relationship is
+  unambiguous.
+- Leave ambiguous rows without `delivery_attempt_id` and record an explicit
+  migration audit marker so the UI can explain that older history could not be
+  linked safely.
+- Do not infer delivery acceptance from a communication row when provider
+  acceptance fields are absent or ambiguous.
 
 Add indexes for claim paths:
 
@@ -598,20 +626,29 @@ failure responses.
 
 ## Implementation Slices
 
-1. Add global outbound send-safety controls for direct email, campaign send-due,
-   MCP tools, manual actions, duplicate-submit protection, rate limiting, safe
+1. Remove or hard-disable broad failed-to-pending retry paths, including
+   browser send-due `retryFailed: true`, campaign-detail send-due
+   `retryFailed: true`, agent send-due `retryFailed: true`, and course-default
+   failed-row resets. Until the new due-retry claim method exists, send-due
+   should claim first-attempt pending deliveries only.
+2. Add global outbound send-safety controls for every SMTP path: campaign
+   automatic send, dashboard send-due, campaign-detail manual actions, direct
+   email, MCP send commits, SMTP settings test sends, test-mode reroutes,
+   future retry actions, duplicate-submit protection, rate limiting, safe
    failure logging, and an operator-visible kill switch.
-2. Add failure classification and safe error summaries.
-3. Add retry-state persistence and migration.
-4. Add a dedicated delivery-attempt table and link communications to attempts.
-5. Replace broad failed-to-pending retry behavior with due-retry claim methods.
-6. Update send processing to schedule retries from classified SMTP failures.
-7. Add stuck-sending recovery.
-8. Add campaign-detail retry visibility and scoped manual controls.
-9. Update dashboard operational counts.
-10. Add settings for retry defaults with hard caps.
-11. Add agent prepare/commit retry tools if agent retry is in scope.
-12. Update architecture and user docs.
+3. Add failure classification and safe error summaries across campaign, direct
+   email, MCP, SMTP settings tests, and migration summaries.
+4. Add retry-state persistence, status/failure-kind constraints, and migration.
+5. Add a dedicated delivery-attempt table and link communications to attempts
+   where existing history can be backfilled unambiguously.
+6. Replace any remaining retry path with due-retry claim methods.
+7. Update send processing to schedule retries from classified SMTP failures.
+8. Add stuck-sending recovery.
+9. Add campaign-detail retry visibility and scoped manual controls.
+10. Update dashboard operational counts.
+11. Add settings for retry defaults with hard caps.
+12. Add agent prepare/commit retry tools if agent retry is in scope.
+13. Update architecture, AI maintainer, and user docs.
 
 ## Test Plan
 
@@ -630,11 +667,15 @@ Add repository tests for:
 - Two repository instances cannot claim the same retry row.
 - Attempt count increments at claim time.
 - Stale sending rows move to attention-needed state.
-- Process exit after claim leaves an abandoned or unknown attempt, not only a
-  delivery status.
+- Process exit after claim leaves an unknown attempt unless a durable pre-SMTP
+  marker proves SMTP was not called.
 - Course-default updates preserve retry state appropriately.
 - Migration maps old failed rows deterministically to `needs_attention` with
   `failure_kind = unknown`.
+- Migration backfills existing campaign communications to attempts only when
+  campaign plus recipient matching is unambiguous.
+- Unknown delivery statuses, attempt statuses, failure kinds, and audit-repair
+  statuses fail mapper validation and migration assertions.
 
 Add scheduler/send tests for:
 
@@ -649,6 +690,8 @@ Add scheduler/send tests for:
   failure.
 - SMTP acceptance followed by communication insert failure leaves delivery and
   attempt non-retryable.
+- SMTP acceptance followed by any post-acceptance persistence failure writes or
+  preserves a terminal audit-repair marker and never schedules retry.
 - Three automatic retries after the first attempt are allowed; the next failure
   stops automatic retry.
 
@@ -658,6 +701,8 @@ Add mailer/classifier tests for:
 - SMTP `5xx` classification.
 - Rejected effective recipient.
 - Accepted effective recipient.
+- Accepted/rejected recipient comparison normalizes address casing and extracts
+  the address portion from display-name forms.
 - Ambiguous provider response.
 - OAuth temporary failure.
 - OAuth invalid grant.
@@ -705,6 +750,14 @@ Update architecture documentation when implementing this plan:
 - Document terminal sent behavior.
 - Document manual retry confirmation.
 - Document stuck sending recovery.
+
+Update `docs/AI-MAINTAINER.md` when implementing this plan:
+
+- Send Once guidance.
+- Change SMTP Or Sending guidance.
+- Operator Visibility guidance.
+- Validation command matrix for retry, classifier, outbound gate, and
+  migration tests.
 
 Update user-facing docs when retry settings and controls exist.
 
