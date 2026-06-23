@@ -57,7 +57,17 @@ export async function sendDueCampaignsWithDependencies(
       const variables = variablesFor(contact, classSession, settings.instructorName);
       const subject = renderTemplate(template.subject, variables);
       const body = renderTemplate(template.body, variables);
-      sent += await sendDelivery(repository, campaign.id, delivery.id, delivery.attemptId ?? '', contact, subject, body, sendEmail, { surface, settings });
+      sent += await sendDelivery({
+        repository,
+        campaignId: campaign.id,
+        deliveryId: delivery.id,
+        attemptId: delivery.attemptId ?? '',
+        contact,
+        subject,
+        body,
+        sendEmail,
+        gate: { surface, settings }
+      });
       delivery = claimNext(repository, campaign.id, surface);
     }
   }
@@ -85,7 +95,7 @@ function attemptSourceForSurface(surface: OutboundSurface): AttemptSource {
   return 'automatic';
 }
 
-async function sendDelivery(
+interface SendDeliveryContext {
   repository: Pick<
     AppRepository,
     | 'markDeliverySent'
@@ -96,16 +106,19 @@ async function sendDelivery(
     | 'updateDeliveryAttemptSnapshot'
     | 'reserveOutboundRateEvent'
     | 'recordCommunication'
-  >,
-  campaignId: string,
-  deliveryId: string,
-  attemptId: string,
-  contact: ReturnType<AppRepository['getContact']>,
-  subject: string,
-  body: string,
-  sendEmail: typeof sendOutboundEmail,
-  gate: { surface: OutboundSurface; settings: Parameters<typeof reserveOutboundAttempt>[0]['settings'] }
-) {
+  >;
+  campaignId: string;
+  deliveryId: string;
+  attemptId: string;
+  contact: ReturnType<AppRepository['getContact']>;
+  subject: string;
+  body: string;
+  sendEmail: typeof sendOutboundEmail;
+  gate: { surface: OutboundSurface; settings: Parameters<typeof reserveOutboundAttempt>[0]['settings'] };
+}
+
+async function sendDelivery(context: SendDeliveryContext) {
+  const { repository, campaignId, deliveryId, attemptId, contact, subject, body, sendEmail, gate } = context;
   if (attemptId) repository.updateDeliveryAttemptSnapshot({ attemptId, subject, body });
   let result: Awaited<ReturnType<typeof sendOutboundEmail>>;
   try {

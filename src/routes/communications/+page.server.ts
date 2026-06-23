@@ -48,7 +48,7 @@ export const actions = {
         surface: 'direct_email'
       });
       return {
-        message: `Accepted ${result.sent} email${result.sent === 1 ? '' : 's'} by the mail server${result.failed ? `; ${result.failed} failed` : ''}.`,
+        message: directEmailResultMessage(result),
         previews: result.previews,
         previewToken: directEmailPreviewToken({ contactIds, subject: content.subject, body: content.body }),
         selectedContactIds: contactIds,
@@ -122,4 +122,10 @@ function directEmailContent(form: FormData) {
     subject: text(form, 'subject') || template?.subject || required(form, 'subject'),
     body: text(form, 'body') || template?.body || required(form, 'body')
   };
+}
+
+function directEmailResultMessage(result: { sent: number; failed: number }) {
+  const plural = result.sent === 1 ? '' : 's';
+  const failed = result.failed ? `; ${result.failed} failed` : '';
+  return `Accepted ${result.sent} email${plural} by the mail server${failed}.`;
 }

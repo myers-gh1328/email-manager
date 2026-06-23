@@ -81,7 +81,18 @@ for (const item of defaults) {
   for (const contactId of [mayaId, joId]) insertDelivery(campaignId, contactId);
 }
 
-insertCommunication(mayaId, 'direct', '', 'maya.patel@example.com', 'test-inbox@example.com', true, 'Gear sizing follow up', 'Thanks for sending your rental sizes.', 'sent', 'agent-dev-seed');
+insertCommunication({
+  contactId: mayaId,
+  source: 'direct',
+  sourceId: '',
+  originalRecipient: 'maya.patel@example.com',
+  effectiveRecipient: 'test-inbox@example.com',
+  testMode: true,
+  subject: 'Gear sizing follow up',
+  body: 'Thanks for sending your rental sizes.',
+  status: 'sent',
+  providerMessage: 'agent-dev-seed'
+});
 insertEmailTestAudit('maya.patel@example.com', 'test-inbox@example.com', 'Gear sizing follow up', 'Thanks for sending your rental sizes.', 'agent-dev-seed');
 
 setSetting(seedMarker, 'true');
@@ -277,13 +288,27 @@ function insertDelivery(campaignId, contactId) {
     .run(newId(), campaignId, contactId, 'pending', now());
 }
 
-function insertCommunication(contactId, source, sourceId, originalRecipient, effectiveRecipient, testMode, subject, body, status, providerMessage) {
+function insertCommunication(input) {
   db.prepare(
     `insert into communications (
       id, contact_id, channel, source, source_id, original_recipient, effective_recipient,
       test_mode, subject, body, status, sent_at, provider_message, created_at
     ) values (?, ?, 'email', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(newId(), contactId, source, sourceId, originalRecipient, effectiveRecipient, testMode ? 1 : 0, subject, body, status, now(), providerMessage, now());
+  ).run(
+    newId(),
+    input.contactId,
+    input.source,
+    input.sourceId,
+    input.originalRecipient,
+    input.effectiveRecipient,
+    input.testMode ? 1 : 0,
+    input.subject,
+    input.body,
+    input.status,
+    now(),
+    input.providerMessage,
+    now()
+  );
 }
 
 function insertEmailTestAudit(originalRecipient, effectiveRecipient, subject, body, providerMessage) {

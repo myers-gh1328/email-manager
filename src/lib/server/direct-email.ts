@@ -101,31 +101,13 @@ export async function sendDirectEmail(
   sendEmail: SendEmail,
   input: DirectEmailInput
 ): Promise<DirectEmailSendResult> {
-  if (input.previewToken !== directEmailPreviewToken(input)) {
-    throw new Error('Preview this exact email before sending.');
-  }
+  assertDirectEmailReady(repo, input);
   const previews = previewDirectEmail(repo, input);
-  if (input.settings) {
-    assertOutboundBatchAllowed({ surface: input.surface ?? 'direct_email', settings: input.settings, recipientCount: previews.length });
-  }
-  if (previews.some((preview) => preview.missing.length > 0)) {
-    throw new Error('Resolve missing template variables before sending.');
-  }
-  const blocked = previews.find((preview) => preview.contact.doNotEmail);
-  if (blocked) {
-    throw new Error(`${contactName(blocked.contact)} is marked do not email.`);
-  }
+  assertDirectEmailBatchAllowed(input, previews);
+  assertDirectEmailPreviewsReady(previews);
   const operationId = directEmailOperationId(input);
-  const existingOperation = repo.getSendOperation?.(operationId);
-  if (existingOperation?.status === 'sending') {
-    throw new Error('This send is already in progress.');
-  }
-  if (existingOperation?.status === 'needs_attention') {
-    throw new Error(existingOperation.failureSummary || 'This send needs review before sending again.');
-  }
-  if (existingOperation?.resultSummary) {
-    return { sent: acceptedCount(existingOperation.resultSummary), failed: failedCount(existingOperation.resultSummary), previews };
-  }
+  const existing = existingDirectEmailResult(repo, operationId, previews);
+  if (existing) return existing;
   const operation = repo.beginSendOperation?.({
     operationType: 'direct_email',
     sendOperationId: operationId,
@@ -137,56 +119,117 @@ export async function sendDirectEmail(
   let sent = 0;
   let failed = 0;
   for (const preview of previews) {
-    let result: Awaited<ReturnType<SendEmail>> | undefined = undefined;
-    try {
-      if (input.settings) {
-        reserveRate(repo, input.settings);
-        await paceOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
-      }
-      result = await sendEmail(preview.contact.email, preview.subject, preview.body);
-    } catch (error) {
-      const classified = classifyOutboundFailure(error);
-      repo.markSendOperationRecipient?.(operation?.id ?? '', preview.contact.id, {
-        status: 'failed',
-        failureKind: classified.kind,
-        failureSummary: classified.summary
-      });
-      repo.recordCommunication({
-        contactId: preview.contact.id,
-        channel: 'email',
-        source: 'direct',
-        originalRecipient: preview.contact.email,
-        effectiveRecipient: preview.contact.email,
-        testMode: false,
-        subject: preview.subject,
-        body: preview.body,
-        status: 'failed',
-        errorMessage: classified.summary
-      });
-      failed += 1;
-    }
-
-    if (result === undefined) continue;
-    const normalized = typeof result === 'string' ? { providerMessage: result, finalText: preview.body, testMode: false } : result;
-    repo.markSendOperationRecipient?.(operation?.id ?? '', preview.contact.id, { status: 'accepted', providerMessage: normalized.providerMessage });
-    repo.recordCommunication({
-      contactId: preview.contact.id,
-      channel: 'email',
-      source: 'direct',
-      originalRecipient: preview.contact.email,
-      effectiveRecipient: 'effectiveRecipient' in normalized ? normalized.effectiveRecipient : preview.contact.email,
-      testMode: normalized.testMode,
-      subject: preview.subject,
-      body: normalized.finalText,
-      status: 'accepted',
-      messageId: 'messageId' in normalized ? normalized.messageId : undefined,
-      providerMessage: normalized.providerMessage
-    });
-    sent += 1;
+    const accepted = await sendDirectEmailPreview(repo, sendEmail, input, operation?.id ?? '', preview);
+    if (accepted) sent += 1;
+    else failed += 1;
   }
   if (operation) repo.finishSendOperation?.(operation.id, { sent, failed });
 
   return { sent, failed, previews };
+}
+
+function assertDirectEmailReady(repo: DirectEmailRepository, input: DirectEmailInput) {
+  if (input.previewToken !== directEmailPreviewToken(input)) {
+    throw new Error('Preview this exact email before sending.');
+  }
+  const existingOperation = repo.getSendOperation?.(directEmailOperationId(input));
+  if (existingOperation?.status === 'sending') {
+    throw new Error('This send is already in progress.');
+  }
+  if (existingOperation?.status === 'needs_attention') {
+    throw new Error(existingOperation.failureSummary || 'This send needs review before sending again.');
+  }
+}
+
+function assertDirectEmailBatchAllowed(input: DirectEmailInput, previews: DirectEmailPreview[]) {
+  if (!input.settings) return;
+  assertOutboundBatchAllowed({ surface: input.surface ?? 'direct_email', settings: input.settings, recipientCount: previews.length });
+}
+
+function assertDirectEmailPreviewsReady(previews: DirectEmailPreview[]) {
+  if (previews.some((preview) => preview.missing.length > 0)) {
+    throw new Error('Resolve missing template variables before sending.');
+  }
+  const blocked = previews.find((preview) => preview.contact.doNotEmail);
+  if (blocked) {
+    throw new Error(`${contactName(blocked.contact)} is marked do not email.`);
+  }
+}
+
+function existingDirectEmailResult(
+  repo: DirectEmailRepository,
+  operationId: string,
+  previews: DirectEmailPreview[]
+): DirectEmailSendResult | undefined {
+  const existingOperation = repo.getSendOperation?.(operationId);
+  if (!existingOperation?.resultSummary) return undefined;
+  return { sent: acceptedCount(existingOperation.resultSummary), failed: failedCount(existingOperation.resultSummary), previews };
+}
+
+async function sendDirectEmailPreview(
+  repo: DirectEmailRepository,
+  sendEmail: SendEmail,
+  input: DirectEmailInput,
+  operationId: string,
+  preview: DirectEmailPreview
+) {
+  let result: Awaited<ReturnType<SendEmail>>;
+  try {
+    if (input.settings) {
+      reserveRate(repo, input.settings);
+      await paceOutboundAttempt({ surface: input.surface ?? 'direct_email', settings: input.settings });
+    }
+    result = await sendEmail(preview.contact.email, preview.subject, preview.body);
+  } catch (error) {
+    recordFailedDirectEmail(repo, operationId, preview, error);
+    return false;
+  }
+  recordAcceptedDirectEmail(repo, operationId, preview, result);
+  return true;
+}
+
+function recordFailedDirectEmail(repo: DirectEmailRepository, operationId: string, preview: DirectEmailPreview, error: unknown) {
+  const classified = classifyOutboundFailure(error);
+  repo.markSendOperationRecipient?.(operationId, preview.contact.id, {
+    status: 'failed',
+    failureKind: classified.kind,
+    failureSummary: classified.summary
+  });
+  repo.recordCommunication({
+    contactId: preview.contact.id,
+    channel: 'email',
+    source: 'direct',
+    originalRecipient: preview.contact.email,
+    effectiveRecipient: preview.contact.email,
+    testMode: false,
+    subject: preview.subject,
+    body: preview.body,
+    status: 'failed',
+    errorMessage: classified.summary
+  });
+}
+
+function recordAcceptedDirectEmail(
+  repo: DirectEmailRepository,
+  operationId: string,
+  preview: DirectEmailPreview,
+  result: Awaited<ReturnType<SendEmail>>
+) {
+  const normalized = typeof result === 'string' ? { providerMessage: result, finalText: preview.body, testMode: false } : result;
+  repo.markSendOperationRecipient?.(operationId, preview.contact.id, { status: 'accepted', providerMessage: normalized.providerMessage });
+  repo.recordCommunication({
+    contactId: preview.contact.id,
+    channel: 'email',
+    source: 'direct',
+    originalRecipient: preview.contact.email,
+    effectiveRecipient: 'effectiveRecipient' in normalized ? normalized.effectiveRecipient : preview.contact.email,
+    testMode: normalized.testMode,
+    subject: preview.subject,
+    body: normalized.finalText,
+    status: 'accepted',
+    messageId: 'messageId' in normalized ? normalized.messageId : undefined,
+    providerMessage: normalized.providerMessage
+  });
 }
 
 function reserveRate(repo: DirectEmailRepository, settings: NonNullable<DirectEmailInput['settings']>) {

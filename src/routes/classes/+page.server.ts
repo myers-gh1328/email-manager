@@ -113,9 +113,7 @@ export const actions = {
     }
     const createdDefaults = syncDefaultCampaignsForClass(repo, session.id);
     return {
-      message: createdDefaults.length
-        ? `Class added. Scheduled ${createdDefaults.length} default email${createdDefaults.length === 1 ? '' : 's'}.`
-        : 'Class added.'
+      message: classCreatedMessage(createdDefaults.length)
     };
   },
   enrollContact: async ({ request }) => {
@@ -141,6 +139,12 @@ function sendOffsetMinutes(form: FormData, purpose: string) {
 function courseDefaultsMessage(sync: { created: number; updated: number; deleted: number; skippedSent: number }) {
   const skipped = sync.skippedSent ? `, skipped ${sync.skippedSent} already-sent` : '';
   return `Course email defaults updated. Scheduled ${sync.created}, updated ${sync.updated}, removed ${sync.deleted}${skipped}.`;
+}
+
+function classCreatedMessage(defaultCampaignCount: number) {
+  if (defaultCampaignCount === 0) return 'Class added.';
+  const plural = defaultCampaignCount === 1 ? '' : 's';
+  return `Class added. Scheduled ${defaultCampaignCount} default email${plural}.`;
 }
 
 function locationInput(form: FormData) {

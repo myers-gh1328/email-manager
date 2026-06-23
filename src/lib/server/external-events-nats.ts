@@ -1,5 +1,6 @@
 import { applyExternalEvent } from './external-events';
 import type { ExternalEventMode } from './external-events';
+import { errorText } from './form-utils';
 
 export interface ExternalEventsConfig {
   enabled: boolean;
@@ -46,7 +47,7 @@ export function startExternalEventSubscriber(config = getExternalEventsConfig())
 
   void runNatsSubscriber(config).catch((error) => {
     started = false;
-    console.error(`External event subscriber stopped: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`External event subscriber stopped: ${errorText(error)}`);
   });
 }
 

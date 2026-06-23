@@ -39,9 +39,7 @@ export const actions = {
 	    });
 	    const createdDefaults = syncDefaultCampaignsForClass(repo, params.id);
 	    return {
-	      message: createdDefaults.length
-	        ? `Class updated. Scheduled ${createdDefaults.length} default email${createdDefaults.length === 1 ? '' : 's'}.`
-	        : 'Class updated.'
+	      message: classUpdatedMessage(createdDefaults.length)
 	    };
 	  },
   enrollContact: async ({ params, request }) => {
@@ -125,7 +123,7 @@ export const actions = {
     const campaign = repo.createCampaign({
       classSessionId: params.id,
       templateId,
-      name: defaultPurpose ? `${purposeLabel(defaultPurpose)} · ${template.name}` : `${template.name} class email`,
+      name: classEmailCampaignName(defaultPurpose, template.name),
       scheduledFor: required(form, 'scheduledFor'),
       approved: true,
       source: defaultPurpose ? 'course_default' : 'manual',
@@ -150,6 +148,12 @@ function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number
   return scheduledForFromClassOffset(repo.getClassSession(classSessionId), sendOffsetMinutes);
 }
 
+function classUpdatedMessage(defaultCampaignCount: number) {
+  if (defaultCampaignCount === 0) return 'Class updated.';
+  const plural = defaultCampaignCount === 1 ? '' : 's';
+  return `Class updated. Scheduled ${defaultCampaignCount} default email${plural}.`;
+}
+
 function classEmailPreviewToken(classSessionId: string, templateId: string) {
   const template = repo.getTemplate(templateId);
   const previews = buildClassEmailPreviews(classSessionId, templateId);
@@ -162,14 +166,21 @@ function emailChoice(classSessionId: string, value: string) {
   const match = repo
     .listDefaultTemplatesForClassSession(classSessionId)
     .find((item) => item.purpose === purpose && item.templateId === templateId);
-  if (!match) return { value: templateId, templateId, defaultPurpose: '', defaultLabel: '', sendOffsetMinutes: undefined };
-  return {
-    value,
-    templateId,
-    defaultPurpose: match.purpose,
-    defaultLabel: match.label,
-    sendOffsetMinutes: match.sendOffsetMinutes
-  };
+  if (match) {
+    return {
+      value,
+      templateId,
+      defaultPurpose: match.purpose,
+      defaultLabel: match.label,
+      sendOffsetMinutes: match.sendOffsetMinutes
+    };
+  }
+  return { value: templateId, templateId, defaultPurpose: '', defaultLabel: '', sendOffsetMinutes: undefined };
+}
+
+function classEmailCampaignName(defaultPurpose: string, templateName: string) {
+  if (!defaultPurpose) return `${templateName} class email`;
+  return `${purposeLabel(defaultPurpose)} · ${templateName}`;
 }
 
 function purposeLabel(purpose: string) {

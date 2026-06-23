@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { errorText } from '$lib/server/form-utils';
 import { connectMicrosoftAccount } from '$lib/server/microsoft-oauth';
 
 const stateCookie = 'scuba_email_ms_oauth_state';
@@ -20,7 +21,7 @@ export const GET = async ({ cookies, url }) => {
   try {
     await connectMicrosoftAccount({ code, origin: url.origin });
   } catch (error) {
-    throw redirect(303, `/settings?message=${encodeURIComponent(error instanceof Error ? error.message : String(error))}`);
+    throw redirect(303, `/settings?message=${encodeURIComponent(errorText(error))}`);
   }
   throw redirect(303, '/settings?message=Outlook connected for SMTP sending.');
 };
