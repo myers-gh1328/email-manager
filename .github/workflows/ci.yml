@@ -39,7 +39,7 @@ jobs:
         run: npm run test:coverage
 
       - name: Sonar scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v8
         with:
           args: -Dsonar.qualitygate.wait=true
         env:
