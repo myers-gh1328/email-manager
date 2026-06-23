@@ -57,7 +57,7 @@ describe('repository campaigns and deliveries', () => {
     expect(due[0].id).toBe(planned[0].id);
   });
 
-  test('leaves failed delivery rows failed unless retry is explicitly requested', () => {
+  test('leaves failed delivery rows failed during send-due planning', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
     const course = repo.createCourseType({ name: 'Divemaster' });
@@ -80,7 +80,7 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed' }]);
   });
 
-  test('reuses failed delivery rows for explicit retry instead of inserting duplicates', () => {
+  test('does not requeue failed delivery rows or insert duplicates during send-due planning', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
     const course = repo.createCourseType({ name: 'Divemaster' });
@@ -97,12 +97,10 @@ describe('repository campaigns and deliveries', () => {
     const [delivery] = repo.ensurePendingDeliveries(campaign.id);
 
     repo.markDeliveryFailed(delivery.id, 'temporary SMTP error');
-    const retry = repo.ensurePendingDeliveries(campaign.id, { retryFailed: true });
+    const retry = repo.ensurePendingDeliveries(campaign.id);
 
-    expect(retry).toHaveLength(1);
-    expect(retry[0].id).toBe(delivery.id);
-    expect(retry[0].status).toBe('pending');
-    expect(repo.listDeliveries(campaign.id)).toHaveLength(1);
+    expect(retry).toHaveLength(0);
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed', errorMessage: 'temporary SMTP error' }]);
   });
 
   test('claims each pending delivery once across repository instances', () => {
@@ -131,7 +129,7 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ recipientId: contact.id, status: 'sending' }]);
   });
 
-  test('claimed failed deliveries may be planned and claimed for retry', () => {
+  test('claimed failed deliveries are not planned and claimed again by send-due', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
     const course = repo.createCourseType({ name: 'Divemaster' });
@@ -150,11 +148,11 @@ describe('repository campaigns and deliveries', () => {
     expect(firstClaim).toBeDefined();
     repo.markDeliveryFailed(firstClaim!.id, 'temporary SMTP error');
 
-    repo.ensurePendingDeliveries(campaign.id, { retryFailed: true });
+    repo.ensurePendingDeliveries(campaign.id);
     const retryClaim = repo.claimNextPendingDelivery(campaign.id);
 
-    expect(retryClaim).toMatchObject({ id: firstClaim!.id, recipientId: contact.id, status: 'sending' });
-    expect(repo.listDeliveries(campaign.id)).toHaveLength(1);
+    expect(retryClaim).toBeUndefined();
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: firstClaim!.id, recipientId: contact.id, status: 'failed' }]);
   });
 
   test('automatic planning does not claim failed deliveries again on later passes', () => {
@@ -172,12 +170,12 @@ describe('repository campaigns and deliveries', () => {
       approved: true
     });
 
-    repo.ensurePendingDeliveries(campaign.id, { retryFailed: false });
+    repo.ensurePendingDeliveries(campaign.id);
     const firstClaim = repo.claimNextPendingDelivery(campaign.id);
     expect(firstClaim).toBeDefined();
     repo.markDeliveryFailed(firstClaim!.id, 'SMTP rejected');
 
-    repo.ensurePendingDeliveries(campaign.id, { retryFailed: false });
+    repo.ensurePendingDeliveries(campaign.id);
     const secondClaim = repo.claimNextPendingDelivery(campaign.id);
 
     expect(secondClaim).toBeUndefined();

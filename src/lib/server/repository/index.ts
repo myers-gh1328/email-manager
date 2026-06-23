@@ -391,8 +391,8 @@ export class AppRepository {
     return deleteCampaign(this.db, id);
   }
 
-  ensurePendingDeliveries(campaignId: string, options?: { retryFailed?: boolean }) {
-    return ensurePendingDeliveries(this.db, campaignId, options);
+  ensurePendingDeliveries(campaignId: string) {
+    return ensurePendingDeliveries(this.db, campaignId);
   }
 
   claimNextPendingDelivery(campaignId: string) {

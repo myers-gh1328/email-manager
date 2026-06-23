@@ -18,19 +18,17 @@ export async function sendDueCampaignsWithDependencies(
     | 'recordCommunication'
   >,
   settings: Pick<AppSettings, 'schedulerEnabled' | 'emailTestModeEnabled' | 'instructorName'>,
-  sendEmail = sendOutboundEmail,
-  options: { retryFailed?: boolean } = {}
+  sendEmail = sendOutboundEmail
 ) {
   if (!settings.schedulerEnabled) return 0;
   if (settings.emailTestModeEnabled) return 0;
-  const retryFailed = options.retryFailed ?? false;
   let sent = 0;
 
   for (const campaign of repository.listCampaigns()) {
     if (!campaign.approved || new Date(campaign.scheduledFor).getTime() > Date.now()) continue;
     const classSession = repository.getClassSession(campaign.classSessionId);
     const template = repository.getTemplate(campaign.templateId);
-    repository.ensurePendingDeliveries(campaign.id, { retryFailed });
+    repository.ensurePendingDeliveries(campaign.id);
 
     let delivery = repository.claimNextPendingDelivery(campaign.id);
     while (delivery) {

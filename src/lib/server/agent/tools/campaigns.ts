@@ -79,7 +79,7 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   }
 
   return commitPreparedApproval(repo, input.approvalId, input.confirmationText, async () => {
-    const sent = await sendDueCampaignsWithDependencies(repo, settings, sendOutboundEmail, { retryFailed: true });
+    const sent = await sendDueCampaignsWithDependencies(repo, settings, sendOutboundEmail);
     return { sent };
   });
 }

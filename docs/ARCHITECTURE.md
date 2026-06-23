@@ -120,10 +120,10 @@ The app enforces this in two ways:
 - Campaign deliveries are unique by campaign and recipient.
 - Delivery planning excludes recipients who already have a successful delivery for the campaign.
 
-When changing scheduling or delivery code, preserve this rule. Retrying failed deliveries is acceptable. Resending successful deliveries is not.
-Automatic background sending must not retry failed deliveries every scheduler
-tick. Failed deliveries may be retried only through an explicit send-due action
-from the UI or an approved agent commit.
+When changing scheduling or delivery code, preserve this rule. Broad send-due
+actions must not retry failed deliveries. Failed deliveries may be retried only
+through a future scoped retry action that excludes successful deliveries and
+records clear operator intent.
 
 The proposed design for bounded automatic retries is documented in
 `docs/CAMPAIGN-RETRY-PLAN.md`. Implementing that plan requires an explicit
@@ -153,7 +153,7 @@ A campaign is eligible only when:
 - The scheduled time is now or in the past.
 - The recipient does not have a successful delivery record for that campaign.
 - The recipient does not have a failed delivery record from an earlier
-  automatic attempt, unless the user explicitly runs send-due retry.
+  attempt.
 
 If the app process is not running, scheduled emails cannot send. This is expected for a local app.
 

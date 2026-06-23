@@ -41,7 +41,7 @@ export const actions = {
     throw redirect(303, '/campaigns');
   },
   sendDueNow: async () => {
-    const sent = await sendDueCampaigns({ retryFailed: true });
+    const sent = await sendDueCampaigns();
     return { message: `Mail server accepted ${sent} due email${sent === 1 ? '' : 's'}.` };
   }
 };

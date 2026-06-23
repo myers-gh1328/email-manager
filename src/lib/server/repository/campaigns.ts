@@ -108,7 +108,6 @@ export function updateDefaultCampaign(
        default_purpose = ?, default_label = ?, send_offset_minutes = ?
      where id = ?`
   ).run(input.templateId, input.name.trim(), input.scheduledFor, input.defaultPurpose, input.defaultLabel, input.sendOffsetMinutes, id);
-  db.prepare("update campaign_deliveries set status = 'pending', error_message = null where campaign_id = ? and status = 'failed'").run(id);
   return getCampaign(db, id);
 }
 
@@ -174,7 +173,7 @@ function deliveryCounts(db: DatabaseSync, campaignId: string) {
   );
 }
 
-export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string, options: { retryFailed?: boolean } = {}): CampaignDelivery[] {
+export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string): CampaignDelivery[] {
   const campaign = getCampaign(db, campaignId);
   const enrolledRecipients = listEnrollments(db, campaign.classSessionId).filter((contact) => !contact.doNotEmail);
   const existing = listDeliveries(db, campaignId);
@@ -186,16 +185,14 @@ export function ensurePendingDeliveries(db: DatabaseSync, campaignId: string, op
   const pending = createDeliveryPlan({
     campaignId,
     recipientIds: recipients.map((contact) => contact.id),
-    existingDeliveries: existing,
-    retryFailed: options.retryFailed
+    existingDeliveries: existing
   });
 
   for (const delivery of pending) {
     db.prepare(
       `insert into campaign_deliveries (id, campaign_id, recipient_id, status, created_at)
        values (?, ?, ?, ?, ?)
-       on conflict(id) do update set status = 'pending', error_message = null
-       where campaign_deliveries.status = 'failed'`
+       on conflict(id) do nothing`
     ).run(delivery.id, delivery.campaignId, delivery.recipientId, delivery.status, delivery.createdAt);
   }
 
