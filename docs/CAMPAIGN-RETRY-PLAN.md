@@ -20,6 +20,9 @@ surface everything else to the operator, and preserve a clear attempt history.
 - Do not create a general job queue.
 - Do not resend any delivery already accepted by SMTP.
 - Do not hide retry behavior behind a broad "send due now" action.
+- Do not restart or redeploy a hosted instance merely because this plan exists.
+  Implementation should wait until the global outbound safety requirements are
+  covered.
 
 ## Required Invariants
 
@@ -34,6 +37,10 @@ surface everything else to the operator, and preserve a clear attempt history.
 - Automatic retries must be bounded by attempt count, backoff, and failure
   classification.
 - Manual retry must be explicit, scoped, and confirmation-gated.
+- The global outbound send surface must have consistent safety controls. Direct
+  email, campaign send-due, MCP tools, and manual actions must share duplicate
+  submit protection, rate limiting where practical, safe failure logging, and an
+  operator-visible kill switch.
 
 ## Default Policy
 
@@ -45,8 +52,7 @@ The default retry policy should be conservative:
 - Retryable failures: transient failures only.
 - Permanent failures: no automatic retry; move to `needs_attention`.
 - Unknown failures: no automatic retry by default. If a product decision later
-  allows one unknown retry, it must be persisted, visible, and followed by
-  `needs_attention` if it fails again.
+  allows one unknown retry, that must be a separate reviewed change.
 - Manual retry: allowed for failed or attention-needed recipients, but never for
   sent recipients.
 
@@ -170,8 +176,8 @@ Add retry state to campaign deliveries:
 - `retry_policy_max_attempts`
 - `retry_policy_backoff`
 
-Add attempt identity to communication history or introduce a delivery-attempt
-table. The system must answer:
+Introduce a dedicated delivery-attempt table and link communications to attempts
+where applicable. The system must answer:
 
 - Which delivery did this attempt belong to?
 - Which attempt number was it?
@@ -180,14 +186,15 @@ table. The system must answer:
 - What did the provider accept or reject?
 - What failure class and safe summary were recorded?
 
-If communication history is extended, add:
+The attempt table is the durable send-attempt record. Communication history is
+the user-facing outbound message history. A failed SMTP attempt should create an
+attempt record and a failed communication record when persistence succeeds. An
+accepted SMTP attempt should create an attempt record and an accepted
+communication record when persistence succeeds. Persistence failures after SMTP
+acceptance must not convert the attempt to a failed send.
 
-- Delivery identifier.
-- Attempt number.
-- Attempt source: automatic, manual, or agent.
-
-If a delivery-attempt table is introduced, communications can link to that
-attempt instead.
+Snapshot retry policy on the delivery or attempt state so later settings
+changes do not retroactively loosen already scheduled retries.
 
 ## Migration Plan
 
@@ -238,6 +245,14 @@ The automatic claim query must check:
 Manual retry should use a separate repository method. It may override timing,
 failure class, or max attempts only for the selected failed recipients. It must
 never include sent deliveries.
+
+Settings-managed retry defaults must have hard safety caps:
+
+- Maximum automatic retries cannot exceed three.
+- Minimum automatic backoff cannot be less than five minutes.
+- Permanent and authentication failures always move to `needs_attention`.
+- Settings changes must not retroactively loosen snapshotted retry policy unless
+  the operator explicitly resets selected deliveries.
 
 ## Retry Scheduling
 
@@ -350,10 +365,10 @@ Automatic campaign sends remain paused while email test mode is enabled.
 
 Manual retry while test mode is enabled should either:
 
-- Be blocked with a clear message, or
-- Explicitly send to the test recipient and record test-mode audit data.
-
-Choose one behavior before implementation and test it.
+- Be blocked with a clear message by default.
+- Be routed to the configured test recipient only if the operator explicitly
+  chooses a test-mode retry flow and the attempt is clearly recorded as test
+  mode.
 
 ## Agent And MCP Behavior
 
@@ -377,17 +392,20 @@ Commit actions should revalidate:
 
 ## Implementation Slices
 
-1. Add failure classification and safe error summaries.
-2. Add retry-state persistence and migration.
-3. Add attempt identity to communication history or a delivery-attempt table.
-4. Replace broad failed-to-pending retry behavior with due-retry claim methods.
-5. Update send processing to schedule retries from classified SMTP failures.
-6. Add stuck-sending recovery.
-7. Add campaign-detail retry visibility and scoped manual controls.
-8. Update dashboard operational counts.
-9. Add settings for retry defaults.
-10. Add agent prepare/commit retry tools if agent retry is in scope.
-11. Update architecture and user docs.
+1. Add global outbound send-safety controls for direct email, campaign send-due,
+   MCP tools, manual actions, duplicate-submit protection, rate limiting, safe
+   failure logging, and an operator-visible kill switch.
+2. Add failure classification and safe error summaries.
+3. Add retry-state persistence and migration.
+4. Add a dedicated delivery-attempt table and link communications to attempts.
+5. Replace broad failed-to-pending retry behavior with due-retry claim methods.
+6. Update send processing to schedule retries from classified SMTP failures.
+7. Add stuck-sending recovery.
+8. Add campaign-detail retry visibility and scoped manual controls.
+9. Update dashboard operational counts.
+10. Add settings for retry defaults with hard caps.
+11. Add agent prepare/commit retry tools if agent retry is in scope.
+12. Update architecture and user docs.
 
 ## Test Plan
 
@@ -411,7 +429,7 @@ Add scheduler/send tests for:
 - Final transient failure moves to needs attention.
 - Permanent failure moves directly to needs attention.
 - Unknown failure moves to needs attention unless the product decision allows
-  one unknown retry.
+  one unknown retry in a future reviewed change.
 - Manual retry can override selected failed recipients.
 - Manual retry cannot include sent recipients.
 - SMTP acceptance followed by persistence failure is not recorded as send
@@ -451,10 +469,4 @@ Update user-facing docs when retry settings and controls exist.
 
 Before implementation, decide:
 
-- Should unknown failures get zero automatic retries or one?
-- Should manual retry be allowed while test mode is enabled?
-- Should attempt history be stored by extending communications or adding a
-  dedicated attempt table?
-- Should retry settings be global only, campaign-level, or snapshotted per
-  delivery?
 - What should the default stale-claim timeout be?
