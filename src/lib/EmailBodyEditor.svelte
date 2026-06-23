@@ -73,7 +73,14 @@
   {#if fields.length}
     <div class="field-palette" aria-label="Template fields">
       {#each fields as field}
-        <button class="field-token" type="button" draggable="true" ondragstart={(event) => dragStart(event, field.token)}>
+        <button
+          class="field-token"
+          type="button"
+          draggable="true"
+          aria-label={`Insert ${field.label ?? field.token} field`}
+          onclick={() => insertAtCursor(field.token)}
+          ondragstart={(event) => dragStart(event, field.token)}
+        >
           {field.label ?? field.token}
         </button>
       {/each}

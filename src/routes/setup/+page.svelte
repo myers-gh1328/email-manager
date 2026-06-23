@@ -7,7 +7,7 @@
 <main class="auth-shell">
   <section class="auth-panel">
     <p class="eyebrow">First run</p>
-    <h1>Secure your scuba email app</h1>
+    <h1>Secure your training communications app</h1>
     <form method="POST" class="stack" use:enhance>
       <label>
         Admin password

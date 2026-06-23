@@ -109,9 +109,30 @@ export function updateDeliverySettings(form: FormData) {
 }
 
 export function updateRemoteAccessSettings(form: FormData) {
-  set('server.publicBaseUrl', form.get('publicBaseUrl'));
+  set('server.publicBaseUrl', normalizedPublicBaseUrl(form.get('publicBaseUrl')));
   set('server.remoteAccessEnabled', checked(form, 'remoteAccessEnabled'));
   set('server.trustedProxyEnabled', checked(form, 'trustedProxyEnabled'));
+}
+
+function normalizedPublicBaseUrl(value: FormDataEntryValue | null) {
+  const input = String(value ?? '').trim();
+  if (!input) return '';
+
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('Public base URL must be a valid HTTP or HTTPS URL.');
+  }
+  if (url.pathname !== '/' || url.search || url.hash) {
+    throw new Error('Public base URL must include only the scheme and host.');
+  }
+
+  return url.origin;
 }
 
 export function updateSmtpSettings(form: FormData) {

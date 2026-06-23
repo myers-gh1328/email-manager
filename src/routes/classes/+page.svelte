@@ -49,7 +49,7 @@
 </script>
 
 <svelte:head>
-  <title>Classes · Scuba Email Studio</title>
+  <title>Classes · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">
@@ -62,7 +62,7 @@
       <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
     </div>
     {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
-    <div class="tabs" role="tablist" aria-label="Class management views">
+    <div class="tabs" aria-label="Class management views">
       <a class:active={data.tab === 'sessions'} href="/classes?tab=sessions">Scheduled classes</a>
       <a class:active={data.tab === 'courses'} href="/classes?tab=courses">Course types</a>
       <a class:active={data.tab === 'locations'} href="/classes?tab=locations">Locations</a>

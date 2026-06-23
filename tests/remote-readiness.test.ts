@@ -40,6 +40,28 @@ describe('remote access readiness', () => {
     });
   });
 
+  test('does not require secure-cookie runtime setting for non-HTTPS public URLs', () => {
+    vi.stubEnv('SCUBA_EMAIL_APP_SECRET', 'test-secret-with-enough-length');
+    vi.stubEnv('SCUBA_EMAIL_SECURE_COOKIES', 'false');
+
+    expect(remoteAccessStatus({ ...settings, publicBaseUrl: 'http://127.0.0.1:5173' })).toEqual({
+      enabled: true,
+      ready: true,
+      blockedReasons: []
+    });
+  });
+
+  test('treats blank public URLs as missing', () => {
+    vi.stubEnv('SCUBA_EMAIL_APP_SECRET', 'test-secret-with-enough-length');
+    vi.stubEnv('SCUBA_EMAIL_SECURE_COOKIES', 'false');
+
+    const status = remoteAccessStatus({ ...settings, publicBaseUrl: '   ' });
+
+    expect(status.ready).toBe(false);
+    expect(status.blockedReasons).toContain('Set a public base URL for remote access');
+    expect(status.blockedReasons).not.toContain('Set SCUBA_EMAIL_SECURE_COOKIES=true when serving over HTTPS');
+  });
+
   test('reports local mode when remote access is disabled', () => {
     expect(remoteAccessStatus({ ...settings, remoteAccessEnabled: false })).toEqual({
       enabled: false,

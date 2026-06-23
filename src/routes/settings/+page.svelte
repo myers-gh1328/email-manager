@@ -461,6 +461,11 @@
           <p class="help-text">Password login stays available even when external sign-on is connected. Use a strong local password for setup, recovery, and settings changes.</p>
         </div>
         <label>
+          Current password
+          <input name="currentPassword" type="password" autocomplete="current-password" />
+          <span class="help-text">Required before replacing the local admin password.</span>
+        </label>
+        <label>
           New password
           <input name="password" type="password" minlength="10" />
           <span class="help-text">Protects the app and student contact details. Use at least 10 characters.</span>

@@ -24,6 +24,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref }}
+          fetch-depth: 0
 
       - name: Resolve version
         id: version
@@ -37,6 +40,11 @@ jobs:
 
           if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Release version must look like v0.1.0" >&2
+            exit 1
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "Release tag $version does not exist. Create and push the reviewed tag before running this workflow." >&2
             exit 1
           fi
 
@@ -94,6 +102,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.version }}
 
       - name: Setup Node
         uses: actions/setup-node@v4

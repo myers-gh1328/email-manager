@@ -73,7 +73,7 @@ export async function suggestTemplate(
         {
           role: 'system',
           content:
-            'You help a scuba instructor write concise, warm class communication emails. Return only the requested subject and body. Do not include a signoff, sender name, signature block, phone number, website, or invented contact details. The app appends the configured signature later. Use placeholders like {{firstName}}, {{courseName}}, {{classDateRange}}, {{classStartTime}}, and {{classLocation}} when helpful.'
+            'You help an instructor or training provider write concise, warm class communication emails. Return only the requested subject and body. Do not include a signoff, sender name, signature block, phone number, website, or invented contact details. The app appends the configured signature later. Use placeholders like {{firstName}}, {{courseName}}, {{classDateRange}}, {{classStartTime}}, and {{classLocation}} when helpful.'
         },
         {
           role: 'user',
