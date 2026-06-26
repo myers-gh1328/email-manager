@@ -17,12 +17,12 @@ export const actions = {
     const current = repo.getCampaign(params.id);
     const approved = form.get('approved') === 'on';
     if (approved && !current.approved) {
-      return fail(400, { error: true, message: 'Preview this campaign before approving it.' });
+      return fail(400, { error: true, message: 'Preview this scheduled email before marking it ready to send.' });
     }
     if (approved) {
       const previews = buildCampaignEmailPreviews(repo, current.classSessionId, current.templateId, getSettings().instructorName);
       if (hasMissingVariables(previews)) {
-        return fail(400, { error: true, message: 'Resolve missing template variables before approving this campaign.' });
+        return fail(400, { error: true, message: 'Resolve missing template variables before marking this scheduled email ready to send.' });
       }
     }
     repo.updateCampaign(params.id, {
@@ -31,7 +31,7 @@ export const actions = {
       approved
     });
     if (approved) repo.ensurePendingDeliveries(params.id);
-    return { message: 'Campaign updated.' };
+    return { message: 'Scheduled email updated.' };
   },
   deleteCampaign: async ({ params }) => {
     try {

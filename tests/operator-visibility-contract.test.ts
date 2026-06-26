@@ -102,6 +102,7 @@ describe('operator visibility contract', () => {
   test('uses plain scheduled-email language instead of approval campaign copy', () => {
     const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
     const scheduledEmailsServer = readFileSync('src/routes/campaigns/+page.server.ts', 'utf8');
+    const scheduledEmailDetailServer = readFileSync('src/routes/campaigns/[id]/+page.server.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
@@ -123,6 +124,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');
     expect(scheduledEmailsServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('campaignsPage = repo.listCampaignsPage');
+    expect(scheduledEmailDetailServer).not.toContain('before approving');
+    expect(scheduledEmailDetailServer).not.toContain('approving this campaign');
+    expect(scheduledEmailDetailServer).not.toContain('Campaign updated.');
+    expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
   });
 
   test('keeps Test Sends paginated and searchable', () => {
