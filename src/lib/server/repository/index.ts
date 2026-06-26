@@ -18,6 +18,7 @@ import {
   getLocation,
   listClassSessions,
   listContacts,
+  listContactsPage,
   listCourseTypes,
   listEnrollments,
   listLocations,
@@ -109,6 +110,7 @@ import type {
   CampaignInput,
   ChecklistItemInput,
   ClassSessionInput,
+  ContactPageInput,
   CommunicationInput,
   CommunicationHistoryPageInput,
   CommunicationReplyInput,
@@ -142,6 +144,9 @@ export type {
   ChecklistItemInput,
   ChecklistItemScope,
   ClassSessionInput,
+  ContactPage,
+  ContactPageInput,
+  ContactRecord,
   CommunicationHistoryItem,
   CommunicationHistoryPage,
   CommunicationHistoryPageInput,
@@ -186,6 +191,10 @@ export class AppRepository {
 
   listContacts() {
     return listContacts(this.db);
+  }
+
+  listContactsPage(input?: ContactPageInput) {
+    return listContactsPage(this.db, input);
   }
 
   findDuplicateContact(input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {

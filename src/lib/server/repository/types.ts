@@ -7,6 +7,30 @@ export interface ContactInput {
   doNotEmail?: boolean;
 }
 
+export interface ContactPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ContactPage {
+  items: ContactRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
+export interface ContactRecord {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  notes: string;
+  doNotEmail: boolean;
+}
+
 export interface CourseTypeInput {
   name: string;
   description?: string;

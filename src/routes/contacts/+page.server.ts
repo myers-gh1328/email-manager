@@ -8,7 +8,11 @@ import { getSettings } from '$lib/server/settings';
 import { formatPhoneNumber } from '$lib/shared/phone';
 
 export const load = ({ url }) => ({
-  ...loadContactsData(url.searchParams.get('contactId') || undefined),
+  ...loadContactsData({
+    contactId: url.searchParams.get('contactId') || undefined,
+    search: url.searchParams.get('search') ?? '',
+    page: Number(url.searchParams.get('page') ?? '1')
+  }),
   action: url.searchParams.get('action') ?? ''
 });
 

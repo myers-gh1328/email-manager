@@ -4,6 +4,9 @@
 
   let { data, form } = $props();
   let importingImage = $state(false);
+  let contactsSearch = $derived(data.contactsPage.search ?? '');
+  let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
+  let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
 
   function showImageImportBusy() {
     importingImage = true;
@@ -31,6 +34,14 @@
   function confirmDelete() {
     return confirm('Delete this contact and its local history? This cannot be undone.');
   }
+
+  function contactsPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.contactsPage.search) params.set('search', data.contactsPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/contacts?${query}` : '/contacts';
+  }
 </script>
 
 <svelte:head>
@@ -51,6 +62,15 @@
       <a class:active={data.action === 'import'} class="button-link" href="/contacts?action=import">Import contacts</a>
       <a class:active={data.action === 'image'} class="button-link" href="/contacts?action=image">Import screenshot</a>
     </div>
+    <form class="inline-filters" method="GET" action="/contacts">
+      <label>
+        Search contacts
+        <input name="search" value={contactsSearch} placeholder="Name, email, or phone" />
+      </label>
+      <button type="submit">Search</button>
+      {#if data.contactsPage.search}<a class="button-link" href="/contacts">Clear</a>{/if}
+    </form>
+    <p class="help-text">Showing {data.contacts.length} of {data.contactsPage.total} contacts.</p>
     <div class="form-stack task-stack">
       {#if data.action === 'add'}
         <form method="POST" action="?/createContact" class="panel-form" use:enhance>
@@ -113,6 +133,19 @@
         <p class="empty">No contacts yet.</p>
       {/each}
     </div>
+    {#if totalContactsPages > 1}
+      <nav class="pagination" aria-label="Contact pages">
+        <a class="button-link" aria-disabled={currentContactsPage === 1} href={contactsPageHref(Math.max(currentContactsPage - 1, 1))}>Previous</a>
+        <span>Page {currentContactsPage} of {totalContactsPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentContactsPage >= totalContactsPages}
+          href={contactsPageHref(Math.min(currentContactsPage + 1, totalContactsPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
 
     {#if data.contactDetail}
       <div class="preview-list">

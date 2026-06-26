@@ -7,6 +7,26 @@ import { AppRepository } from '../src/lib/server/repository';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository contacts and classes', () => {
+  test('lists contacts with pagination and search', () => {
+    const repo = createTestRepository();
+    repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    repo.createContact({ firstName: 'Jo', lastName: 'Rivera', email: 'jo@example.com' });
+    repo.createContact({ firstName: 'Maya', lastName: 'Chen', email: 'maya.chen@example.com' });
+
+    const page = repo.listContactsPage({ limit: 1, offset: 0, search: 'maya' });
+
+    expect(page.total).toBe(2);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([
+      {
+        firstName: 'Maya',
+        lastName: 'Chen',
+        email: 'maya.chen@example.com'
+      }
+    ]);
+  });
+
   test('reports legacy duplicate contact emails before creating unique indexes', () => {
     const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-')), 'app.sqlite');
     const db = new DatabaseSync(dbPath);

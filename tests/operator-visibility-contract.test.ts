@@ -52,12 +52,19 @@ describe('operator visibility contract', () => {
 
   test('keeps contact detail focused on recent email activity with a filtered History link', () => {
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
+    const contactsServer = readFileSync('src/routes/contacts/+page.server.ts', 'utf8');
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     expect(contacts).not.toContain('Reusable student contacts');
     expect(contacts).toContain('<h2>Students and email recipients</h2>');
     expect(contacts).toContain('Recent emails');
     expect(contacts).toContain('View all in History');
     expect(contacts).toContain('/communications?contactId=');
     expect(contacts).not.toContain('Email activity');
+    expect(contacts).toContain('Search contacts');
+    expect(contacts).toContain('contactsPageHref');
+    expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');
+    expect(contactsServer).toContain('page: Number(url.searchParams.get');
+    expect(pageData).toContain('contactsPage = repo.listContactsPage');
   });
 
   test('keeps Classes focused on selecting scheduled classes, not setup data', () => {

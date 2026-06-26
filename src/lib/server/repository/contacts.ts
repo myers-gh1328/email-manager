@@ -5,6 +5,8 @@ import type {
   ClassSessionInput,
   ContactHistoryItem,
   ContactInput,
+  ContactPage,
+  ContactPageInput,
   CourseTypeInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
@@ -37,6 +39,44 @@ export function listContacts(db: DatabaseSync) {
     .prepare('select * from contacts order by last_name, first_name')
     .all()
     .map(mapContact);
+}
+
+export function listContactsPage(db: DatabaseSync, input: ContactPageInput = {}): ContactPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(first_name || ' ' || last_name) like ?
+        or lower(email) like ?
+        or lower(phone) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from contacts ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from contacts
+       ${whereSql}
+       order by last_name, first_name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapContact(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function findDuplicateContact(db: DatabaseSync, input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {

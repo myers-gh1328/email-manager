@@ -78,11 +78,19 @@ export function remoteAccessStatus(settings: ReturnType<typeof getSettings>) {
   };
 }
 
-export function loadContactsData(contactId?: string) {
+export function loadContactsData(input: { contactId?: string; search?: string; page?: number } = {}) {
+  const limit = 25;
+  const page = Math.max(input.page ?? 1, 1);
+  const contactsPage = repo.listContactsPage({
+    search: input.search,
+    limit,
+    offset: (page - 1) * limit
+  });
   return {
-    contacts: repo.listContacts(),
-    selectedContactId: contactId ?? '',
-    contactDetail: contactId ? repo.getContactDetail(contactId) : undefined,
+    contacts: contactsPage.items,
+    contactsPage,
+    selectedContactId: input.contactId ?? '',
+    contactDetail: input.contactId ? repo.getContactDetail(input.contactId) : undefined,
     settings: getSettings()
   };
 }
