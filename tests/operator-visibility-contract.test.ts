@@ -362,6 +362,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).not.toContain("label: 'Needs review'");
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
+    expect(scheduledEmails).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');
     expect(scheduledEmails.indexOf('<div class="list">')).toBeLessThan(scheduledEmails.indexOf('<div class="form-stack">'));
     expect(scheduledEmails).not.toContain('<section class="band two-column">');

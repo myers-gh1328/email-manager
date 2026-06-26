@@ -31,6 +31,7 @@
 
   function campaignsPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
     if (data.campaignsPage.status) params.set('status', data.campaignsPage.status);
     if (page > 1) params.set('page', String(page));
@@ -40,6 +41,7 @@
 
   function statusFilterHref(status: string) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
     if (status) params.set('status', status);
     const query = params.toString();
@@ -65,12 +67,13 @@
       <a class:active={data.action === 'schedule'} class="button-link" href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Schedule class email</a>
     </div>
     <form class="inline-filters" method="GET" action="/campaigns">
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search scheduled emails
         <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
       </label>
       <button type="submit">Search</button>
-      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href="/campaigns">Clear</a>{/if}
+      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href={data.returnTo ? `/campaigns?returnTo=${encodeURIComponent(data.returnTo)}` : '/campaigns'}>Clear</a>{/if}
     </form>
     <div class="segmented-control" aria-label="Filter scheduled emails">
       {#each statusFilters as filter}
