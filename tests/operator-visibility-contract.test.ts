@@ -66,6 +66,8 @@ describe('operator visibility contract', () => {
     const contactsServer = readFileSync('src/routes/contacts/+page.server.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     expect(contacts).not.toContain('Reusable student contacts');
+    expect(contacts).not.toContain('<p class="eyebrow">People</p>');
+    expect(contacts).toContain('<p class="eyebrow">Contacts</p>');
     expect(contacts).toContain('<h2>Students and email recipients</h2>');
     expect(contacts).toContain('Recent emails');
     expect(contacts).toContain('View all in History');

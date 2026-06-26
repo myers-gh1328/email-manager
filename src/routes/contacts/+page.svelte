@@ -53,7 +53,7 @@
   <div>
     <div class="section-heading compact">
       <div>
-        <p class="eyebrow">People</p>
+        <p class="eyebrow">Contacts</p>
         <h2>Students and email recipients</h2>
       </div>
     </div>
