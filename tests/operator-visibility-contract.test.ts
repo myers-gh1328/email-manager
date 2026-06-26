@@ -555,7 +555,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('Skipped because: {preview.reason}');
     expect(scheduledEmails).not.toContain('Missing: {preview.missing.join');
     expect(scheduledEmails).not.toContain('Skipped: {preview.reason}');
-    expect(scheduledEmails).toContain('<h3>Choose send time</h3>');
+    expect(scheduledEmails).toContain('<h3>Create scheduled email</h3>');
+    expect(scheduledEmails).not.toContain('<h3>Choose send time</h3>');
     expect(scheduledEmails).not.toContain('<h3>Schedule this preview</h3>');
     expect(scheduledEmails).not.toContain('<h3>Preview</h3>');
     expect(scheduledEmails).not.toContain('Preview class email');
