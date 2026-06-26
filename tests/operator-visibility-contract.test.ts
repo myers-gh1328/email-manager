@@ -427,7 +427,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).not.toContain('<div class="status-row">');
     expect(scheduledEmailDetail).toContain('<dl class="detail-facts">');
-    expect(scheduledEmailDetail).toContain('<dt>Send readiness</dt>');
+    expect(scheduledEmailDetail).toContain('<dt>Send status</dt>');
+    expect(scheduledEmailDetail).not.toContain('<dt>Send readiness</dt>');
     expect(scheduledEmailDetail).not.toContain('<dt>Status</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Class</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Template</dt>');
@@ -598,6 +599,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).not.toContain('Retry selected');
     expect(scheduledEmailDetail).toContain('No recipients need retrying.');
     expect(scheduledEmailDetail).not.toContain('No failed recipients to retry.');
+    expect(scheduledEmailDetail).toContain('Send attempts: {recipient.delivery.attemptCount}');
+    expect(scheduledEmailDetail).toContain('Next retry at ${formatDateTime(recipient.delivery.nextAttemptAt)}');
+    expect(scheduledEmailDetail).not.toContain('Attempts: {recipient.delivery.attemptCount}');
+    expect(scheduledEmailDetail).not.toContain('· Next retry ${formatDateTime(recipient.delivery.nextAttemptAt)}');
   });
 
   test('formats technical delivery statuses before showing them to instructors', () => {

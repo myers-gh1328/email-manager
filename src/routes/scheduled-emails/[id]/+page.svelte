@@ -51,7 +51,7 @@
     </div>
     <dl class="detail-facts">
       <div>
-        <dt>Send readiness</dt>
+        <dt>Send status</dt>
         <dd><span class:good={data.campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(data.campaign.readyToSend)}</span></dd>
       </div>
       <div>
@@ -97,7 +97,13 @@
                 <p>{recipient.email}</p>
                 {#if recipient.reason}<p class="error">{recipient.reason}</p>{/if}
                 {#if recipient.delivery?.failureSummary}<p>{recipient.delivery.failureSummary}</p>{/if}
-                {#if recipient.delivery?.attemptCount}<p>Attempts: {recipient.delivery.attemptCount}{recipient.delivery.nextAttemptAt ? ` · Next retry ${formatDateTime(recipient.delivery.nextAttemptAt)}` : ''}</p>{/if}
+                {#if recipient.delivery?.attemptCount}
+                  <p>
+                    Send attempts: {recipient.delivery.attemptCount}{recipient.delivery.nextAttemptAt
+                      ? ` · Next retry at ${formatDateTime(recipient.delivery.nextAttemptAt)}`
+                      : ''}
+                  </p>
+                {/if}
                 {#if recipient.delivery?.providerMessage}<p>{recipient.delivery.providerMessage}</p>{/if}
               </div>
               <span class:good={recipient.status === 'sent'} class:warn={recipient.status === 'skipped' || recipient.status === 'needs_attention'} class="pill">{deliveryStatusLabel(recipient.status)}</span>
