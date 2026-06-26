@@ -36,7 +36,7 @@ export const actions = {
       approved: scheduleMode === 'ready'
     });
     repo.ensurePendingDeliveries(campaign.id);
-    return { message: 'Campaign schedule created.' };
+    return { message: 'Scheduled email created.' };
   },
   previewCampaign: async ({ request }) => {
     const form = await request.formData();

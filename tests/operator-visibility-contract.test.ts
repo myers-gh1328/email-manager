@@ -145,6 +145,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).not.toContain('approving this campaign');
     expect(scheduledEmailDetailServer).not.toContain('Campaign updated.');
     expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
+    expect(scheduledEmailsServer).not.toContain('Campaign schedule created.');
+    expect(scheduledEmailsServer).toContain('Scheduled email created.');
   });
 
   test('keeps global send-due actions out of scheduled email detail', () => {
