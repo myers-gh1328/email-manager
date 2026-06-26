@@ -89,6 +89,18 @@ describe('agent-facing repository assets', () => {
     expect(mcpServer).not.toContain('send-due campaign path');
   });
 
+  it('uses plain scheduled-email language in repo-local MCP skills', () => {
+    const orientationSkill = read('.agents/skills/agent-orientation/SKILL.md');
+    const scheduledEmailSkill = read('.agents/skills/agent-campaigns/SKILL.md');
+    expect(orientationSkill).toContain('due ready scheduled email count');
+    expect(orientationSkill).toContain('next ready scheduled email');
+    expect(scheduledEmailSkill).toContain('scheduled-email readiness checks');
+    expect(scheduledEmailSkill).toContain('due ready scheduled emails');
+    expect(scheduledEmailSkill).not.toContain('due approved count');
+    expect(scheduledEmailSkill).not.toContain('next approved send');
+    expect(scheduledEmailSkill).not.toContain('due approved campaigns');
+  });
+
   it('defines a single full validation script for agents', () => {
     const packageJson = read('package.json');
     const standardsCheck = read('scripts/agent/standards-check.mjs');
