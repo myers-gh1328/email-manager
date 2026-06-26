@@ -121,6 +121,9 @@ describe('operator visibility contract', () => {
     expect(contacts).not.toContain('Select a student to view class history and recent emails.');
     expect(contacts).toContain('Search contacts');
     expect(contacts).toContain('contactsPageHref');
+    expect(contacts).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(contacts).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(contacts).toContain('href={contactsClearHref}');
     expect(contacts).toContain('contactsListReturnTo');
     expect(contacts).toContain('href={`/contacts?action=add&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
     expect(contacts).toContain('href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');

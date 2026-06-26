@@ -9,6 +9,7 @@
   let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
   let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
   let contactsListReturnTo = $derived(contactsPageHref(currentContactsPage));
+  let contactsClearHref = $derived(data.returnTo ? `/contacts?returnTo=${encodeURIComponent(data.returnTo)}` : '/contacts');
   let contactDetailReturnTo = $derived(
     data.contactDetail ? `/contacts?contactId=${data.contactDetail.contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}` : '/contacts'
   );
@@ -43,6 +44,7 @@
 
   function contactsPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.contactsPage.search) params.set('search', data.contactsPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
@@ -69,12 +71,13 @@
       <a class:active={data.action === 'image'} class="button-link" href={`/contacts?action=image&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import screenshot</a>
     </div>
     <form class="inline-filters" method="GET" action="/contacts">
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search contacts
         <input name="search" value={contactsSearch} placeholder="Name, email, or phone" />
       </label>
       <button type="submit">Search</button>
-      {#if data.contactsPage.search}<a class="button-link" href="/contacts">Clear</a>{/if}
+      {#if data.contactsPage.search}<a class="button-link" href={contactsClearHref}>Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.contacts.length} of {data.contactsPage.total} contacts.</p>
     <div class="list">
