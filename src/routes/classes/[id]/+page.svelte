@@ -334,6 +334,11 @@
     {/if}
     <form method="POST" action="?/importCsv" enctype="multipart/form-data" class="panel-form" use:enhance>
       <h3>Import CSV roster</h3>
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+      {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+      {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+      {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+      {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
       <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
       <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
       <button type="submit">Import CSV</button>
@@ -341,6 +346,11 @@
     {#if aiImageImportReady}
       <form method="POST" action="?/importImage" enctype="multipart/form-data" class="panel-form" data-local-busy use:enhance={showImageImportBusy}>
         <h3>Import roster photo</h3>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+        {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+        {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+        {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
         {#if importingImage}<BusyOverlay message="Importing roster image..." />{/if}
         <label>Roster photo or image<input name="imageFile" type="file" accept="image/*" capture="environment" required /></label>
         <button type="submit" disabled={importingImage}>Extract students from image</button>

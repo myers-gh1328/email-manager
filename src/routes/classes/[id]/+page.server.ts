@@ -83,27 +83,22 @@ export const actions = {
   importCsv: async ({ params, request }) => {
     const form = await request.formData();
     const file = form.get('csvFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose a CSV file to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose a CSV file to import.'));
     const result = importRosterRows(repo, params.id, parseRosterCsv(await file.text()));
-    return {
-      message: `Imported roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
-    };
+    throw redirect(303, classDetailActionReturn(params.id, form, `Imported roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
   },
   importImage: async ({ params, request }) => {
+    const form = await request.formData();
     const settings = getSettings();
     if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-      return { message: 'Connect AI assistance and choose a vision-capable model before importing roster images.' };
+      throw redirect(303, classDetailActionReturn(params.id, form, 'Connect AI assistance and choose a vision-capable model before importing roster images.'));
     }
-    const form = await request.formData();
     const file = form.get('imageFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose an image to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose an image to import.'));
     const dataUrl = `data:${file.type || 'image/png'};base64,${Buffer.from(await file.arrayBuffer()).toString('base64')}`;
     try {
       const result = importRosterRows(repo, params.id, await extractRosterFromImage(dataUrl));
-      return {
-        panel: 'image',
-        message: `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
-      };
+      throw redirect(303, classDetailActionReturn(params.id, form, `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
     } catch (error) {
       return fail(400, { error: true, panel: 'image', message: errorText(error) });
     }

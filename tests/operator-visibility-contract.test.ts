@@ -234,12 +234,18 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('student-prep-items');
     expect(classDetail).toContain('<h3>Import CSV roster</h3>');
     expect(classDetail).toContain('<h3>Import roster photo</h3>');
+    expect(classDetail).toContain('<input name="csvFile" type="file"');
+    expect(classDetail).toContain('<input name="imageFile" type="file"');
     expect(classDetail).not.toContain('<summary>Import CSV roster</summary>');
     expect(classDetail).not.toContain('<summary>Import roster photo</summary>');
     expect(classDetailServer).toContain('Prep item updated.');
     expect(classDetailServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
     expect(classDetailServer).toContain('classDetailActionReturn');
     expect(classDetailServer).toContain('throw redirect(303, classDetailActionReturn(params.id, form,');
+    expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Choose a CSV file to import.'))");
+    expect(classDetailServer).toContain('throw redirect(303, classDetailActionReturn(params.id, form, `Imported roster:');
+    expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Choose an image to import.'))");
+    expect(classDetailServer).toContain('throw redirect(303, classDetailActionReturn(params.id, form, `Imported image roster:');
     expect(classDetailServer).toContain('detail.roster.map((contact) => contact.id)');
     expect(classDetailServer).toContain('repo.listEnrollmentChecklistState(params.id, detail.roster.map');
     expect(classDetailServer).not.toContain('Checklist updated.');
