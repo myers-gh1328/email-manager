@@ -48,6 +48,14 @@
       </label>
       <button class="secondary" type="submit">Search</button>
     </form>
+    {#if data.selectedContactId || data.selectedSourceId}
+      <div class="active-filters" aria-label="Active filters">
+        <strong>Active filters</strong>
+        {#if data.selectedContactId}<span class="pill">Filtered to selected contact</span>{/if}
+        {#if data.selectedSourceId}<span class="pill">Filtered to selected scheduled email</span>{/if}
+        <a class="button-link" href="/communications">Clear filters</a>
+      </div>
+    {/if}
     <p class="help-text">
       Showing {data.communications.length} of {data.communicationPage.total} emails.
     </p>
@@ -130,6 +138,7 @@
   }
 
   .inline-filters,
+  .active-filters,
   .pagination {
     align-items: center;
     display: flex;

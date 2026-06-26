@@ -355,6 +355,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain('data.selectedSourceId');
     expect(history).toContain('params.set(\'sourceId\', data.selectedSourceId)');
     expect(history).toContain('name="sourceId"');
+    expect(history).toContain('Active filters');
+    expect(history).toContain('Filtered to selected contact');
+    expect(history).toContain('Filtered to selected scheduled email');
+    expect(history).toContain('Clear filters');
     expect(history).toContain('href={`/communications/${communication.id}`}');
     expect(history).not.toContain('<div class="reply-list">');
     expect(history).not.toContain('{reply.snippet || reply.textBody}');
