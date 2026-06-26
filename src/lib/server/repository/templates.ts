@@ -1,7 +1,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
 import { mapTemplate } from './mappers';
-import type { Row, TemplateInput } from './types';
+import type { Row, TemplateInput, TemplatePage, TemplatePageInput } from './types';
 
 export function createTemplate(db: DatabaseSync, input: TemplateInput) {
   const id = newId();
@@ -12,6 +12,40 @@ export function createTemplate(db: DatabaseSync, input: TemplateInput) {
 
 export function listTemplates(db: DatabaseSync) {
   return db.prepare('select * from templates order by name').all().map(mapTemplate);
+}
+
+export function listTemplatesPage(db: DatabaseSync, input: TemplatePageInput = {}): TemplatePage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(name) like ? or lower(subject) like ? or lower(body) like ?)');
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from templates ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from templates
+       ${whereSql}
+       order by name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapTemplate(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function getTemplate(db: DatabaseSync, id: string) {

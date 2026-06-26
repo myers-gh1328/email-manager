@@ -113,9 +113,17 @@ export function loadClassesData(input: { search?: string; page?: number } = {}) 
   };
 }
 
-export function loadTemplatesData() {
+export function loadTemplatesData(input: { search?: string; page?: number } = {}) {
+  const limit = 25;
+  const page = Math.max(input.page ?? 1, 1);
+  const templatesPage = repo.listTemplatesPage({
+    search: input.search,
+    limit,
+    offset: (page - 1) * limit
+  });
   return {
-    templates: repo.listTemplates(),
+    templates: templatesPage.items,
+    templatesPage,
     settings: getSettings()
   };
 }

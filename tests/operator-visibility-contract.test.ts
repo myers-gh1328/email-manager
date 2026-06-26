@@ -78,8 +78,9 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Class management views');
     expect(classes).not.toContain('Checklist defaults');
     expect(classes).not.toContain('Add course type');
-    expect(classes).not.toContain('Add location');
     expect(classes).not.toContain('Enroll student');
+    expect(classes).toContain('addLabel="Add course"');
+    expect(classes).toContain('addLabel="Add location"');
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
     expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
@@ -133,6 +134,20 @@ describe('operator visibility contract', () => {
     expect(testSends).toContain('Search test sends');
     expect(testSends).toContain('testAuditPageHref');
     expect(testSends).toContain('Page {currentTestAuditPage} of {totalTestAuditPages}');
+    expect(repository).toContain('limit ? offset ?');
+  });
+
+  test('keeps Templates paginated and searchable', () => {
+    const templates = readFileSync('src/routes/templates/+page.svelte', 'utf8');
+    const templatesServer = readFileSync('src/routes/templates/+page.server.ts', 'utf8');
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+    const repository = readFileSync('src/lib/server/repository/templates.ts', 'utf8');
+
+    expect(templates).toContain('Search templates');
+    expect(templates).toContain('templatesPageHref');
+    expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
+    expect(templatesServer).toContain('page: Number(url.searchParams.get');
+    expect(pageData).toContain('templatesPage = repo.listTemplatesPage');
     expect(repository).toContain('limit ? offset ?');
   });
 

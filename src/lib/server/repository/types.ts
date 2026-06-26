@@ -108,6 +108,27 @@ export interface TemplateInput {
   body: string;
 }
 
+export interface TemplateRecord {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+export interface TemplatePageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface TemplatePage {
+  items: TemplateRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface CourseTypeDefaultTemplateInput {
   courseTypeId: string;
   purpose: string;

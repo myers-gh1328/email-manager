@@ -56,7 +56,7 @@ import {
   updateDefaultCampaign,
   updateCampaign
 } from './campaigns';
-import { createTemplate, deleteTemplate, getTemplate, listTemplates, updateTemplate } from './templates';
+import { createTemplate, deleteTemplate, getTemplate, listTemplates, listTemplatesPage, updateTemplate } from './templates';
 import {
   listCourseTypeDefaultTemplates,
   listDefaultTemplatesForClassSession,
@@ -132,6 +132,7 @@ import type {
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  TemplatePageInput,
   TemplateInput
 } from './types';
 
@@ -182,6 +183,9 @@ export type {
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  TemplatePage,
+  TemplatePageInput,
+  TemplateRecord,
   TemplateInput
 } from './types';
 
@@ -373,6 +377,10 @@ export class AppRepository {
 
   listTemplates() {
     return listTemplates(this.db);
+  }
+
+  listTemplatesPage(input?: TemplatePageInput) {
+    return listTemplatesPage(this.db, input);
   }
 
   getTemplate(id: string) {

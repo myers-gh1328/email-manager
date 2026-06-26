@@ -7,6 +7,9 @@
 	  let { data, form } = $props();
 	  let drafting = $state(false);
 	  let aiPrompt = $state('');
+	  let templatesSearch = $derived(data.templatesPage.search ?? '');
+	  let currentTemplatesPage = $derived(Math.floor(data.templatesPage.offset / data.templatesPage.limit) + 1);
+	  let totalTemplatesPages = $derived(Math.max(Math.ceil(data.templatesPage.total / data.templatesPage.limit), 1));
 	  const variables = classTemplateTokens;
 	  const variableFields = tokenFields(variables);
 
@@ -24,6 +27,14 @@
         if (isAiSubmit) drafting = false;
       }
     };
+  }
+
+  function templatesPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.templatesPage.search) params.set('search', data.templatesPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/templates?${query}` : '/templates';
   }
 </script>
 
@@ -44,6 +55,15 @@
       <a class:active={data.action === 'ai'} class="button-link" href="/templates?action=ai">AI draft</a>
     </div>
     {#if form?.message}<p class={form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    <form class="inline-filters" method="GET" action="/templates">
+      <label>
+        Search templates
+        <input name="search" value={templatesSearch} placeholder="Name, subject, or body" />
+      </label>
+      <button type="submit">Search</button>
+      {#if data.templatesPage.search}<a class="button-link" href="/templates">Clear</a>{/if}
+    </form>
+    <p class="help-text">Showing {data.templates.length} of {data.templatesPage.total} templates.</p>
     <div class="form-stack task-stack">
     {#if data.selectedTemplate}
       {#if drafting}
@@ -150,5 +170,18 @@
         <p class="empty">No templates yet.</p>
       {/each}
     </div>
+    {#if totalTemplatesPages > 1}
+      <nav class="pagination" aria-label="Template pages">
+        <a class="button-link" aria-disabled={currentTemplatesPage === 1} href={templatesPageHref(Math.max(currentTemplatesPage - 1, 1))}>Previous</a>
+        <span>Page {currentTemplatesPage} of {totalTemplatesPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentTemplatesPage >= totalTemplatesPages}
+          href={templatesPageHref(Math.min(currentTemplatesPage + 1, totalTemplatesPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
   </div>
 </section>

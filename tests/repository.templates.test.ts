@@ -2,6 +2,20 @@ import { describe, expect, test } from 'vitest';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository templates', () => {
+  test('lists templates with pagination and search', () => {
+    const repo = createTestRepository();
+    repo.createTemplate({ name: 'Welcome', subject: 'Welcome aboard', body: 'Hi' });
+    repo.createTemplate({ name: 'Reminder', subject: 'Pool session reminder', body: 'Details' });
+    repo.createTemplate({ name: 'Follow up', subject: 'Thanks', body: 'Thanks' });
+
+    const page = repo.listTemplatesPage({ limit: 1, offset: 0, search: 'reminder' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([{ name: 'Reminder', subject: 'Pool session reminder' }]);
+  });
+
   test('updates a template in place', () => {
     const repo = createTestRepository();
     const template = repo.createTemplate({ name: 'Old', subject: 'Old subject', body: 'Old body' });

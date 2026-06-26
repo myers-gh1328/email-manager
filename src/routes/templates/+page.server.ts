@@ -5,7 +5,10 @@ import { suggestTemplate } from '$lib/server/llm';
 import { loadTemplatesData } from '$lib/server/page-data';
 
 export const load = ({ url }) => {
-  const data = loadTemplatesData();
+  const data = loadTemplatesData({
+    search: url.searchParams.get('search') ?? '',
+    page: Number(url.searchParams.get('page') ?? '1')
+  });
   const selectedTemplateId = url.searchParams.get('templateId') ?? '';
   const action = url.searchParams.get('action') ?? '';
   return {
