@@ -11,6 +11,7 @@
 	  let currentTemplatesPage = $derived(Math.floor(data.templatesPage.offset / data.templatesPage.limit) + 1);
 	  let totalTemplatesPages = $derived(Math.max(Math.ceil(data.templatesPage.total / data.templatesPage.limit), 1));
 	  let templateListReturnTo = $derived(templatesPageHref(currentTemplatesPage));
+	  let templatesClearHref = $derived(data.returnTo ? `/templates?returnTo=${encodeURIComponent(data.returnTo)}` : '/templates');
 	  let templateWorkflowReturnTo = $derived(data.returnTo || templateListReturnTo);
 	  const variableFields = tokenFields(classTemplateTokens);
 
@@ -32,6 +33,7 @@
 
   function templatesPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.templatesPage.search) params.set('search', data.templatesPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
@@ -57,12 +59,13 @@
     </div>
     {#if form?.message}<p class={form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
     <form class="inline-filters" method="GET" action="/templates">
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search templates
         <input name="search" value={templatesSearch} placeholder="Name, subject, or body" />
       </label>
       <button type="submit">Search</button>
-      {#if data.templatesPage.search}<a class="button-link" href="/templates">Clear</a>{/if}
+      {#if data.templatesPage.search}<a class="button-link" href={templatesClearHref}>Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.templates.length} of {data.templatesPage.total} templates.</p>
     <div class="list">

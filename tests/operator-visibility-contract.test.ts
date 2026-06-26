@@ -454,6 +454,9 @@ describe('operator visibility contract', () => {
     expect(templates).not.toContain('Review AI draft');
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
+    expect(templates).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(templates).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(templates).toContain('href={templatesClearHref}');
     expect(templates).toContain('templateListReturnTo');
     expect(templates).toContain('templateWorkflowReturnTo');
     expect(templates).toContain('href={`/templates?action=create&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
