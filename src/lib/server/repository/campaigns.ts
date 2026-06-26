@@ -50,9 +50,7 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim() ?? '';
-  const requestedStatus = input.status === 'draft'
-    ? 'needs_preview'
-    : (input.status ?? '');
+  const requestedStatus = input.status ?? '';
   const status = ['needs_preview', 'ready', 'upcoming', 'needs_attention', 'sent'].includes(requestedStatus) ? requestedStatus : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
