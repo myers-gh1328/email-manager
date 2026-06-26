@@ -91,6 +91,8 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('Recent emails');
     expect(contacts).toContain('View all in History');
     expect(contacts).toContain('/communications?contactId=');
+    expect(contacts).toContain("communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'");
+    expect(contacts).not.toContain('· {communication.source}');
     expect(contacts).not.toContain('Email activity');
     expect(contacts).toContain('Search contacts');
     expect(contacts).toContain('contactsPageHref');

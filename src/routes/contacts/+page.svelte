@@ -202,7 +202,7 @@
               <article class="row-card tall">
                 <div>
                   <strong>{communication.subject}</strong>
-                  <p>{activityDate(communication)} · {communication.source}</p>
+                  <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>{communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}{#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} new{/if}</p>
                   {/if}
