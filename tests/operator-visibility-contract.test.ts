@@ -424,6 +424,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).not.toContain('approved:');
     expect(scheduledEmailDetailServer).not.toContain('current.approved');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).not.toContain('approved: true');
+    expect(readFileSync('src/lib/server/class-default-campaigns.ts', 'utf8')).not.toContain('approved: true');
+    expect(readFileSync('src/lib/server/class-default-campaigns.ts', 'utf8')).toContain('readyToSend: true');
     expect(scheduledEmails).not.toContain("campaign.approved ? 'Scheduled' : 'Draft'");
     expect(scheduledEmailDetail).not.toContain("data.campaign.approved ? 'Ready to send' : 'Draft'");
     expect(classDetail).not.toContain("campaign.approved ? 'Ready to send' : 'Draft'");

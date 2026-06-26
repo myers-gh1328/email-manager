@@ -47,7 +47,7 @@ function syncClass(repo: AppRepository, classSessionId: string) {
       templateId: defaultTemplate.templateId,
       name: `${purposeLabel(defaultTemplate.purpose)} · ${defaultTemplate.templateName}`,
       scheduledFor: scheduledForFromClassOffset(classSession, defaultTemplate.sendOffsetMinutes),
-      approved: true,
+      readyToSend: true,
       source: 'course_default' as const,
       defaultPurpose: defaultTemplate.purpose,
       defaultLabel: defaultTemplate.label,
