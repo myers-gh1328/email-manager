@@ -148,7 +148,7 @@
       </div>
     </form>
     <section class="panel-form">
-      <h3>Template snapshot</h3>
+      <h3>Email content</h3>
       <p><strong>{data.template.subject}</strong></p>
       <pre>{data.template.body}</pre>
     </section>
