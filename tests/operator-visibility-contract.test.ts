@@ -485,6 +485,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain('Filtered to selected contact');
     expect(history).toContain('Filtered to selected scheduled email');
     expect(history).toContain('Filtered to emails needing replies');
+    expect(history).toContain('newEmailHref');
+    expect(history).toContain('href={newEmailHref}');
+    expect(history).toContain("params.set('returnTo', historyReturnTo)");
+    expect(history).not.toContain('href="/new-email">New Email');
     expect(history).toContain('aria-label="Filter email history"');
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('Clear filters');

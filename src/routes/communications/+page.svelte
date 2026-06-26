@@ -12,6 +12,7 @@
     { value: 'needs_reply', label: 'Needs reply' }
   ];
   let historyReturnTo = $derived(historyPageHref(currentHistoryPage));
+  let newEmailHref = $derived(composeNewEmailHref());
 
   function historyPageHref(page: number) {
     const params = new URLSearchParams();
@@ -34,6 +35,12 @@
     return query ? `/communications?${query}` : '/communications';
   }
 
+  function composeNewEmailHref() {
+    const params = new URLSearchParams();
+    params.set('returnTo', historyReturnTo);
+    return `/new-email?${params.toString()}`;
+  }
+
 </script>
 
 <svelte:head>
@@ -46,7 +53,7 @@
       <p class="eyebrow">History</p>
       <h2>Email history</h2>
     </div>
-    <a class="button-link" href="/new-email">New Email</a>
+    <a class="button-link" href={newEmailHref}>New Email</a>
   </div>
 
   <section class="panel-form spaced">
