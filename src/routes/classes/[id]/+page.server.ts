@@ -2,7 +2,14 @@ import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
 import { errorText, required, text } from '$lib/server/form-utils';
-import { loadContactOptions, loadCourseTypeOptions, loadLocationOptions, loadTemplateOptions, withReadyToSend } from '$lib/server/page-data';
+import {
+  loadContactOptions,
+  loadCourseTypeOptions,
+  loadLocationOptions,
+  loadTemplateOptions,
+  withReadyToSend,
+  withVisibleScheduledEmailsPage
+} from '$lib/server/page-data';
 import {
   buildCampaignEmailPreviews,
   campaignEmailPreviewToken,
@@ -35,7 +42,7 @@ export const load = ({ params, url }) => {
     templateOptions: loadTemplateOptions(),
     defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
     scheduledCampaigns: scheduledCampaignsPage.items.map(withReadyToSend),
-    scheduledCampaignsPage,
+    scheduledCampaignsPage: withVisibleScheduledEmailsPage(scheduledCampaignsPage),
     checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
     returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
     actionMessage: url.searchParams.get('message') ?? '',

@@ -517,6 +517,7 @@ describe('operator visibility contract', () => {
     const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
     expect(scheduledEmailDetail).toContain('deliveryStatusLabel(recipient.status)');
     expect(history).toContain('messageStatusLabel(communication.status)');
@@ -528,6 +529,7 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('classDetailReturnTo = $derived(classEmailsPageHref(currentClassEmailsPage))');
     expect(classDetail).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}');
     expect(classDetail).toContain('Page {currentClassEmailsPage} of {totalClassEmailsPages}');
+    expect(classDetailServer).toContain('scheduledCampaignsPage: withVisibleScheduledEmailsPage(scheduledCampaignsPage)');
     expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
     expect(history).not.toContain('{communication.status}</span>');
     expect(contacts).not.toContain('{communication.status}</span>');

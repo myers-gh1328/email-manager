@@ -221,7 +221,7 @@ export function loadCampaignsData(input: { search?: string; page?: number; statu
   };
 }
 
-function withVisibleScheduledEmailsPage<T extends { items: Array<{ approved: boolean }> }>(campaignsPage: T) {
+export function withVisibleScheduledEmailsPage<T extends { items: Array<{ approved: boolean }> }>(campaignsPage: T) {
   return {
     ...campaignsPage,
     items: campaignsPage.items.map(withReadyToSend)
