@@ -204,7 +204,10 @@
                   <a href={`/communications/${communication.id}`}><strong>{communication.subject}</strong></a>
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
-                    <p>{communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}{#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} new{/if}</p>
+                    <p>
+                      {communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}
+                      {#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} Needs reply{/if}
+                    </p>
                   {/if}
                   {#if communication.status === 'failed' && communication.errorMessage}
                     <p class="error">Error: {communication.errorMessage}</p>
