@@ -120,6 +120,13 @@ describe('SearchSelect contract', () => {
     expect(pageData).not.toContain('templateOptions: loadTemplateOptions(),\n    classSessions: classSessionsPage.items');
   });
 
+  test('does not preload unused picker options for the scheduled emails page', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+
+    expect(pageData).not.toContain('contactOptions: loadContactOptions(),\n    classSessionOptions: loadClassSessionOptions()');
+    expect(pageData).not.toContain('locations: repo.listLocations(),\n    templateOptions: loadTemplateOptions()');
+  });
+
   test('uses the shared search select for discovered AI models in settings', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
 

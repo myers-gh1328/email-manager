@@ -181,9 +181,7 @@ export function loadCampaignsData(input: { search?: string; page?: number; statu
     offset: (page - 1) * limit
   });
   return {
-    contactOptions: loadContactOptions(),
     classSessionOptions: loadClassSessionOptions(),
-    locations: repo.listLocations(),
     templateOptions: loadTemplateOptions(),
     campaigns: campaignsPage.items,
     campaignsPage,
