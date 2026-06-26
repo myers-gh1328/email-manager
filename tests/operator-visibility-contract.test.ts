@@ -122,8 +122,12 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('Search contacts');
     expect(contacts).toContain('contactsPageHref');
     expect(contacts).toContain('contactsListReturnTo');
+    expect(contacts).toContain('href={`/contacts?action=add&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
+    expect(contacts).toContain('href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
+    expect(contacts).toContain('href={`/contacts?action=image&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
     expect(contacts).toContain('href={`/contacts?contactId=${contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
     expect(contacts).toContain("href={data.returnTo || '/contacts'}");
+    expect(contacts).not.toContain('href="/contacts">Cancel');
     expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');
     expect(contacts.indexOf('<div class="list">')).toBeLessThan(contacts.indexOf('<div class="form-stack task-stack">'));
     expect(contacts).not.toContain('<section class="band two-column">');

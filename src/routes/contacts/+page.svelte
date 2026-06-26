@@ -64,9 +64,9 @@
     </div>
     {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
     <div class="action-row">
-      <a class:active={data.action === 'add'} class="button-link" href="/contacts?action=add">Add contact</a>
-      <a class:active={data.action === 'import'} class="button-link" href="/contacts?action=import">Import contacts</a>
-      <a class:active={data.action === 'image'} class="button-link" href="/contacts?action=image">Import screenshot</a>
+      <a class:active={data.action === 'add'} class="button-link" href={`/contacts?action=add&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Add contact</a>
+      <a class:active={data.action === 'import'} class="button-link" href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import contacts</a>
+      <a class:active={data.action === 'image'} class="button-link" href={`/contacts?action=image&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import screenshot</a>
     </div>
     <form class="inline-filters" method="GET" action="/contacts">
       <label>
@@ -130,7 +130,7 @@
           <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
           <div class="button-row">
             <button type="submit">Upload CSV</button>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </div>
         </form>
       {/if}
@@ -142,14 +142,14 @@
             <label>Image file<input name="imageFile" type="file" accept="image/*" required /></label>
             <div class="button-row">
               <button type="submit" disabled={importingImage}>Upload image</button>
-              <a class="button-link" href="/contacts">Cancel</a>
+              <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
             </div>
           </form>
       {:else if data.action === 'image'}
           <section class="panel-form">
             <h3>Import screenshot</h3>
             <p class="empty">Enable AI assistance and mark the model as vision-capable in settings to import students from an image.</p>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </section>
       {/if}
     </div>
