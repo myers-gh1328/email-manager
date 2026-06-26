@@ -242,7 +242,8 @@ export interface CampaignInput {
   templateId: string;
   name: string;
   scheduledFor: string;
-  approved: boolean;
+  readyToSend?: boolean;
+  approved?: boolean;
   source?: 'manual' | 'course_default';
   defaultPurpose?: string;
   defaultLabel?: string;

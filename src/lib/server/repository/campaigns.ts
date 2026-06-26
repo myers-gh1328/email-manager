@@ -6,6 +6,8 @@ import { mapCampaign, mapDelivery, rowString } from './mappers';
 import { getTemplate } from './templates';
 import type { CampaignInput, CampaignPage, CampaignPageInput, Row } from './types';
 
+type CampaignUpdateInput = { name: string; scheduledFor: string; readyToSend?: boolean; approved?: boolean };
+
 export function createCampaign(db: DatabaseSync, input: CampaignInput) {
   const id = newId();
   db.prepare(
@@ -20,7 +22,7 @@ export function createCampaign(db: DatabaseSync, input: CampaignInput) {
     input.templateId,
     input.name.trim(),
     input.scheduledFor,
-    input.approved ? 1 : 0,
+    readyToSendValue(input) ? 1 : 0,
     input.source ?? 'manual',
     input.defaultPurpose?.trim() ?? '',
     input.defaultLabel?.trim() ?? '',
@@ -271,10 +273,14 @@ export function getCampaign(db: DatabaseSync, id: string) {
   return mapCampaign(row);
 }
 
-export function updateCampaign(db: DatabaseSync, id: string, input: { name: string; scheduledFor: string; approved: boolean }) {
+export function updateCampaign(db: DatabaseSync, id: string, input: CampaignUpdateInput) {
   db.prepare('update campaigns set name = ?, scheduled_for = ?, approved = ? where id = ?')
-    .run(input.name.trim(), input.scheduledFor, input.approved ? 1 : 0, id);
+    .run(input.name.trim(), input.scheduledFor, readyToSendValue(input) ? 1 : 0, id);
   return getCampaign(db, id);
+}
+
+function readyToSendValue(input: { readyToSend?: boolean; approved?: boolean }) {
+  return input.readyToSend ?? input.approved ?? false;
 }
 
 export function updateDefaultCampaign(

@@ -149,7 +149,7 @@ export const actions = {
       templateId,
       name: classEmailCampaignName(defaultPurpose, template.name),
       scheduledFor: required(form, 'scheduledFor'),
-      approved: true,
+      readyToSend: true,
       source: defaultPurpose ? 'course_default' : 'manual',
       defaultPurpose,
       defaultLabel: text(form, 'defaultLabel'),

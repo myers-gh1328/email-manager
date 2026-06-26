@@ -27,7 +27,7 @@ export const actions = {
     const form = await request.formData();
     const current = repo.getCampaign(params.id);
     const readyToSend = form.get('scheduleMode') === 'ready';
-    if (readyToSend && !current.approved) {
+    if (readyToSend && !withReadyToSend(current).readyToSend) {
       return fail(400, { error: true, message: 'Preview this scheduled email before marking it ready to send.' });
     }
     if (readyToSend) {
@@ -39,7 +39,7 @@ export const actions = {
     repo.updateCampaign(params.id, {
       name: required(form, 'name'),
       scheduledFor: required(form, 'scheduledFor'),
-      approved: readyToSend
+      readyToSend
     });
     if (readyToSend) repo.ensurePendingDeliveries(params.id);
     throw redirect(303, detailActionReturn(params.id, form, 'Scheduled email updated.'));

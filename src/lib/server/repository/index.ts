@@ -481,7 +481,7 @@ export class AppRepository {
     return getCampaignDetail(this.db, id, recipientPageInput);
   }
 
-  updateCampaign(id: string, input: { name: string; scheduledFor: string; approved: boolean }) {
+  updateCampaign(id: string, input: { name: string; scheduledFor: string; readyToSend?: boolean; approved?: boolean }) {
     return updateCampaign(this.db, id, input);
   }
 

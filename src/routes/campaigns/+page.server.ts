@@ -37,7 +37,7 @@ export const actions = {
       templateId,
       name: required(form, 'name'),
       scheduledFor: required(form, 'scheduledFor'),
-      approved: scheduleMode === 'ready'
+      readyToSend: scheduleMode === 'ready'
     });
     repo.ensurePendingDeliveries(campaign.id);
     throw redirect(303, campaignActionReturn(form, 'Scheduled email created.'));
