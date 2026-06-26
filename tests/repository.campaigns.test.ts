@@ -520,6 +520,49 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed', errorMessage: 'temporary SMTP error' }]);
   });
 
+  test('clears visible failure details when a failed delivery is queued for retry', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const claim = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'manual',
+      subject: 'Prep',
+      body: 'Details.'
+    });
+
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: delivery.id,
+      attemptId: claim!.attemptId!,
+      failureKind: 'permanent',
+      failureSummary: 'Mailbox does not exist.',
+      retryable: false
+    });
+    repo.retryCampaignDeliveries(campaign.id, [contact.id]);
+
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'pending',
+        errorMessage: undefined,
+        failureKind: undefined,
+        failureSummary: undefined,
+        nextAttemptAt: undefined,
+        claimExpiresAt: undefined
+      }
+    ]);
+  });
+
   test('claims each pending delivery once across repository instances', () => {
     const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-')), 'app.sqlite');
     const repo = new AppRepository(dbPath);

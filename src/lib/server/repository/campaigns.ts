@@ -677,7 +677,8 @@ export function retryCampaignDeliveries(db: DatabaseSync, campaignId: string, re
   const result = db
     .prepare(
       `update campaign_deliveries
-       set status = 'pending', next_attempt_at = null, claim_expires_at = null, error_message = null
+       set status = 'pending', next_attempt_at = null, claim_expires_at = null, error_message = null,
+         failure_kind = '', failure_summary = ''
        where campaign_id = ? and recipient_id in (${placeholders}) and status in ('failed', 'retry_scheduled', 'needs_attention')`
     )
     .run(campaignId, ...recipientIds);
