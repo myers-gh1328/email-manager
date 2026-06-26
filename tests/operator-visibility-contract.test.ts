@@ -10,13 +10,24 @@ describe('operator visibility contract', () => {
     expect(maintainerGuide).toContain('### Operator Visibility');
     for (const phrase of [
       'Dashboard must show whether automatic scheduled sending is ready',
-      'Course type email defaults define automatic schedules',
-      'Class detail must show both course-type email defaults',
-      'Communications must provide a complete outbound email history',
+      'Course email schedules define automatic class emails',
+      'Class detail must show both automatic course emails',
+      'History must provide a complete outbound email history',
       'Test audit navigation is visible only while email test mode is enabled',
       'AI model selection should prefer model discovery'
     ]) {
       expect(architecture).toContain(phrase);
+    }
+    for (const phrase of [
+      'due approved campaign count',
+      'next approved send',
+      'Approve and schedule the campaign',
+      'Campaign detail must',
+      'Communications must',
+      'approve campaigns'
+    ]) {
+      expect(architecture).not.toContain(phrase);
+      expect(maintainerGuide).not.toContain(phrase);
     }
   });
 

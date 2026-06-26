@@ -29,10 +29,11 @@ For narrow work, read the owning route and the server helper it calls. Avoid sca
 - `src/routes/+layout.server.ts` provides authenticated layout settings.
 - `src/routes/+page.*` is the dashboard and manual send-due control.
 - `src/routes/contacts/` owns reusable student records, roster import entry points, and contact history display.
-- `src/routes/classes/` owns course types, locations, dated sessions, enrollments, default templates, and class email scheduling.
+- `src/routes/classes/` owns course types, locations, dated sessions, enrollments, automatic course emails, and class email scheduling.
 - `src/routes/templates/` owns reusable templates and AI draft review.
-- `src/routes/campaigns/` owns campaign preview, approval, scheduling, detail, delivery status, and draft deletion.
-- `src/routes/communications/` owns direct email compose, preview, send, and communication history filtering.
+- `src/routes/campaigns/` owns Scheduled Emails: preview, scheduling, detail, delivery status, and draft deletion.
+- `src/routes/new-email/` owns direct email compose, preview, and send.
+- `src/routes/communications/` owns History: outbound email history filtering and reply review.
 - `src/routes/settings/` owns settings forms, Microsoft OAuth start/callback endpoints, SMTP test, and admin password changes.
 - `src/routes/test-audit/` shows email test-mode audit records.
 - `src/routes/setup/`, `src/routes/login/`, and `src/routes/logout/` own single-user authentication entry points.
@@ -104,7 +105,7 @@ Use configured/not-configured booleans for UI state. Preserve the "blank secret 
 
 ### Optional AI
 
-The app must work without an AI endpoint. AI may draft text or extract roster rows, but it must not approve campaigns, schedule campaigns, or send email without user review.
+The app must work without an AI endpoint. AI may draft text or extract roster rows, but it must not mark scheduled emails ready, schedule emails, or send email without user review.
 
 AI parsing should tolerate common model response wrappers where practical. If parsing fails, return a useful error without leaking prompts or keys.
 
@@ -130,7 +131,7 @@ When changing reply sync, preserve these rules:
 
 ### Optional Local MCP
 
-Agent access is optional and local-only. The MCP server exposes workflow tools for orientation, contacts, classes, templates, direct-email prepare/commit, and send-due campaign prepare/commit. Campaign approval and campaign schedule tools are deferred until their review flow is implemented.
+Agent access is optional and local-only. The MCP server exposes workflow tools for orientation, contacts, classes, templates, direct-email prepare/commit, and send-due scheduled email prepare/commit. Scheduled-email creation tools are deferred until their review flow is implemented.
 
 Agent permissions are app workflow controls, not a sandbox boundary. They do not protect against filesystem access already granted to a coding agent, so agents must not read or edit runtime database files directly. MCP tools must not expose raw SQL, database paths, or decrypted secrets.
 
@@ -146,10 +147,10 @@ Avoid broad "save everything" actions. Settings and similar pages should submit 
 
 The UI must make send state auditable without requiring database knowledge or guessing:
 
-- Dashboard shows scheduler readiness, blockers, due approved count, and next approved send.
-- Course type defaults are bulk operational settings: saving them creates, updates, or removes unsent default campaign schedules across existing classes of that course type, while preserving already-sent history.
-- Class detail shows course-type email defaults and actual scheduled sends for that class.
-- Communications shows complete outbound email history across direct and campaign sends.
+- Dashboard shows scheduler readiness, blockers, due scheduled email count, and next scheduled send.
+- Course email schedules are bulk operational settings: saving them creates, updates, or removes unsent scheduled emails across existing classes of that course type, while preserving already-sent history.
+- Class detail shows automatic course emails and actual scheduled sends for that class.
+- History shows complete outbound email history across direct and scheduled email sends.
 - Test audit appears in navigation only while email test mode is enabled; historical direct URL access must say test mode is off.
 - Settings use searchable collapsible sections and grouped saves so users can find agent, SMTP, scheduler, remote access, AI, vocabulary, and password controls without rewriting unrelated settings.
 - AI model selection should discover models from the configured `/models` endpoint when available.
@@ -196,7 +197,7 @@ Use `docs/AGENT-DEV-ENV.md` when a change affects layout, navigation, forms, sch
 
 1. Read the architecture SMTP and send-once sections.
 2. Preserve email test mode behavior: outbound mail routes to the configured safe recipient and automatic scheduled sends pause while test mode is enabled.
-3. Preserve communication history recording for direct and campaign sends.
+3. Preserve communication history recording for direct and scheduled email sends.
 4. Preserve provider-message/error-message capture without logging secrets.
 5. Preserve the outbound gate: kill switch, rate limits, direct-recipient cap,
    pacing, direct-email idempotency, and agent/manual throttles.
