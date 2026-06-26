@@ -112,7 +112,7 @@
           searchHref="/locations/search"
           required
         />
-        <p class="help-text"><a href="/settings?section=app-data">Manage courses, locations, and prep tasks</a>.</p>
+        <p class="help-text"><a href={appDataAddHref}>Manage courses, locations, and prep tasks</a>.</p>
         <label>Start date<input bind:value={newClassStartsOn} name="startsOn" type="date" required /></label>
         <label>End date<input bind:value={newClassEndsOn} name="endsOn" type="date" oninput={() => (endDateTouched = true)} required /></label>
         <label>Start time<input name="startTime" type="time" /></label>

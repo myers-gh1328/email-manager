@@ -159,6 +159,9 @@ describe('operator visibility contract', () => {
     expect(classes).toContain('Manage courses, locations, and prep tasks');
     expect(classes).toContain('addLabel="Add course"');
     expect(classes).toContain('addLabel="Add location"');
+    expect(classes).toContain('addHref={appDataAddHref}');
+    expect(classes).toContain('href={appDataAddHref}');
+    expect(classes).not.toContain('href="/settings?section=app-data">Manage courses, locations, and prep tasks</a>');
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
     expect(classes).toContain('classesListReturnTo');
