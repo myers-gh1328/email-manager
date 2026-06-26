@@ -4,6 +4,7 @@
 
   let { data, form } = $props();
   let communication = $derived(data.communication);
+  let detailReturnTo = $derived(`/communications/${communication.id}${data.returnTo ? `?returnTo=${encodeURIComponent(data.returnTo)}` : ''}`);
 
   function replyHref(reply: { snippet: string; textBody: string }) {
     const params = new URLSearchParams();
@@ -11,6 +12,7 @@
     params.set('subject', communication.subject.toLowerCase().startsWith('re:') ? communication.subject : `Re: ${communication.subject}`);
     const quoted = reply.snippet || reply.textBody;
     if (quoted) params.set('body', `\n\nOn their reply:\n${quoted}`);
+    params.set('returnTo', detailReturnTo);
     return `/new-email?${params.toString()}`;
   }
 </script>

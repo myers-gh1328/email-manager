@@ -249,13 +249,14 @@ export function loadCommunicationsData(input: { contactId?: string; sourceId?: s
   };
 }
 
-export function loadNewEmailData(input: { contactId?: string; subject?: string; body?: string } = {}) {
+export function loadNewEmailData(input: { contactId?: string; subject?: string; body?: string; returnTo?: string } = {}) {
   return {
     contactOptions: loadContactOptions(input.contactId ? [input.contactId] : []),
     templateOptions: loadTemplateOptions(),
     selectedContactId: input.contactId ?? '',
     prefillSubject: input.subject ?? '',
     prefillBody: input.body ?? '',
+    returnTo: input.returnTo ?? '',
     settings: getSettings()
   };
 }

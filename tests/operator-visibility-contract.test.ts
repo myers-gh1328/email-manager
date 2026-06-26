@@ -446,6 +446,8 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('href={data.returnTo || \'/communications\'}');
     expect(historyDetail).toContain('communication.classSessionId');
     expect(historyDetail).toContain('href={`/classes/${communication.classSessionId}`}');
+    expect(historyDetail).toContain('detailReturnTo');
+    expect(historyDetail).toContain("params.set('returnTo', detailReturnTo)");
     expect(historyDetailServer).toContain('localReturnTo');
     expect(historyDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyDetail).toContain('?/markReplyHandled');
@@ -473,6 +475,11 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('{communication.body}');
     expect(newEmailServer).toContain("url.searchParams.get('subject')");
     expect(newEmailServer).toContain("url.searchParams.get('body')");
+    expect(newEmailServer).toContain("url.searchParams.get('returnTo')");
+    expect(newEmailServer).toContain('returnTo: localReturnTo');
+    expect(newEmail).toContain('newEmailReturnTo');
+    expect(newEmail).toContain('href={newEmailReturnTo || \'/communications\'}');
+    expect(newEmail).toContain('name="returnTo"');
     expect(newEmailServer).toContain('directEmailOperationId');
     expect(newEmailServer).toContain("throw redirect(303, `/communications?sourceId=${encodeURIComponent(sourceId)}`)");
     expect(pageData).toContain('prefillSubject');

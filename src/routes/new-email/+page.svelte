@@ -14,10 +14,11 @@
   let subject = $derived(form?.subject ?? data.prefillSubject ?? '');
   let body = $derived(form?.body ?? data.prefillBody ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
+  let newEmailReturnTo = $derived(form?.returnTo ?? data.returnTo ?? '');
   let templateOptions = $derived(data.templateOptions);
-  let newEmailReturnTo = '/new-email';
-  let addContactHref = `/contacts?action=add&returnTo=${encodeURIComponent(newEmailReturnTo)}`;
-  let addTemplateHref = `/templates?action=create&returnTo=${encodeURIComponent(newEmailReturnTo)}`;
+  let addWorkflowReturnTo = '/new-email';
+  let addContactHref = `/contacts?action=add&returnTo=${encodeURIComponent(addWorkflowReturnTo)}`;
+  let addTemplateHref = `/templates?action=create&returnTo=${encodeURIComponent(addWorkflowReturnTo)}`;
   const variableFields = tokenFields(directEmailTokens);
 
   function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
@@ -44,7 +45,7 @@
         <p class="eyebrow">New Email</p>
         <h2>Compose one-off email</h2>
       </div>
-      <a class="button-link" href="/communications">Back to History</a>
+      <a class="button-link" href={newEmailReturnTo || '/communications'}>Back to History</a>
     </div>
 
     {#if form?.previews}
@@ -84,6 +85,7 @@
     <EmailBodyEditor name="body" rows={10} placeholder={'Hi {{firstName}},'} value={body} fields={variableFields} />
     <label>AI instruction<textarea name="prompt" rows="3" placeholder="Write a concise one-time update about tonight's pool session."></textarea></label>
     <input name="previewToken" type="hidden" value={previewToken} />
+    {#if newEmailReturnTo}<input name="returnTo" type="hidden" value={newEmailReturnTo} />{/if}
 
     {#if form?.message && !form?.previews}<p class={form.error ? 'error' : 'success'}>{form.message}</p>{/if}
 

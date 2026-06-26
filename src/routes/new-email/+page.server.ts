@@ -5,13 +5,15 @@ import { errorText, formText, required, text } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
 import { sendOutboundEmail } from '$lib/server/mailer';
 import { loadNewEmailData } from '$lib/server/page-data';
+import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ url }) =>
   loadNewEmailData({
     contactId: url.searchParams.get('contactId') || undefined,
     subject: url.searchParams.get('subject') || undefined,
-    body: url.searchParams.get('body') || undefined
+    body: url.searchParams.get('body') || undefined,
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
   });
 
 export const actions = {
@@ -32,7 +34,8 @@ export const actions = {
       selectedContactIds: contactIds,
       selectedTemplateId: content.templateId,
       subject: content.subject,
-      body: content.body
+      body: content.body,
+      returnTo: localReturnTo(text(form, 'returnTo'))
     };
   },
   sendDirectEmail: async ({ request }) => {
@@ -63,7 +66,8 @@ export const actions = {
         selectedContactIds: contactIds,
         selectedTemplateId: content.templateId,
         subject: content.subject,
-        body: content.body
+        body: content.body,
+        returnTo: localReturnTo(text(form, 'returnTo'))
       });
     }
   },
@@ -74,7 +78,8 @@ export const actions = {
       selectedContactIds: selectedContactIds(form),
       selectedTemplateId: template.id,
       subject: template.subject,
-      body: template.body
+      body: template.body,
+      returnTo: localReturnTo(text(form, 'returnTo'))
     };
   },
   aiDraftDirectEmail: async ({ request }) => {
@@ -90,7 +95,8 @@ export const actions = {
         selectedTemplateId: text(form, 'templateId'),
         subject: draft.subject,
         body: draft.body,
-        previewToken: ''
+        previewToken: '',
+        returnTo: localReturnTo(text(form, 'returnTo'))
       };
     } catch (error) {
       return fail(400, {
@@ -99,7 +105,8 @@ export const actions = {
         selectedContactIds: selectedContactIds(form),
         selectedTemplateId: text(form, 'templateId'),
         subject: text(form, 'subject'),
-        body: text(form, 'body')
+        body: text(form, 'body'),
+        returnTo: localReturnTo(text(form, 'returnTo'))
       });
     }
   }
