@@ -52,6 +52,7 @@
         <select name="status" value={campaignsStatus}>
           <option value="">All statuses</option>
           <option value="ready">Ready to send</option>
+          <option value="needs_review">Needs review</option>
           <option value="draft">Draft</option>
         </select>
       </label>

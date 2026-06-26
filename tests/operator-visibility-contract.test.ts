@@ -242,6 +242,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('Filter scheduled emails');
     expect(scheduledEmails).toContain('name="status"');
     expect(scheduledEmails).toContain('value="draft"');
+    expect(scheduledEmails).toContain('value="needs_review"');
+    expect(scheduledEmails).toContain('Needs review');
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');

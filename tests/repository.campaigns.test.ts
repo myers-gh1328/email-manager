@@ -98,6 +98,40 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Needs preview', approved: false }]);
   });
 
+  test('filters scheduled email list to messages needing review', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const failedContact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const sentContact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    repo.enrollContact(session.id, failedContact.id);
+    repo.enrollContact(session.id, sentContact.id);
+    const needsReview = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Review failures',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const allGood = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'All good',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: true
+    });
+    const failedDelivery = repo.ensurePendingDeliveries(needsReview.id).find((delivery) => delivery.recipientId === failedContact.id)!;
+    repo.markDeliveryFailed(failedDelivery.id, 'Temporary failure');
+    for (const delivery of repo.ensurePendingDeliveries(allGood.id)) repo.markDeliverySent(delivery.id, 'accepted');
+
+    const page = repo.listCampaignsPage({ status: 'needs_review' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('needs_review');
+    expect(page.items).toMatchObject([{ name: 'Review failures' }]);
+  });
+
   test('records successful campaign delivery once per contact', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
