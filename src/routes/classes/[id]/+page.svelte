@@ -18,6 +18,9 @@
     ...data.templateOptions
   ]);
   let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiBaseUrl && data.settings.aiModel));
+  let rosterSearch = $derived(data.rosterPage.search ?? '');
+  let currentRosterPage = $derived(Math.floor(data.rosterPage.offset / data.rosterPage.limit) + 1);
+  let totalRosterPages = $derived(Math.max(Math.ceil(data.rosterPage.total / data.rosterPage.limit), 1));
 
   $effect(() => {
     if (loadedSessionId !== data.session.id) {
@@ -42,6 +45,14 @@
 
   function checklistForContact(contactId: string) {
     return data.checklistState.filter((item) => item.contactId === contactId);
+  }
+
+  function rosterPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.rosterPage.search) params.set('search', data.rosterPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/classes/${data.session.id}?${query}` : `/classes/${data.session.id}`;
   }
 </script>
 
@@ -114,6 +125,14 @@
           <h3>Students</h3>
         </div>
       </div>
+      <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
+        <label>
+          <span class="sr-only">Search students</span>
+          <input name="search" value={rosterSearch} placeholder="Search students" />
+        </label>
+        <button class="secondary" type="submit">Search</button>
+      </form>
+      <p class="help-text">Showing {data.roster.length} of {data.rosterPage.total} students.</p>
       <div class="list">
       {#each data.roster as contact}
         {@const checklist = checklistForContact(contact.id)}
@@ -148,6 +167,19 @@
         <p class="empty">No students enrolled.</p>
       {/each}
       </div>
+      {#if totalRosterPages > 1}
+        <nav class="pagination" aria-label="Roster pages">
+          <a class="button-link" aria-disabled={currentRosterPage === 1} href={rosterPageHref(Math.max(currentRosterPage - 1, 1))}>Previous</a>
+          <span>Page {currentRosterPage} of {totalRosterPages}</span>
+          <a
+            class="button-link"
+            aria-disabled={currentRosterPage >= totalRosterPages}
+            href={rosterPageHref(Math.min(currentRosterPage + 1, totalRosterPages))}
+          >
+            Next
+          </a>
+        </nav>
+      {/if}
     </section>
   </div>
 
@@ -251,6 +283,15 @@
 </section>
 
 <style>
+  .inline-filters,
+  .pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
   .student-prep-items {
     display: flex;
     flex-wrap: wrap;

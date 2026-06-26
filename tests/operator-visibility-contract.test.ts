@@ -132,6 +132,9 @@ describe('operator visibility contract', () => {
     const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
     expect(classDetail).toContain('Roster and prep');
+    expect(classDetail).toContain('Search students');
+    expect(classDetail).toContain('data.rosterPage.total');
+    expect(classDetail).toContain('rosterPageHref');
     expect(classDetail).toContain('Prep items');
     expect(classDetail).toContain('student-prep-items');
     expect(classDetail).toContain('<h3>Import CSV roster</h3>');

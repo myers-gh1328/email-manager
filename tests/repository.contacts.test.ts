@@ -325,6 +325,34 @@ describe('repository contacts and classes', () => {
     expect(repo.getClassSessionDetail(session.id).roster).toEqual([]);
   });
 
+  test('paginates class detail roster with search', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-07-12', location: 'Blue Quarry' });
+    for (const firstName of ['Ari', 'Blair', 'Casey']) {
+      const contact = repo.createContact({ firstName, lastName: 'Student', email: `${firstName.toLowerCase()}@example.com` });
+      repo.enrollContact(session.id, contact.id);
+    }
+    const db = (repo as unknown as { db: { prepare: (sql: string) => unknown } }).db;
+    const originalPrepare = db.prepare.bind(db);
+    db.prepare = ((sql: string) => {
+      if (sql.includes('select c.*') && sql.includes('from contacts c') && sql.includes('join enrollments e') && !sql.includes('limit ? offset ?')) {
+        throw new Error('Class detail must not load the full roster before paging students.');
+      }
+      return originalPrepare(sql);
+    }) as typeof db.prepare;
+
+    const detail = repo.getClassSessionDetail(session.id, { limit: 2, offset: 0, search: 'student' });
+
+    expect(detail.roster).toHaveLength(2);
+    expect(detail.rosterPage).toMatchObject({
+      total: 3,
+      limit: 2,
+      offset: 0,
+      search: 'student'
+    });
+  });
+
   test('detects and rejects duplicate class sessions during normal create and update', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Open Water' });

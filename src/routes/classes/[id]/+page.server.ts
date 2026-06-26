@@ -13,17 +13,24 @@ import { extractRosterFromImage } from '$lib/server/llm';
 import { importRosterRows, parseRosterCsv } from '$lib/server/roster-import';
 import { getSettings } from '$lib/server/settings';
 
-export const load = ({ params }) => ({
-  ...repo.getClassSessionDetail(params.id),
-  contactOptions: loadContactOptions(),
-  courseTypes: repo.listCourseTypes(),
-  locations: repo.listLocations(),
-  templateOptions: loadTemplateOptions(),
-  defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
-  scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
-  checklistState: repo.listEnrollmentChecklistState(params.id),
-  settings: getSettings()
-});
+export const load = ({ params, url }) => {
+  const page = Math.max(Number(url.searchParams.get('page') ?? '1'), 1);
+  return {
+    ...repo.getClassSessionDetail(params.id, {
+      limit: 25,
+      offset: (page - 1) * 25,
+      search: url.searchParams.get('search') ?? ''
+    }),
+    contactOptions: loadContactOptions(),
+    courseTypes: repo.listCourseTypes(),
+    locations: repo.listLocations(),
+    templateOptions: loadTemplateOptions(),
+    defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
+    scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
+    checklistState: repo.listEnrollmentChecklistState(params.id),
+    settings: getSettings()
+  };
+};
 
 export const actions = {
 	  updateClassSession: async ({ params, request }) => {

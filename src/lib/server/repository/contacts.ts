@@ -391,10 +391,51 @@ export function listEnrollments(db: DatabaseSync, classSessionId: string) {
     .map(mapContact);
 }
 
-export function getClassSessionDetail(db: DatabaseSync, classSessionId: string) {
+export function getClassSessionDetail(db: DatabaseSync, classSessionId: string, rosterPageInput: { limit?: number; offset?: number; search?: string } = {}) {
+  const rosterPage = listEnrollmentsPage(db, classSessionId, rosterPageInput);
   return {
     session: getClassSession(db, classSessionId),
-    roster: listEnrollments(db, classSessionId)
+    roster: rosterPage.items,
+    rosterPage
+  };
+}
+
+function listEnrollmentsPage(db: DatabaseSync, classSessionId: string, input: { limit?: number; offset?: number; search?: string } = {}) {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = ['e.class_session_id = ?'];
+  const params: Array<string | number> = [classSessionId];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(c.first_name || \' \' || c.last_name) like ? or lower(c.email) like ? or lower(c.phone) like ?)');
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = `where ${where.join(' and ')}`;
+  const fromSql = `
+    from contacts c
+    join enrollments e on e.contact_id = c.id
+  `;
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select c.*
+       ${fromSql}
+       ${whereSql}
+       order by c.last_name, c.first_name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapContact(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
   };
 }
 

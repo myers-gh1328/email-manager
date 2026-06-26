@@ -346,8 +346,8 @@ export class AppRepository {
     return getClassSession(this.db, id);
   }
 
-  getClassSessionDetail(classSessionId: string) {
-    return getClassSessionDetail(this.db, classSessionId);
+  getClassSessionDetail(classSessionId: string, rosterPageInput?: { limit?: number; offset?: number; search?: string }) {
+    return getClassSessionDetail(this.db, classSessionId, rosterPageInput);
   }
 
   enrollContact(classSessionId: string, contactId: string) {
