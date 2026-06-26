@@ -8,6 +8,7 @@
   let contactsSearch = $derived(data.contactsPage.search ?? '');
   let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
   let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
+  let contactsListReturnTo = $derived(contactsPageHref(currentContactsPage));
   let contactHistoryHref = $derived(data.contactDetail ? `/communications?contactId=${data.contactDetail.contact.id}` : '/communications');
 
   function showImageImportBusy() {
@@ -77,7 +78,7 @@
       {#each data.contacts as contact}
         <article class="row-card tall">
           <div>
-            <a href={`/contacts?contactId=${contact.id}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
+            <a href={`/contacts?contactId=${contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
             <p>{contact.email}{contact.phone ? ` · ${contact.phone}` : ''}</p>
           </div>
           {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
@@ -114,7 +115,7 @@
           <label class="check"><input name="doNotEmail" type="checkbox" /> Do not email</label>
           <div class="button-row">
             <button type="submit">Add contact</button>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </div>
         </form>
       {/if}
