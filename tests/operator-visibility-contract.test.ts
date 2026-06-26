@@ -738,7 +738,8 @@ describe('operator visibility contract', () => {
     expect(history).toContain('aria-label="Filter email history"');
     expect(history).toContain('aria-label="Filter email type"');
     expect(history).toContain('<span class="filter-label">Type</span>');
-    expect(history).toContain('<span class="filter-label">Delivery</span>');
+    expect(history).toContain('<span class="filter-label">Send status</span>');
+    expect(history).not.toContain('<span class="filter-label">Delivery</span>');
     expect(history).toContain('<span class="filter-label">Replies</span>');
     expect(history).toContain("value: '', label: 'All reply statuses'");
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
@@ -817,7 +818,8 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('<h3>Email activity</h3>');
     expect(history).not.toContain('<h3>Email records</h3>');
     expect(history).toContain('<dl class="history-facts">');
-    expect(history).toContain('<dt>Delivery</dt>');
+    expect(history).toContain('<dt>Send status</dt>');
+    expect(history).not.toContain('<dt>Delivery</dt>');
     expect(history).toContain('<dt>Replies</dt>');
     expect(history).not.toContain('Every recorded email');
     expect(history).not.toContain('<div class="status-stack">');

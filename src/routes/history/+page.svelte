@@ -131,7 +131,7 @@
         </div>
       </div>
       <div class="filter-group">
-        <span class="filter-label">Delivery</span>
+        <span class="filter-label">Send status</span>
         <div class="segmented-control" aria-label="Filter email delivery status">
           {#each statusFilters as filter}
             <a class:active={historyStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
@@ -181,7 +181,7 @@
           </div>
           <dl class="history-facts">
             <div>
-              <dt>Delivery</dt>
+              <dt>Send status</dt>
               <dd><span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span></dd>
             </div>
             <div>
