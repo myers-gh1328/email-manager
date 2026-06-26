@@ -89,7 +89,7 @@
           {:else}
             <div class="button-row compact">
               <a class="button-link" href={replyHref(reply)}>Reply</a>
-              <form method="POST" action="?/markReplyReviewed" use:enhance>
+              <form method="POST" action="?/markReplyHandled" use:enhance>
                 <input name="replyId" type="hidden" value={reply.id} />
                 <button class="secondary" type="submit">Mark handled</button>
               </form>

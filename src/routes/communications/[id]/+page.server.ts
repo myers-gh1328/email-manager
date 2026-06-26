@@ -6,7 +6,7 @@ export const load = ({ params }) => ({
 });
 
 export const actions = {
-  markReplyReviewed: async ({ request }) => {
+  markReplyHandled: async ({ request }) => {
     const form = await request.formData();
     repo.markCommunicationReplyReviewed(required(form, 'replyId'));
     return { message: 'Reply marked handled.' };

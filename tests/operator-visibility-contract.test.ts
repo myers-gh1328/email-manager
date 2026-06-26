@@ -422,9 +422,15 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('Reply handled');
     expect(historyDetail).toContain('Mark handled');
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
+    expect(historyDetail).toContain('?/markReplyHandled');
+    expect(historyDetailServer).toContain('markReplyHandled');
+    expect(historyServer).toContain('markReplyHandled');
     expect(historyDetail).not.toContain('Reply reviewed');
     expect(historyDetail).not.toContain('Mark reviewed');
     expect(historyDetail).not.toContain('mark replies reviewed');
+    expect(historyDetail).not.toContain('markReplyReviewed');
+    expect(historyDetailServer).not.toContain('markReplyReviewed');
+    expect(historyServer).not.toContain('markReplyReviewed');
     expect(historyServer).toContain('Reply marked handled.');
     expect(historyDetailServer).toContain('Reply marked handled.');
     expect(historyServer).not.toContain('Reply marked reviewed.');
