@@ -6,16 +6,18 @@
   let { data, form } = $props();
   let classOptions = $derived(data.classSessionOptions);
   let templateOptions = $derived(data.templateOptions);
-  let campaignsSearch = $derived(data.campaignsPage.search ?? '');
-  let campaignsStatus = $derived(data.campaignsPage.status ?? '');
-  let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
-  let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
-  let scheduledEmailReturnTo = $derived(campaignsPageHref(currentCampaignsPage));
-  let campaignWorkflowReturnTo = $derived(
+  let scheduledEmails = $derived(data.campaigns);
+  let scheduledEmailsPage = $derived(data.campaignsPage);
+  let scheduledEmailsSearch = $derived(scheduledEmailsPage.search ?? '');
+  let scheduledEmailsStatus = $derived(scheduledEmailsPage.status ?? '');
+  let currentScheduledEmailsPage = $derived(Math.floor(scheduledEmailsPage.offset / scheduledEmailsPage.limit) + 1);
+  let totalScheduledEmailsPages = $derived(Math.max(Math.ceil(scheduledEmailsPage.total / scheduledEmailsPage.limit), 1));
+  let scheduledEmailReturnTo = $derived(scheduledEmailsPageHref(currentScheduledEmailsPage));
+  let scheduledEmailWorkflowReturnTo = $derived(
     `/scheduled-emails${data.action ? `?action=${encodeURIComponent(data.action)}&returnTo=${encodeURIComponent(data.returnTo || scheduledEmailReturnTo)}` : ''}`
   );
-  let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
-  let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
+  let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(scheduledEmailWorkflowReturnTo)}`);
+  let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(scheduledEmailWorkflowReturnTo)}`);
   const statusFilters = [
     { value: '', label: 'All' },
     { value: 'upcoming', label: 'Upcoming' },
@@ -29,11 +31,11 @@
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   }
 
-  function campaignsPageHref(page: number) {
+  function scheduledEmailsPageHref(page: number) {
     const params = new URLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
-    if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
-    if (data.campaignsPage.status) params.set('status', data.campaignsPage.status);
+    if (scheduledEmailsPage.search) params.set('search', scheduledEmailsPage.search);
+    if (scheduledEmailsPage.status) params.set('status', scheduledEmailsPage.status);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
     return query ? `/scheduled-emails?${query}` : '/scheduled-emails';
@@ -42,7 +44,7 @@
   function statusFilterHref(status: string) {
     const params = new URLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
-    if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
+    if (scheduledEmailsPage.search) params.set('search', scheduledEmailsPage.search);
     if (status) params.set('status', status);
     const query = params.toString();
     return query ? `/scheduled-emails?${query}` : '/scheduled-emails';
@@ -69,39 +71,39 @@
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search scheduled emails
-        <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
+        <input name="search" value={scheduledEmailsSearch} placeholder="Name, class, or template" />
       </label>
       <button type="submit">Search</button>
-      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href={data.returnTo ? `/scheduled-emails?returnTo=${encodeURIComponent(data.returnTo)}` : '/scheduled-emails'}>Clear</a>{/if}
+      {#if scheduledEmailsPage.search || scheduledEmailsPage.status}<a class="button-link" href={data.returnTo ? `/scheduled-emails?returnTo=${encodeURIComponent(data.returnTo)}` : '/scheduled-emails'}>Clear</a>{/if}
     </form>
     <div class="segmented-control" aria-label="Filter scheduled emails">
       {#each statusFilters as filter}
-        <a class:active={campaignsStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
+        <a class:active={scheduledEmailsStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
       {/each}
     </div>
-    <p class="help-text">Showing {data.campaigns.length} of {data.campaignsPage.total} scheduled emails.</p>
+    <p class="help-text">Showing {scheduledEmails.length} of {scheduledEmailsPage.total} scheduled emails.</p>
     <div class="list">
-      {#each data.campaigns as campaign}
+      {#each scheduledEmails as scheduledEmail}
         <article class="row-card">
           <div>
-            <a href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{campaign.name}</strong></a>
-            <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
-            <p>{scheduledEmailDeliverySummary(campaign)}</p>
+            <a href={`/scheduled-emails/${scheduledEmail.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{scheduledEmail.name}</strong></a>
+            <p>{scheduledEmail.courseName} · {scheduledEmail.templateName} · {formatDateTime(scheduledEmail.scheduledFor)}</p>
+            <p>{scheduledEmailDeliverySummary(scheduledEmail)}</p>
           </div>
-          <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>
+          <span class:good={scheduledEmail.readyToSend} class="pill">{scheduledEmailStatusLabel(scheduledEmail.readyToSend)}</span>
         </article>
       {:else}
         <p class="empty">No scheduled emails yet.</p>
       {/each}
     </div>
-    {#if totalCampaignsPages > 1}
+    {#if totalScheduledEmailsPages > 1}
       <nav class="pagination" aria-label="Scheduled email pages">
-        <a class="button-link" aria-disabled={currentCampaignsPage === 1} href={campaignsPageHref(Math.max(currentCampaignsPage - 1, 1))}>Previous</a>
-        <span>Page {currentCampaignsPage} of {totalCampaignsPages}</span>
+        <a class="button-link" aria-disabled={currentScheduledEmailsPage === 1} href={scheduledEmailsPageHref(Math.max(currentScheduledEmailsPage - 1, 1))}>Previous</a>
+        <span>Page {currentScheduledEmailsPage} of {totalScheduledEmailsPages}</span>
         <a
           class="button-link"
-          aria-disabled={currentCampaignsPage >= totalCampaignsPages}
-          href={campaignsPageHref(Math.min(currentCampaignsPage + 1, totalCampaignsPages))}
+          aria-disabled={currentScheduledEmailsPage >= totalScheduledEmailsPages}
+          href={scheduledEmailsPageHref(Math.min(currentScheduledEmailsPage + 1, totalScheduledEmailsPages))}
         >
           Next
         </a>
@@ -127,9 +129,9 @@
         <input name="previewToken" type="hidden" value={form.previewToken} />
         <input name="scheduleMode" type="hidden" value="ready" />
         {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
-        {#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}
-        {#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}
-        {#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}
+        {#if scheduledEmailsSearch}<input name="search" type="hidden" value={scheduledEmailsSearch} />{/if}
+        {#if scheduledEmailsStatus}<input name="status" type="hidden" value={scheduledEmailsStatus} />{/if}
+        {#if currentScheduledEmailsPage > 1}<input name="page" type="hidden" value={currentScheduledEmailsPage} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
         <button type="submit">Create scheduled email</button>
