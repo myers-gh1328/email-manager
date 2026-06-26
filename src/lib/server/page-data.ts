@@ -4,12 +4,16 @@ import { getSettings } from './settings';
 
 export function loadDashboardData() {
   const settings = getSettings();
-  const campaigns = repo.listCampaigns();
+  const nowIso = new Date().toISOString();
+  const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items;
   const retryWindow = localTodayWindow();
   return {
     stats: repo.stats(),
-    campaigns,
-    schedulerStatus: schedulerStatus(settings, campaigns),
+    recentScheduledEmails,
+    schedulerStatus: schedulerStatus(settings, {
+      dueReadyCount: repo.countReadyScheduledEmailsDue(nowIso),
+      nextReady: repo.getNextReadyScheduledEmail(nowIso)
+    }),
     failedTodayCount: repo.countFailedCampaignDeliveriesBetween(retryWindow.startIso, retryWindow.endIso),
     remoteStatus: remoteAccessStatus(settings),
     settings
@@ -24,12 +28,22 @@ export function localTodayWindow(now = new Date()) {
   return { startIso: start.toISOString(), endIso: end.toISOString() };
 }
 
-export function schedulerStatus(settings: ReturnType<typeof getSettings>, campaigns: ReturnType<typeof repo.listCampaigns>) {
-  const approved = campaigns.filter((campaign) => campaign.approved);
-  const nextApproved = approved
-    .filter((campaign) => new Date(campaign.scheduledFor).getTime() >= Date.now())
-    .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0];
-  const dueApprovedCount = approved.filter((campaign) => new Date(campaign.scheduledFor).getTime() <= Date.now()).length;
+export function schedulerStatus(
+  settings: ReturnType<typeof getSettings>,
+  scheduledEmails:
+    | ReturnType<typeof repo.listCampaigns>
+    | { dueReadyCount: number; nextReady: ReturnType<typeof repo.getNextReadyScheduledEmail> }
+) {
+  const scheduledEmailStatus = Array.isArray(scheduledEmails)
+    ? {
+        dueReadyCount: scheduledEmails.filter(
+          (campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() <= Date.now()
+        ).length,
+        nextReady: scheduledEmails
+          .filter((campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() >= Date.now())
+          .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0]
+      }
+    : scheduledEmails;
   const smtpConfigured = Boolean(settings.smtpHost && settings.smtpFrom);
   const smtpAuthConfigured = smtpAuthenticationConfigured(settings);
   const blockedReasons = [
@@ -44,8 +58,8 @@ export function schedulerStatus(settings: ReturnType<typeof getSettings>, campai
   return {
     ready: blockedReasons.length === 0,
     blockedReasons,
-    dueApprovedCount,
-    nextApproved
+    dueApprovedCount: scheduledEmailStatus.dueReadyCount,
+    nextApproved: scheduledEmailStatus.nextReady
   };
 }
 

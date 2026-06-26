@@ -89,6 +89,29 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   };
 }
 
+export function countReadyScheduledEmailsDue(db: DatabaseSync, nowIso: string) {
+  const row = db
+    .prepare("select count(*) as value from campaigns where approved = 1 and scheduled_for <= ?")
+    .get(nowIso) as Row;
+  return Number(row.value ?? 0);
+}
+
+export function getNextReadyScheduledEmail(db: DatabaseSync, nowIso: string) {
+  const row = db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       from campaigns c
+       join templates t on t.id = c.template_id
+       join class_sessions cs on cs.id = c.class_session_id
+       join course_types ct on ct.id = cs.course_type_id
+       where c.approved = 1 and c.scheduled_for >= ?
+       order by c.scheduled_for asc
+       limit 1`
+    )
+    .get(nowIso) as Row | undefined;
+  return row ? mapCampaign(row) : undefined;
+}
+
 export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string) {
   return db
     .prepare(

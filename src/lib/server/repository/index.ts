@@ -32,6 +32,7 @@ import {
 import {
   createCampaign,
   claimNextEligibleDelivery,
+  countReadyScheduledEmailsDue,
   countFailedCampaignDeliveriesBetween,
   claimNextPendingDelivery,
   deleteCampaign,
@@ -40,6 +41,7 @@ import {
   finalizeDeliveryAttemptFailed,
   getCampaign,
   getCampaignDetail,
+  getNextReadyScheduledEmail,
   hasSentDeliveries,
   listCampaigns,
   listCampaignsPage,
@@ -405,6 +407,14 @@ export class AppRepository {
 
   listCampaignsPage(input?: CampaignPageInput) {
     return listCampaignsPage(this.db, input);
+  }
+
+  countReadyScheduledEmailsDue(nowIso: string) {
+    return countReadyScheduledEmailsDue(this.db, nowIso);
+  }
+
+  getNextReadyScheduledEmail(nowIso: string) {
+    return getNextReadyScheduledEmail(this.db, nowIso);
   }
 
   listCampaignsForClassSession(classSessionId: string) {

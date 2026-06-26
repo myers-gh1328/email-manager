@@ -72,7 +72,7 @@
     <a class="button-link" href="/campaigns">Manage scheduled emails</a>
   </div>
   <div class="list">
-    {#each data.campaigns as campaign}
+    {#each data.recentScheduledEmails as campaign}
       <article class="row-card">
         <div>
           <strong>{campaign.name}</strong>

@@ -8,6 +8,40 @@ import { sendDueCampaignsWithDependencies } from '../src/lib/server/send-due-cam
 import { baseAppSettings } from './settings-helpers';
 
 describe('repository campaigns and deliveries', () => {
+  test('summarizes ready scheduled emails for dashboard without listing every schedule', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Next ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Draft due',
+      scheduledFor: '2026-08-01T12:00:00.000Z',
+      approved: false
+    });
+
+    expect(repo.countReadyScheduledEmailsDue('2026-08-02T00:00:00.000Z')).toBe(1);
+    expect(repo.getNextReadyScheduledEmail('2026-08-02T00:00:00.000Z')).toMatchObject({
+      name: 'Next ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z'
+    });
+  });
+
   test('lists scheduled emails with pagination and search', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Rescue Diver' });

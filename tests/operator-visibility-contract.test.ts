@@ -37,6 +37,7 @@ describe('operator visibility contract', () => {
   test('keeps risky send actions and approval language off the dashboard', () => {
     const dashboard = readFileSync('src/routes/+page.svelte', 'utf8');
     const dashboardServer = readFileSync('src/routes/+page.server.ts', 'utf8');
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     expect(dashboard).not.toContain('resendFailedToday');
     expect(dashboardServer).not.toContain('resendFailedToday');
     expect(dashboard).not.toContain('Resend failed today');
@@ -48,6 +49,11 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('Attention needed');
     expect(dashboard).toContain('Scheduled Emails');
     expect(dashboard).toContain('Review failed emails');
+    expect(dashboard).toContain('data.recentScheduledEmails');
+    expect(pageData).toContain('recentScheduledEmails');
+    expect(pageData).toContain('countReadyScheduledEmailsDue');
+    expect(pageData).toContain('getNextReadyScheduledEmail');
+    expect(pageData).not.toContain('const campaigns = repo.listCampaigns()');
   });
 
   test('keeps contact detail focused on recent email activity with a filtered History link', () => {
