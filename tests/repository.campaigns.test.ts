@@ -71,6 +71,41 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
   });
 
+  test('includes delivery counts on scheduled email list rows', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const preparedContact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const sentContact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const failedContact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    repo.enrollContact(session.id, preparedContact.id);
+    repo.enrollContact(session.id, sentContact.id);
+    repo.enrollContact(session.id, failedContact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Delivery summary',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const deliveries = repo.ensurePendingDeliveries(campaign.id);
+    repo.markDeliverySent(deliveries.find((delivery) => delivery.recipientId === sentContact.id)!.id, 'accepted');
+    repo.markDeliveryFailed(deliveries.find((delivery) => delivery.recipientId === failedContact.id)!.id, 'Temporary failure');
+
+    const page = repo.listCampaignsPage({ search: 'summary' });
+
+    expect(page.items).toMatchObject([
+      {
+        name: 'Delivery summary',
+        recipientCount: 3,
+        pendingCount: 1,
+        sentCount: 1,
+        failedCount: 1
+      }
+    ]);
+  });
+
   test('filters scheduled email list by draft readiness', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Rescue Diver' });

@@ -222,6 +222,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('Ready to send');
     expect(scheduledEmails).toContain('scheduledEmailStatusLabel(campaign.approved)');
+    expect(scheduledEmails).toContain('scheduledEmailDeliverySummary(campaign)');
     expect(scheduledEmailDetail).toContain('scheduledEmailStatusLabel(data.campaign.approved)');
     expect(classDetail).toContain('scheduledEmailStatusLabel(campaign.approved)');
     expect(scheduledEmails).not.toContain("campaign.approved ? 'Scheduled' : 'Draft'");

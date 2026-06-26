@@ -87,12 +87,25 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
     join templates t on t.id = c.template_id
     join class_sessions cs on cs.id = c.class_session_id
     join course_types ct on ct.id = cs.course_type_id
+    left join (
+      select campaign_id,
+        count(*) as recipient_count,
+        sum(case when status = 'pending' then 1 else 0 end) as pending_count,
+        sum(case when status = 'sent' then 1 else 0 end) as sent_count,
+        sum(case when status in ('failed', 'retry_scheduled', 'needs_attention') then 1 else 0 end) as failed_count
+      from campaign_deliveries
+      group by campaign_id
+    ) dc on dc.campaign_id = c.id
   `;
   const whereSql = where.length ? `where ${where.join(' and ')}` : '';
   const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
   const items = db
     .prepare(
-      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time,
+         coalesce(dc.recipient_count, 0) as recipient_count,
+         coalesce(dc.pending_count, 0) as pending_count,
+         coalesce(dc.sent_count, 0) as sent_count,
+         coalesce(dc.failed_count, 0) as failed_count
        ${fromSql}
        ${whereSql}
        order by c.scheduled_for desc

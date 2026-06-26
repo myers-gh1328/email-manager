@@ -83,7 +83,11 @@ export function mapCampaign(row: Row) {
     courseName: rowString(row.course_name),
     startsOn: rowString(row.starts_on),
     endsOn: rowString(row.ends_on || row.starts_on),
-    startTime: rowString(row.start_time)
+    startTime: rowString(row.start_time),
+    recipientCount: Number(row.recipient_count ?? 0),
+    pendingCount: Number(row.pending_count ?? 0),
+    sentCount: Number(row.sent_count ?? 0),
+    failedCount: Number(row.failed_count ?? 0)
   };
 }
 

@@ -206,6 +206,10 @@ export interface CampaignRecord {
   startsOn: string;
   endsOn: string;
   startTime: string;
+  recipientCount: number;
+  pendingCount: number;
+  sentCount: number;
+  failedCount: number;
 }
 
 export interface CampaignPageInput {

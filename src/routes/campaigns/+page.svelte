@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import SearchSelect from '$lib/SearchSelect.svelte';
-  import { scheduledEmailStatusLabel } from '$lib/shared/format';
+  import { scheduledEmailDeliverySummary, scheduledEmailStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let classOptions = $derived(data.classSessionOptions);
@@ -68,6 +68,7 @@
           <div>
             <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
             <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
+            <p>{scheduledEmailDeliverySummary(campaign)}</p>
           </div>
           <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
         </article>
