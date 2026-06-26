@@ -57,7 +57,7 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (settings.emailTestModeEnabled) {
     return agentError(
       'test_mode_blocks_automatic_send',
-      'Email test mode blocks automatic and send-due campaign sends.',
+      'Email test mode blocks automatic and send-due scheduled email sends.',
       { approvalId: input.approvalId },
       { labels: settings.vocabulary }
     );

@@ -197,7 +197,11 @@ describe('agent campaign send-due tools', () => {
     const result = await commitSendDueCampaignsTool(repo, { approvalId: prepared.data.approvalId, confirmationText: prepared.data.confirmationText }, settings);
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('test_mode_blocks_automatic_send');
+    if (!result.ok) {
+      expect(result.error.code).toBe('test_mode_blocks_automatic_send');
+      expect(result.error.message).toBe('Email test mode blocks automatic and send-due scheduled email sends.');
+      expect(result.error.message).not.toContain('campaign');
+    }
     expect(sendOutboundEmail).not.toHaveBeenCalled();
   });
 });
