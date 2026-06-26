@@ -748,6 +748,14 @@ describe('repository campaigns and deliveries', () => {
       approved: true
     });
     repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => unknown } }).db;
+    const originalPrepare = db.prepare.bind(db);
+    db.prepare = ((sql: string) => {
+      if (sql.includes('from contacts c') && sql.includes('join enrollments e') && !sql.includes('limit ? offset ?')) {
+        throw new Error('Scheduled email detail must not load the full roster before paging recipients.');
+      }
+      return originalPrepare(sql);
+    }) as typeof db.prepare;
 
     const detail = repo.getCampaignDetail(campaign.id, { limit: 2, offset: 0, search: 'student' });
 
