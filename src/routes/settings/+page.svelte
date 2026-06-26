@@ -76,6 +76,10 @@
     return [title, ...terms].join(' ').toLowerCase().includes(query);
   }
 
+  function sectionOpen(section: string) {
+    return Boolean(settingsSearch.trim()) || data.openSection === section;
+  }
+
   function externalSignOnRedirectUri() {
     return externalSignOnProvider === 'entra'
       ? data.externalSignOnRedirectUris.entra
@@ -105,7 +109,7 @@
 
   <div class="settings-grid">
     {#if sectionMatches('Profile and signature', ['identity instructor name email signature template'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('profile')}>
       <summary>Profile and Signature</summary>
     <form method="POST" action="?/updateProfile" class="panel-form" use:enhance>
       <div>
@@ -128,7 +132,7 @@
     {/if}
 
     {#if sectionMatches('Email Sending', ['delivery controls scheduled sending email test mode schedule automation'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('email-sending')}>
       <summary>Email Sending</summary>
     <form method="POST" action="?/updateDelivery" class="panel-form" use:enhance>
       <div>
@@ -179,7 +183,7 @@
     {/if}
 
     {#if sectionMatches('App Data', ['course types locations prep tasks setup checklist class data'])}
-    <details class="settings-section settings-panel wide" open={data.openSection === 'app-data'}>
+    <details class="settings-section settings-panel wide" open={sectionOpen('app-data')}>
       <summary>App Data</summary>
       <div class="panel-form">
         <div>
@@ -258,7 +262,7 @@
     {/if}
 
     {#if sectionMatches('SMTP and provider authentication', ['smtp email account provider authentication microsoft outlook gmail fastmail password test send'])}
-    <details class="settings-section settings-panel wide" open>
+    <details class="settings-section settings-panel wide" open={sectionOpen('smtp')}>
       <summary>SMTP and Provider Authentication</summary>
     <form method="POST" action="?/updateSmtp" class="panel-form" use:enhance>
       <div class="panel-title-row">
@@ -355,7 +359,7 @@
     {/if}
 
     {#if sectionMatches('Remote Access', ['network public base url tunnel cloudflare tailscale proxy secure cookies'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('remote-access')}>
       <summary>Remote Access</summary>
     <form method="POST" action="?/updateRemoteAccess" class="panel-form" use:enhance>
       <div>
@@ -399,7 +403,7 @@
     {/if}
 
     {#if sectionMatches('Automation', ['optional tools ai endpoint model vision schedule automation local server'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('automation')}>
       <summary>Automation</summary>
     <form method="POST" action="?/updateAi" class="panel-form" use:enhance>
       <div>
@@ -454,7 +458,7 @@
     {/if}
 
     {#if sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('reply-sync')}>
       <summary>Reply Sync</summary>
       <form method="POST" action="?/updateReplySync" class="panel-form" use:enhance>
         <div>
@@ -506,7 +510,7 @@
     {/if}
 
     {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token approval'])}
-      <details class="settings-section settings-panel" open>
+      <details class="settings-section settings-panel" open={sectionOpen('agent-access')}>
         <summary>Agent Access</summary>
         <form method="POST" action="?/updateAgentAccess" class="panel-form" use:enhance>
           <label class="check with-help">
@@ -520,7 +524,7 @@
     {/if}
 
     {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings approval workflow risk'])}
-      <details class="settings-section settings-panel" open>
+      <details class="settings-section settings-panel" open={sectionOpen('agent-permissions')}>
         <summary>Agent Permissions</summary>
         <form method="POST" action="?/updateAgentPermissions" class="panel-form" use:enhance>
           <label class="check"><span><input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} /> Let agents view my app data</span></label>
@@ -537,7 +541,7 @@
     {/if}
 
     {#if sectionMatches('Vocabulary', ['labels course class student instructor participant workshop terminology'])}
-      <details class="settings-section settings-panel wide" open>
+      <details class="settings-section settings-panel wide" open={sectionOpen('vocabulary')}>
         <summary>Vocabulary</summary>
         <form method="POST" action="?/updateVocabulary" class="panel-form" use:enhance>
           <div class="split">
@@ -562,7 +566,7 @@
     {/if}
 
     {#if sectionMatches('Security', ['change admin password app secret login credentials external sign-on sso google microsoft entra identity'])}
-    <details class="settings-section settings-panel wide" open={data.openSection === 'security'}>
+    <details class="settings-section settings-panel wide" open={sectionOpen('security')}>
       <summary>Security</summary>
       <form method="POST" action="?/changePassword" class="panel-form" use:enhance>
         <div>
