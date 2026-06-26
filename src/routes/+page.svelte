@@ -73,13 +73,13 @@
   </div>
   <div class="list">
     {#each data.recentScheduledEmails as campaign}
-      <article class="row-card">
+      <a class="row-card" href={`/campaigns/${campaign.id}`}>
         <div>
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
         </div>
         <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Scheduled' : 'Draft'}</span>
-      </article>
+      </a>
     {:else}
       <p class="empty">No class emails scheduled.</p>
     {/each}
