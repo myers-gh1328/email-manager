@@ -230,30 +230,24 @@
         </section>
       {/if}
     </details>
-    <details class="action-panel">
-      <summary>Import CSV roster</summary>
-      <form method="POST" action="?/importCsv" enctype="multipart/form-data" class="panel-form" use:enhance>
-        <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
-        <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
-        <button type="submit">Import CSV</button>
-      </form>
-    </details>
+    <form method="POST" action="?/importCsv" enctype="multipart/form-data" class="panel-form" use:enhance>
+      <h3>Import CSV roster</h3>
+      <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
+      <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
+      <button type="submit">Import CSV</button>
+    </form>
     {#if aiImageImportReady}
-      <details class="action-panel" open={form?.panel === 'image'}>
-        <summary>Import roster photo</summary>
+      <form method="POST" action="?/importImage" enctype="multipart/form-data" class="panel-form" data-local-busy use:enhance={showImageImportBusy}>
+        <h3>Import roster photo</h3>
         {#if importingImage}<BusyOverlay message="Importing roster image..." />{/if}
-        <form method="POST" action="?/importImage" enctype="multipart/form-data" class="panel-form" data-local-busy use:enhance={showImageImportBusy}>
-          <label>Roster photo or image<input name="imageFile" type="file" accept="image/*" capture="environment" required /></label>
-          <button type="submit" disabled={importingImage}>Extract students from image</button>
-        </form>
-      </details>
+        <label>Roster photo or image<input name="imageFile" type="file" accept="image/*" capture="environment" required /></label>
+        <button type="submit" disabled={importingImage}>Extract students from image</button>
+      </form>
     {:else}
-      <details class="action-panel">
-        <summary>Import roster photo</summary>
-        <section class="panel-form">
-          <p class="body-copy">Connect AI assistance and choose a vision-capable model in Settings to import a roster photo or screenshot.</p>
-        </section>
-      </details>
+      <section class="panel-form">
+        <h3>Import roster photo</h3>
+        <p class="body-copy">Connect AI assistance and choose a vision-capable model in Settings to import a roster photo or screenshot.</p>
+      </section>
     {/if}
   </div>
 </section>

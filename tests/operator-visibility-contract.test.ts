@@ -101,6 +101,10 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('Roster and prep');
     expect(classDetail).toContain('Prep items');
     expect(classDetail).toContain('student-prep-items');
+    expect(classDetail).toContain('<h3>Import CSV roster</h3>');
+    expect(classDetail).toContain('<h3>Import roster photo</h3>');
+    expect(classDetail).not.toContain('<summary>Import CSV roster</summary>');
+    expect(classDetail).not.toContain('<summary>Import roster photo</summary>');
     expect(classDetailServer).toContain('Prep item updated.');
     expect(classDetailServer).not.toContain('Checklist updated.');
   });
