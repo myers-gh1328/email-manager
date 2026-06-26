@@ -11,12 +11,14 @@
     contacts,
     selectedContactIds = [],
     name = 'contactIds',
-    legend = 'Recipients'
+    legend = 'Recipients',
+    mode = 'multi'
   }: {
     contacts: ContactOption[];
     selectedContactIds?: string[];
     name?: string;
     legend?: string;
+    mode?: 'multi' | 'single';
   } = $props();
 
   let search = $state('');
@@ -35,16 +37,18 @@
   <legend>{legend}</legend>
   <label class="sr-only" for={`${name}-search`}>Search recipients</label>
   <input id={`${name}-search`} bind:value={search} placeholder="Search recipients" />
-  <div class="selected-chip-row" aria-label="Selected recipients">
-    {#each contacts.filter((contact) => isSelected(contact.id)) as contact}
-      <span class="pill">{contact.firstName} {contact.lastName}</span>
-    {/each}
-  </div>
+  {#if mode === 'multi'}
+    <div class="selected-chip-row" aria-label="Selected recipients">
+      {#each contacts.filter((contact) => isSelected(contact.id)) as contact}
+        <span class="pill">{contact.firstName} {contact.lastName}</span>
+      {/each}
+    </div>
+  {/if}
   {#each filteredContacts as contact}
     <label class="check">
       <input
         {name}
-        type="checkbox"
+        type={mode === 'single' ? 'radio' : 'checkbox'}
         value={contact.id}
         checked={isSelected(contact.id)}
         disabled={contact.doNotEmail}

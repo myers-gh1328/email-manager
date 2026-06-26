@@ -1,6 +1,7 @@
 <script lang="ts">
 	  import { enhance } from '$app/forms';
 	  import BusyOverlay from '$lib/BusyOverlay.svelte';
+	  import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
 	  import SearchSelect from '$lib/SearchSelect.svelte';
 	  import { formatClassSchedule, formatDateTime, purposeLabel, timingLabel } from '$lib/shared/format';
 
@@ -16,9 +17,6 @@
     ...data.defaultTemplates.map((item) => ({ value: `default:${item.purpose}:${item.templateId}`, label: `${purposeLabel(item.purpose)} · ${item.templateName} · ${timingLabel(item.sendOffsetMinutes)}` })),
     ...data.templates.map((template) => ({ value: template.id, label: template.name }))
   ]);
-  let contactOptions = $derived(
-    data.contacts.map((contact) => ({ value: contact.id, label: `${contact.firstName} ${contact.lastName} · ${contact.email}` }))
-  );
   let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiBaseUrl && data.settings.aiModel));
 
   $effect(() => {
@@ -172,13 +170,11 @@
       <label>Notes<textarea name="notes" rows="3">{data.session.notes}</textarea></label>
       <button type="submit">Update class</button>
     </form>
-    <details class="action-panel">
-      <summary>Add student</summary>
-      <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
-        <SearchSelect name="contactId" label="Contact" options={contactOptions} placeholder="Search contacts" required />
-        <button type="submit">Enroll</button>
-      </form>
-    </details>
+    <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
+      <h3>Add student</h3>
+      <ContactMultiSelect contacts={data.contacts} name="contactId" legend="Student" mode="single" />
+      <button type="submit">Enroll</button>
+    </form>
     <details class="action-panel" open={form?.panel === 'email'}>
       <summary>Email this class</summary>
       <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>

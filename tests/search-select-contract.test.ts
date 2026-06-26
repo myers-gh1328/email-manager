@@ -21,4 +21,17 @@ describe('SearchSelect contract', () => {
     expect(picker).toContain("name = 'contactIds'");
     expect(picker).toContain('selectedContactIds');
   });
+
+  test('uses the shared contact picker for class enrollment without a one-field collapse', () => {
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const picker = readFileSync('src/lib/ContactMultiSelect.svelte', 'utf8');
+
+    expect(classDetail).toContain("import ContactMultiSelect from '$lib/ContactMultiSelect.svelte'");
+    expect(classDetail).toContain('<ContactMultiSelect');
+    expect(classDetail).toContain("name=\"contactId\"");
+    expect(classDetail).toContain("mode=\"single\"");
+    expect(classDetail).not.toContain('<summary>Add student</summary>');
+    expect(picker).toContain("mode = 'multi'");
+    expect(picker).toContain("type={mode === 'single' ? 'radio' : 'checkbox'}");
+  });
 });
