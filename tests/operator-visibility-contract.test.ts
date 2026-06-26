@@ -470,6 +470,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<h3>Email content</h3>');
     expect(scheduledEmailDetail).not.toContain('<h3>Template snapshot</h3>');
     expect(scheduledEmailDetail).toContain('Delete scheduled email');
+    expect(scheduledEmailDetail).toContain('Emails that have not been sent will be removed.');
+    expect(scheduledEmailDetail).not.toContain('delivery rows');
     expect(scheduledEmailDetail).not.toContain('Delete draft');
     expect(scheduledEmailDetail).not.toContain('Draft emails need a student preview before they can be marked ready.');
     expect(scheduledEmailDetail).toContain('Emails needing preview must be previewed with the current roster before they can be marked ready.');

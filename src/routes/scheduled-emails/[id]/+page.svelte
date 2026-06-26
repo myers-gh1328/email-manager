@@ -21,7 +21,7 @@
   }
 
   function confirmDelete() {
-    return confirm('Delete this scheduled email? Unpreviewed and unsent delivery rows will be removed.');
+    return confirm('Delete this scheduled email? Emails that have not been sent will be removed.');
   }
 
   function recipientPageHref(page: number) {
