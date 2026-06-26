@@ -199,6 +199,21 @@ export function getCourseType(db: DatabaseSync, id: string) {
   return mapCourseType(row);
 }
 
+export function findCourseTypeByName(db: DatabaseSync, name: string) {
+  const normalizedName = name.trim().toLowerCase();
+  if (!normalizedName) return undefined;
+  const row = db
+    .prepare(
+      `select *
+       from course_types
+       where lower(trim(name)) = ?
+       order by created_at
+       limit 1`
+    )
+    .get(normalizedName) as Row | undefined;
+  return row ? mapCourseType(row) : undefined;
+}
+
 export function updateCourseType(db: DatabaseSync, id: string, input: CourseTypeInput) {
   db.prepare('update course_types set name = ?, description = ? where id = ?')
     .run(input.name.trim(), input.description?.trim() ?? '', id);

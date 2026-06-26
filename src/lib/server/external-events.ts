@@ -177,9 +177,7 @@ function applyClassUpsert(repo: AppRepository, event: ExternalEventEnvelope): Ex
   const externalId = requiredString(event.data, 'externalId');
   const courseName = requiredString(event.data, 'courseName');
   const startsOn = requiredString(event.data, 'startsOn');
-  const course =
-    repo.listCourseTypes().find((item) => item.name.trim().toLowerCase() === courseName.trim().toLowerCase()) ??
-    repo.createCourseType({ name: courseName });
+  const course = repo.findCourseTypeByName(courseName) ?? repo.createCourseType({ name: courseName });
   const input = {
     courseTypeId: course.id,
     startsOn,

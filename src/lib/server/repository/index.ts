@@ -9,6 +9,7 @@ import {
   deleteContact,
   enrollContact,
   findContactsByEmails,
+  findCourseTypeByName,
   findDuplicateClassSession,
   findDuplicateContact,
   getClassSession,
@@ -268,6 +269,10 @@ export class AppRepository {
 
   getCourseType(id: string) {
     return getCourseType(this.db, id);
+  }
+
+  findCourseTypeByName(name: string) {
+    return findCourseTypeByName(this.db, name);
   }
 
   updateCourseType(id: string, input: CourseTypeInput) {
