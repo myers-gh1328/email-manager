@@ -232,6 +232,7 @@
         placeholder="Search courses"
         addHref="/settings"
         addLabel="Add course"
+        searchHref="/courses/search"
         required
       />
       <SearchSelect
@@ -242,6 +243,7 @@
         placeholder="Search locations"
         addHref="/settings"
         addLabel="Add location"
+        searchHref="/locations/search"
         required
       />
       <label>Start date<input bind:value={editStartsOn} name="startsOn" type="date" required /></label>

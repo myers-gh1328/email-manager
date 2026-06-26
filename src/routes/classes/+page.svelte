@@ -95,6 +95,7 @@
           placeholder="Search courses"
           addHref="/settings"
           addLabel="Add course"
+          searchHref="/courses/search"
           required
         />
         <SearchSelect
@@ -104,6 +105,7 @@
           placeholder="Search locations"
           addHref="/settings"
           addLabel="Add location"
+          searchHref="/locations/search"
           required
         />
         <p class="help-text"><a href="/settings">Manage courses, locations, and prep tasks</a>.</p>

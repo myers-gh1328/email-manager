@@ -112,6 +112,28 @@ describe('SearchSelect contract', () => {
     expect(templateSearchRoute).toContain('repo.listTemplatesPage');
   });
 
+  test('does not load every course or location into class search selects', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+    const classes = readFileSync('src/routes/classes/+page.svelte', 'utf8');
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
+    const courseSearchRoute = readFileSync('src/routes/courses/search/+server.ts', 'utf8');
+    const locationSearchRoute = readFileSync('src/routes/locations/search/+server.ts', 'utf8');
+
+    expect(pageData).toContain('function loadCourseTypeOptions');
+    expect(pageData).toContain('function loadLocationOptions');
+    expect(pageData).toContain('repo.listCourseTypesPage({ limit: 25 }).items');
+    expect(pageData).toContain('repo.listLocationsPage({ limit: 25 }).items');
+    expect(classDetailServer).not.toContain('courseTypes: repo.listCourseTypes()');
+    expect(classDetailServer).not.toContain('locations: repo.listLocations()');
+    expect(classes).toContain('searchHref="/courses/search"');
+    expect(classes).toContain('searchHref="/locations/search"');
+    expect(classDetail).toContain('searchHref="/courses/search"');
+    expect(classDetail).toContain('searchHref="/locations/search"');
+    expect(courseSearchRoute).toContain('repo.listCourseTypesPage');
+    expect(locationSearchRoute).toContain('repo.listLocationsPage');
+  });
+
   test('does not preload unused picker options for the class list page', () => {
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
 

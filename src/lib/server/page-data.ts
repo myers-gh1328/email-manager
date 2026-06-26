@@ -132,12 +132,44 @@ export function formatTemplateOption(template: ReturnType<typeof repo.listTempla
   return { value: template.id, label: template.name };
 }
 
+export function formatCourseTypeOption(course: ReturnType<typeof repo.listCourseTypesPage>['items'][number]) {
+  return { value: course.id, label: course.name };
+}
+
+export function formatLocationOption(location: ReturnType<typeof repo.listLocationsPage>['items'][number]) {
+  return { value: location.id, label: location.name };
+}
+
 export function loadClassSessionOptions() {
   return repo.listClassSessionsPage({ limit: 25 }).items.map(formatClassSessionOption);
 }
 
 export function loadTemplateOptions() {
   return repo.listTemplatesPage({ limit: 25 }).items.map(formatTemplateOption);
+}
+
+export function loadCourseTypeOptions(selectedCourseTypeIds: string[] = []) {
+  const options = repo.listCourseTypesPage({ limit: 25 }).items;
+  const byId = new Map(options.map((course) => [course.id, course]));
+  for (const courseTypeId of selectedCourseTypeIds.filter(Boolean)) {
+    if (!byId.has(courseTypeId)) {
+      const course = repo.getCourseType(courseTypeId);
+      byId.set(course.id, course);
+    }
+  }
+  return [...byId.values()];
+}
+
+export function loadLocationOptions(selectedLocationIds: string[] = []) {
+  const options = repo.listLocationsPage({ limit: 25 }).items;
+  const byId = new Map(options.map((location) => [location.id, location]));
+  for (const locationId of selectedLocationIds.filter(Boolean)) {
+    if (!byId.has(locationId)) {
+      const location = repo.getLocation(locationId);
+      byId.set(location.id, location);
+    }
+  }
+  return [...byId.values()];
 }
 
 export function loadClassesData(input: { search?: string; page?: number } = {}) {
@@ -149,8 +181,8 @@ export function loadClassesData(input: { search?: string; page?: number } = {}) 
     offset: (page - 1) * limit
   });
   return {
-    courseTypes: repo.listCourseTypes(),
-    locations: repo.listLocations(),
+    courseTypes: loadCourseTypeOptions(),
+    locations: loadLocationOptions(),
     classSessions: classSessionsPage.items,
     classSessionsPage
   };
