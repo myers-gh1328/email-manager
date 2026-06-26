@@ -2,7 +2,7 @@
   import { enhance } from '$app/forms';
   import { formatDateTime, messageStatusLabel } from '$lib/shared/format';
 
-  let { data, form } = $props();
+  let { data } = $props();
   let communication = $derived(data.communication);
   let detailReturnTo = $derived(`/communications/${communication.id}${data.returnTo ? `?returnTo=${encodeURIComponent(data.returnTo)}` : ''}`);
 
@@ -30,7 +30,7 @@
     <a class="button-link" href={data.returnTo || '/communications'}>Back to History</a>
   </div>
 
-  {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
+  {#if data.actionMessage}<p class="success spaced">{data.actionMessage}</p>{/if}
 
   <section class="panel-form spaced">
     <dl class="detail-facts">
@@ -99,6 +99,7 @@
               <a class="button-link" href={replyHref(reply)}>Reply</a>
               <form method="POST" action="?/markReplyHandled" use:enhance>
                 <input name="replyId" type="hidden" value={reply.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
                 <button class="secondary" type="submit">Mark handled</button>
               </form>
             </div>

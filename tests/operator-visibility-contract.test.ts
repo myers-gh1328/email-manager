@@ -580,6 +580,7 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('Mark handled');
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
     expect(historyDetail).toContain('href={data.returnTo || \'/communications\'}');
+    expect(historyDetail).toContain('data.actionMessage');
     expect(historyDetail).toContain('communication.classSessionId');
     expect(historyDetail).toContain('detailReturnTo');
     expect(historyDetail).toContain('href={`/contacts?contactId=${communication.contactId}&returnTo=${encodeURIComponent(detailReturnTo)}`}');
@@ -589,7 +590,11 @@ describe('operator visibility contract', () => {
     expect(historyDetailServer).toContain('localReturnTo');
     expect(historyDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyDetail).toContain('?/markReplyHandled');
+    expect(historyDetail).toContain('name="returnTo" value={data.returnTo}');
     expect(historyDetailServer).toContain('markReplyHandled');
+    expect(historyDetailServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(historyDetailServer).toContain('detailActionReturn');
+    expect(historyDetailServer).toContain('throw redirect(303, detailActionReturn(params.id, form,');
     expect(historyServer).toContain('markReplyHandled');
     expect(historyServer).toContain('localReturnTo');
     expect(historyServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
