@@ -12,7 +12,7 @@ export const load = ({ params, url }) => ({
 export const actions = {
   markReplyHandled: async ({ params, request }) => {
     const form = await request.formData();
-    repo.markCommunicationReplyReviewed(required(form, 'replyId'));
+    repo.markCommunicationReplyHandled(required(form, 'replyId'));
     throw redirect(303, detailActionReturn(params.id, form, 'Reply marked handled.'));
   }
 };

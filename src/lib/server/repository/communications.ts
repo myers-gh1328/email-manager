@@ -388,6 +388,10 @@ export function markCommunicationReplyReviewed(db: DatabaseSync, id: string) {
   return getCommunicationReply(db, id);
 }
 
+export function markCommunicationReplyHandled(db: DatabaseSync, id: string) {
+  return markCommunicationReplyReviewed(db, id);
+}
+
 function getCommunicationReply(db: DatabaseSync, id: string) {
   const row = db.prepare('select * from communication_replies where id = ?').get(id) as Row | undefined;
   if (!row) throw new Error(`Communication reply not found: ${id}`);

@@ -96,6 +96,7 @@ import {
   listRecentContactCommunications,
   listEmailTestAudits,
   listEmailTestAuditsPage,
+  markCommunicationReplyHandled,
   markCommunicationReplyReviewed,
   recordCommunication,
   recordCommunicationReply,
@@ -584,6 +585,10 @@ export class AppRepository {
 
   markCommunicationReplyReviewed(id: string) {
     return markCommunicationReplyReviewed(this.db, id);
+  }
+
+  markCommunicationReplyHandled(id: string) {
+    return markCommunicationReplyHandled(this.db, id);
   }
 
   listCommunicationMessageIds() {
