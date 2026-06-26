@@ -58,13 +58,12 @@
     <div class="section-heading compact">
       <div>
         <p class="eyebrow">Scheduled Emails</p>
-        <h2>Schedule class emails</h2>
+        <h2>Manage scheduled emails</h2>
       </div>
     </div>
     {#if form?.message || data.actionMessage}<p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>{/if}
     <div class="action-row">
-      <a class:active={data.action === 'preview'} class="button-link" href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Preview class email</a>
-      <a class:active={data.action === 'schedule'} class="button-link" href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Schedule class email</a>
+      <a class:active={data.action === 'preview'} class="button-link" href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Create scheduled email</a>
     </div>
     <form class="inline-filters" method="GET" action="/campaigns">
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
@@ -140,7 +139,7 @@
   <div class="form-stack">
     {#if data.action === 'preview'}
       <form method="POST" action="?/previewCampaign" class="panel-form" use:enhance>
-        <h3>Preview class email</h3>
+        <h3>Preview scheduled email</h3>
         <SearchSelect
           name="classSessionId"
           label="Class"
@@ -163,43 +162,6 @@
         />
         <div class="button-row">
           <button type="submit">Preview personalization</button>
-          <a class="button-link" href={data.returnTo || '/campaigns'}>Cancel</a>
-        </div>
-      </form>
-    {/if}
-    {#if data.action === 'schedule'}
-      <form method="POST" action="?/createCampaign" class="panel-form" use:enhance>
-        <h3>Schedule class email</h3>
-        <label>Name<input name="name" placeholder="Welcome email" required /></label>
-        <SearchSelect
-          name="classSessionId"
-          label="Class"
-          options={classOptions}
-          placeholder="Search classes"
-          addHref={addClassHref}
-          addLabel="Add class"
-          searchHref="/classes/search"
-          required
-        />
-        <SearchSelect
-          name="templateId"
-          label="Template"
-          options={templateOptions}
-          placeholder="Search templates"
-          addHref={addTemplateHref}
-          addLabel="Add template"
-          searchHref="/templates/search"
-          required
-        />
-        <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
-        <input name="scheduleMode" type="hidden" value="draft" />
-        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
-        {#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}
-        {#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}
-        {#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}
-        <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>
-        <div class="button-row">
-          <button type="submit">Create draft schedule</button>
           <a class="button-link" href={data.returnTo || '/campaigns'}>Cancel</a>
         </div>
       </form>

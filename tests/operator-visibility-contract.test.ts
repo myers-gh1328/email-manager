@@ -382,7 +382,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('scheduledEmailReturnTo');
     expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
     expect(scheduledEmails).toContain('href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
-    expect(scheduledEmails).toContain('href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmails).not.toContain('href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
     expect(scheduledEmails).toContain("href={data.returnTo || '/campaigns'}");
     expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
@@ -427,6 +427,13 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).not.toContain("label: 'Needs review'");
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
+    expect(scheduledEmails).toContain('Create scheduled email');
+    expect(scheduledEmails).toContain('<h3>Preview scheduled email</h3>');
+    expect(scheduledEmails).not.toContain('Preview class email');
+    expect(scheduledEmails).not.toContain('Schedule class email');
+    expect(scheduledEmails).not.toContain('action=schedule');
+    expect(scheduledEmails).not.toContain('Create draft schedule');
+    expect(scheduledEmails).not.toContain('Draft schedules are not sent.');
     expect(scheduledEmails).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
     expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(scheduledEmails).toContain('data.actionMessage');

@@ -17,7 +17,7 @@ import { testSmtpSettings } from '$lib/server/mailer';
 import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
 import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
-import { localReturnTo } from '$lib/server/return-to';
+import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
 import {
   aiApiKeyForModelLoad,
   getAiApiKey,
@@ -106,7 +106,7 @@ export const actions = {
   createCourse: async ({ request }) => {
     const form = await request.formData();
     repo.createCourseType({ name: required(form, 'name'), description: text(form, 'description') });
-    throw redirect(303, settingsAppDataActionReturn(form, 'Course type added.'));
+    return returnAfterCreate(form, 'Course type added.');
   },
   updateCourse: async ({ request }) => {
     const form = await request.formData();
@@ -116,7 +116,7 @@ export const actions = {
   createLocation: async ({ request }) => {
     const form = await request.formData();
     repo.createLocation(locationInput(form));
-    throw redirect(303, settingsAppDataActionReturn(form, 'Location added.'));
+    return returnAfterCreate(form, 'Location added.');
   },
   updateLocation: async ({ request }) => {
     const form = await request.formData();
@@ -126,7 +126,7 @@ export const actions = {
   createChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.createChecklistItem({ label: required(form, 'label') });
-    throw redirect(303, settingsAppDataActionReturn(form, 'Prep task added.'));
+    return returnAfterCreate(form, 'Prep task added.');
   },
   updateChecklistItem: async ({ request }) => {
     const form = await request.formData();
