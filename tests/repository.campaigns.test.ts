@@ -71,6 +71,33 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
   });
 
+  test('filters scheduled email list by draft readiness', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Ready email',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Needs preview',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ status: 'draft' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('draft');
+    expect(page.items).toMatchObject([{ name: 'Needs preview', approved: false }]);
+  });
+
   test('records successful campaign delivery once per contact', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });

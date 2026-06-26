@@ -173,11 +173,12 @@ export function loadTemplatesData(input: { search?: string; page?: number } = {}
   };
 }
 
-export function loadCampaignsData(input: { search?: string; page?: number } = {}) {
+export function loadCampaignsData(input: { search?: string; page?: number; status?: string } = {}) {
   const limit = 25;
   const page = Math.max(input.page ?? 1, 1);
   const campaignsPage = repo.listCampaignsPage({
     search: input.search,
+    status: input.status,
     limit,
     offset: (page - 1) * limit
   });

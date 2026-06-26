@@ -48,6 +48,7 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim() ?? '';
+  const status = ['draft', 'ready'].includes(input.status ?? '') ? input.status ?? '' : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
@@ -59,6 +60,12 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
         or lower(ct.name) like ?)`
     );
     params.push(pattern, pattern, pattern);
+  }
+  if (status === 'draft') {
+    where.push('c.approved = 0');
+  }
+  if (status === 'ready') {
+    where.push('c.approved = 1');
   }
 
   const fromSql = `
@@ -85,7 +92,8 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
     total: Number(totalRow.value ?? 0),
     limit,
     offset,
-    search
+    search,
+    status
   };
 }
 

@@ -7,6 +7,7 @@
   let classOptions = $derived(data.classSessionOptions);
   let templateOptions = $derived(data.templateOptions);
   let campaignsSearch = $derived(data.campaignsPage.search ?? '');
+  let campaignsStatus = $derived(data.campaignsPage.status ?? '');
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
 
@@ -17,6 +18,7 @@
   function campaignsPageHref(page: number) {
     const params = new URLSearchParams();
     if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
+    if (data.campaignsPage.status) params.set('status', data.campaignsPage.status);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
     return query ? `/campaigns?${query}` : '/campaigns';
@@ -45,8 +47,16 @@
         Search scheduled emails
         <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
       </label>
+      <label>
+        Filter scheduled emails
+        <select name="status" value={campaignsStatus}>
+          <option value="">All statuses</option>
+          <option value="ready">Ready to send</option>
+          <option value="draft">Draft</option>
+        </select>
+      </label>
       <button type="submit">Search</button>
-      {#if data.campaignsPage.search}<a class="button-link" href="/campaigns">Clear</a>{/if}
+      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href="/campaigns">Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.campaigns.length} of {data.campaignsPage.total} scheduled emails.</p>
     <div class="list">

@@ -212,6 +212,7 @@ export interface CampaignPageInput {
   limit?: number;
   offset?: number;
   search?: string;
+  status?: string;
 }
 
 export interface CampaignPage {
@@ -220,6 +221,7 @@ export interface CampaignPage {
   limit: number;
   offset: number;
   search: string;
+  status: string;
 }
 
 export interface CommunicationInput {

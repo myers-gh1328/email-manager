@@ -239,9 +239,14 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");
     expect(scheduledEmailsServer).not.toContain("form.get('approved') === 'on'");
     expect(scheduledEmails).toContain('Search scheduled emails');
+    expect(scheduledEmails).toContain('Filter scheduled emails');
+    expect(scheduledEmails).toContain('name="status"');
+    expect(scheduledEmails).toContain('value="draft"');
+    expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');
     expect(scheduledEmailsServer).toContain('page: Number(url.searchParams.get');
+    expect(scheduledEmailsServer).toContain("status: url.searchParams.get('status') ?? ''");
     expect(pageData).toContain('campaignsPage = repo.listCampaignsPage');
     expect(scheduledEmailDetailServer).not.toContain('before approving');
     expect(scheduledEmailDetailServer).not.toContain('approving this campaign');

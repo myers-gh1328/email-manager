@@ -8,6 +8,7 @@ import { getSettings } from '$lib/server/settings';
 export const load = ({ url }) => ({
   ...loadCampaignsData({
     search: url.searchParams.get('search') ?? '',
+    status: url.searchParams.get('status') ?? '',
     page: Number(url.searchParams.get('page') ?? '1')
   }),
   action: url.searchParams.get('action') ?? ''
