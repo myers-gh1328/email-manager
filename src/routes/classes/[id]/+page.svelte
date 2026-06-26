@@ -168,6 +168,8 @@
         </div>
       </div>
       <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
+        {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+        {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
         <label>
           <span class="sr-only">Search students</span>
           <input name="search" value={rosterSearch} placeholder="Search students" />
