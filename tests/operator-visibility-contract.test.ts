@@ -384,6 +384,14 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Search recipients');
     expect(scheduledEmailDetail).toContain('data.recipientPage.total');
     expect(scheduledEmailDetail).toContain('recipientPageHref');
+    expect(scheduledEmailDetail).toContain('scheduledEmailDetailReturnTo');
+    expect(scheduledEmailDetail).toContain('name="returnTo" value={data.returnTo}');
+    expect(scheduledEmailDetail).toContain('{#if recipientSearch}<input name="search" type="hidden" value={recipientSearch} />{/if}');
+    expect(scheduledEmailDetail).toContain('{#if currentRecipientPage > 1}<input name="page" type="hidden" value={currentRecipientPage} />{/if}');
+    expect(scheduledEmailDetailServer).toContain('detailActionReturn');
+    expect(scheduledEmailDetail).toContain('data.actionMessage');
+    expect(scheduledEmailDetailServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(scheduledEmailDetailServer).toContain('throw redirect(303, detailActionReturn(params.id, form,');
     expect(scheduledEmailsServer).toContain('page: Number(url.searchParams.get');
     expect(scheduledEmailsServer).toContain("status: url.searchParams.get('status') ?? ''");
     expect(scheduledEmailsServer).toContain('localReturnTo');

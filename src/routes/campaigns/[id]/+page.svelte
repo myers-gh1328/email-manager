@@ -67,7 +67,9 @@
         <dd>{formatDateTime(data.campaign.scheduledFor)}</dd>
       </div>
     </dl>
-    {#if form?.message}<p class={form.error || form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}
+      <p class={form?.error || form?.message?.includes('cannot') ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>
+    {/if}
 
     <div class="preview-list">
       <h3>Recipients</h3>
@@ -80,6 +82,9 @@
       </form>
       <p class="help-text">Showing {data.recipients.length} of {data.recipientPage.total} recipients.</p>
       <form method="POST" action="?/retrySelected" use:enhance>
+        {#if data.returnTo}<input name="returnTo" value={data.returnTo} type="hidden" />{/if}
+        {#if recipientSearch}<input name="search" type="hidden" value={recipientSearch} />{/if}
+        {#if currentRecipientPage > 1}<input name="page" type="hidden" value={currentRecipientPage} />{/if}
         {#each data.recipients as recipient}
           <article>
             <div class="row-card tall no-shadow">
@@ -126,6 +131,9 @@
   <div class="form-stack">
     <form method="POST" action="?/updateCampaign" class="panel-form" use:enhance>
       <h3>Edit schedule</h3>
+      {#if data.returnTo}<input name="returnTo" value={data.returnTo} type="hidden" />{/if}
+      {#if recipientSearch}<input name="search" type="hidden" value={recipientSearch} />{/if}
+      {#if currentRecipientPage > 1}<input name="page" type="hidden" value={currentRecipientPage} />{/if}
       <label>Name<input name="name" value={data.campaign.name} required /></label>
       <label>Send at<input name="scheduledFor" type="datetime-local" value={data.scheduledForInput} required /></label>
       {#if data.campaign.readyToSend}

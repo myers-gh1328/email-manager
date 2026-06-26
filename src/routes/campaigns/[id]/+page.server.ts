@@ -17,7 +17,8 @@ export const load = ({ params, url }) => {
     ...detail,
     campaign: withReadyToSend(detail.campaign),
     scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor),
-    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+    actionMessage: url.searchParams.get('message') ?? ''
   };
 };
 
@@ -41,21 +42,35 @@ export const actions = {
       approved: readyToSend
     });
     if (readyToSend) repo.ensurePendingDeliveries(params.id);
-    return { message: 'Scheduled email updated.' };
+    throw redirect(303, detailActionReturn(params.id, form, 'Scheduled email updated.'));
   },
-  deleteCampaign: async ({ params }) => {
+  deleteCampaign: async ({ params, request }) => {
+    const form = await request.formData();
     try {
       repo.deleteCampaign(params.id);
     } catch (error) {
       return fail(400, { message: errorText(error) });
     }
-    throw redirect(303, '/campaigns');
+    throw redirect(303, localReturnTo(formText(form.get('returnTo'))) || '/campaigns');
   },
   retrySelected: async ({ params, request }) => {
     const form = await request.formData();
     const recipientIds = form.getAll('recipientIds').map(formText).filter(Boolean);
     if (!recipientIds.length) return fail(400, { message: 'Select at least one recipient to retry.' });
     const updated = repo.retryCampaignDeliveries(params.id, recipientIds);
-    return { message: `${updated} recipient${updated === 1 ? '' : 's'} queued for retry. Sent recipients are always excluded.` };
+    throw redirect(303, detailActionReturn(params.id, form, `${updated} recipient${updated === 1 ? '' : 's'} queued for retry. Sent recipients are always excluded.`));
   }
 };
+
+function detailActionReturn(campaignId: string, form: FormData, message: string) {
+  const params = new URLSearchParams();
+  const search = formText(form.get('search'));
+  const page = Math.max(Number(formText(form.get('page')) || '1'), 1);
+  const returnTo = localReturnTo(formText(form.get('returnTo')));
+  if (search) params.set('search', search);
+  if (page > 1) params.set('page', String(page));
+  if (returnTo) params.set('returnTo', returnTo);
+  params.set('message', message);
+  const query = params.toString();
+  return query ? `/campaigns/${campaignId}?${query}` : `/campaigns/${campaignId}`;
+}
