@@ -236,7 +236,7 @@ describe('direct email workflow', () => {
     expect(send).toHaveBeenCalledTimes(1);
   });
 
-  test('expired direct send operation requires review instead of resending', async () => {
+  test('expired direct send operation requires attention instead of resending', async () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
     const send = vi.fn();
@@ -260,6 +260,29 @@ describe('direct email workflow', () => {
     db.prepare("update send_operations set expires_at = '2000-01-01T00:00:00.000Z' where status = 'sending'").run();
 
     await expect(sendDirectEmail(repo, send, input)).rejects.toThrow('interrupted before it finished');
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  test('needs-attention direct send operation uses plain retry-blocked wording', async () => {
+    const backingRepo = createTestRepository();
+    const contact = backingRepo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const input = {
+      contactIds: [contact.id],
+      subject: 'Hi',
+      body: 'Hello',
+      instructorName: 'Alex',
+      previewToken: directEmailPreviewToken({ contactIds: [contact.id], subject: 'Hi', body: 'Hello' }),
+      settings: baseAppSettings()
+    };
+    const repo = {
+      getContact: backingRepo.getContact.bind(backingRepo),
+      recordCommunication: backingRepo.recordCommunication.bind(backingRepo),
+      getSendOperation: vi.fn(() => ({ id: 'operation-1', status: 'needs_attention', resultSummary: '', failureSummary: '' }))
+    };
+    const send = vi.fn();
+
+    await expect(sendDirectEmail(repo, send, input)).rejects.toThrow('This send needs attention before sending again.');
+    await expect(sendDirectEmail(repo, send, input)).rejects.not.toThrow('review');
     expect(send).not.toHaveBeenCalled();
   });
 

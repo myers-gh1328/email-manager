@@ -138,7 +138,7 @@ function assertDirectEmailReady(repo: DirectEmailRepository, input: DirectEmailI
     throw new Error('This send is already in progress.');
   }
   if (existingOperation?.status === 'needs_attention') {
-    throw new Error(existingOperation.failureSummary || 'This send needs review before sending again.');
+    throw new Error(existingOperation.failureSummary || 'This send needs attention before sending again.');
   }
 }
 
