@@ -50,6 +50,10 @@ describe('agent campaign send-due tools', () => {
     if (!prepared.ok) return;
     expect(prepared.data.summary).toBe('Send due scheduled emails (1).');
     expect(prepared.data.summary).not.toContain('approved campaigns');
+    expect(prepared.data.review).toHaveProperty('dueScheduledEmails');
+    expect(prepared.data.review).not.toHaveProperty('dueCampaigns');
+    expect(JSON.stringify(prepared.data.review)).not.toContain('approved');
+    expect(JSON.stringify(prepared.data.review)).toContain('scheduledEmailId');
     const result = await commitSendDueCampaignsTool(
       repo,
       { approvalId: prepared.data.approvalId, confirmationText: prepared.data.confirmationText },

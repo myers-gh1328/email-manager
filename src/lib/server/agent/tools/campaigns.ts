@@ -20,18 +20,17 @@ export function prepareSendDueCampaignsTool(repo: AppRepository, _input: Record<
   const denied = requireAgentPermission(settings, 'prepareEmail');
   if (denied) return denied;
 
-  const dueCampaigns = dueApprovedCampaigns(repo);
+  const dueScheduledEmails = dueScheduledEmailsReadyToSend(repo);
   const prepared = prepareAgentApproval(repo, {
     toolName: 'commit_send_due_campaigns',
     risk: 'sends_email',
-    summary: `Send due scheduled emails (${dueCampaigns.length}).`,
-    operation: { preparedAt: new Date().toISOString(), campaignIds: dueCampaigns.map((campaign) => campaign.id) },
+    summary: `Send due scheduled emails (${dueScheduledEmails.length}).`,
+    operation: { preparedAt: new Date().toISOString(), campaignIds: dueScheduledEmails.map((scheduledEmail) => scheduledEmail.id) },
     review: {
-      dueCampaigns: dueCampaigns.map((campaign) => ({
-        campaignId: campaign.id,
-        name: campaign.name,
-        scheduledFor: campaign.scheduledFor,
-        approved: campaign.approved
+      dueScheduledEmails: dueScheduledEmails.map((scheduledEmail) => ({
+        scheduledEmailId: scheduledEmail.id,
+        name: scheduledEmail.name,
+        scheduledFor: scheduledEmail.scheduledFor
       })),
       schedulerEnabled: settings.schedulerEnabled,
       emailTestModeEnabled: settings.emailTestModeEnabled
@@ -65,8 +64,8 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   }
   const operation = JSON.parse(approval.operationJson) as SendDueCampaignsOperation;
   const preparedIds = [...operation.campaignIds].sort((left, right) => left.localeCompare(right));
-  const currentIds = dueApprovedCampaigns(repo)
-    .map((campaign) => campaign.id)
+  const currentIds = dueScheduledEmailsReadyToSend(repo)
+    .map((scheduledEmail) => scheduledEmail.id)
     .sort((left, right) => left.localeCompare(right));
   if (!sameStringSet(preparedIds, currentIds)) {
     return agentError(
@@ -83,10 +82,8 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   });
 }
 
-function dueApprovedCampaigns(repo: AppRepository) {
-  return repo
-    .listCampaigns()
-    .filter((campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() <= Date.now());
+function dueScheduledEmailsReadyToSend(repo: AppRepository) {
+  return repo.listReadyScheduledEmailsDue(new Date().toISOString(), { limit: 100 });
 }
 
 function sameStringSet(left: string[], right: string[]) {
