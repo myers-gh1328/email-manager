@@ -212,7 +212,7 @@ export function createMcpServer() {
     'prepare_direct_email',
     {
       title: 'Prepare Direct Email',
-      description: 'Preview and create an approval packet for a direct email send.',
+      description: 'Preview and create a confirmation packet for a direct email send.',
       inputSchema: directEmailInputSchema
     },
     (input) => asToolContent(prepareDirectEmailTool(repo, input))
@@ -222,7 +222,7 @@ export function createMcpServer() {
     'commit_direct_email',
     {
       title: 'Commit Direct Email',
-      description: 'Send a prepared direct email after exact human approval confirmation.',
+      description: 'Send a prepared direct email after exact confirmation.',
       inputSchema: approvalCommitInputSchema
     },
     async (input) => asToolContent(await commitDirectEmailTool(repo, input))
@@ -232,7 +232,7 @@ export function createMcpServer() {
     'prepare_send_due_campaigns',
     {
       title: 'Prepare Due Scheduled Emails',
-      description: 'Create an approval packet for currently due scheduled emails.',
+      description: 'Create a confirmation packet for currently due scheduled emails.',
       inputSchema: {}
     },
     () => asToolContent(prepareSendDueCampaignsTool(repo))
@@ -242,7 +242,7 @@ export function createMcpServer() {
     'commit_send_due_campaigns',
     {
       title: 'Send Due Scheduled Emails',
-      description: 'Run the shared send-due scheduled-email path after exact human approval confirmation.',
+      description: 'Run the shared send-due scheduled-email path after exact confirmation.',
       inputSchema: approvalCommitInputSchema
     },
     async (input) => asToolContent(await commitSendDueCampaignsTool(repo, input))

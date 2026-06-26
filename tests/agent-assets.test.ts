@@ -83,14 +83,25 @@ describe('agent-facing repository assets', () => {
     expect(mcpServer).toContain('next scheduled email ready to send');
     expect(mcpServer).toContain("title: 'Prepare Due Scheduled Emails'");
     expect(mcpServer).toContain("title: 'Send Due Scheduled Emails'");
+    expect(mcpServer).toContain('Create a confirmation packet for currently due scheduled emails.');
+    expect(mcpServer).toContain('Run the shared send-due scheduled-email path after exact confirmation.');
     expect(mcpServer).toContain('currently due scheduled emails');
-    expect(mcpServer).toContain('Run the shared send-due scheduled-email path');
     expect(mcpServer).not.toContain('due approved count');
     expect(mcpServer).not.toContain('next approved send');
     expect(mcpServer).not.toContain("title: 'Prepare Send Due Campaigns'");
     expect(mcpServer).not.toContain("title: 'Commit Send Due Campaigns'");
     expect(mcpServer).not.toContain('approved campaign sends');
     expect(mcpServer).not.toContain('send-due campaign path');
+    expect(mcpServer).not.toContain('Create an approval packet for currently due scheduled emails.');
+    expect(mcpServer).not.toContain('after exact human approval confirmation.');
+  });
+
+  it('uses confirmation language for direct email MCP tools', () => {
+    const mcpServer = read('src/mcp/server.ts');
+    expect(mcpServer).toContain('Preview and create a confirmation packet for a direct email send.');
+    expect(mcpServer).toContain('Send a prepared direct email after exact confirmation.');
+    expect(mcpServer).not.toContain('Preview and create an approval packet for a direct email send.');
+    expect(mcpServer).not.toContain('Send a prepared direct email after exact human approval confirmation.');
   });
 
   it('uses plain scheduled-email language in repo-local MCP skills', () => {
