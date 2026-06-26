@@ -100,6 +100,7 @@ describe('operator visibility contract', () => {
     expect(contacts).not.toContain('communication.unreviewedReplyCount} new');
     expect(contacts).not.toContain('· {communication.source}');
     expect(contacts).not.toContain('Email activity');
+    expect(contacts).not.toContain('Select a student to view class history and recent emails.');
     expect(contacts).toContain('Search contacts');
     expect(contacts).toContain('contactsPageHref');
     expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');

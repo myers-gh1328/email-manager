@@ -223,8 +223,6 @@
           </div>
         </section>
       </div>
-    {:else}
-      <p class="empty spaced">Select a student to view class history and recent emails.</p>
     {/if}
   </div>
 </section>
