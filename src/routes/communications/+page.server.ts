@@ -1,5 +1,3 @@
-import { repo } from '$lib/server/app';
-import { required } from '$lib/server/form-utils';
 import { loadCommunicationsData } from '$lib/server/page-data';
 import { localReturnTo } from '$lib/server/return-to';
 
@@ -13,11 +11,3 @@ export const load = ({ url }) => ({
   }),
   returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
 });
-
-export const actions = {
-  markReplyHandled: async ({ request }) => {
-    const form = await request.formData();
-    repo.markCommunicationReplyReviewed(required(form, 'replyId'));
-    return { message: 'Reply marked handled.' };
-  }
-};

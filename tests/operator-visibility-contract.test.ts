@@ -595,7 +595,7 @@ describe('operator visibility contract', () => {
     expect(historyDetailServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
     expect(historyDetailServer).toContain('detailActionReturn');
     expect(historyDetailServer).toContain('throw redirect(303, detailActionReturn(params.id, form,');
-    expect(historyServer).toContain('markReplyHandled');
+    expect(historyServer).not.toContain('markReplyHandled');
     expect(historyServer).toContain('localReturnTo');
     expect(historyServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyServer).toContain("replyStatus: url.searchParams.get('replyStatus') || undefined");
@@ -605,7 +605,6 @@ describe('operator visibility contract', () => {
     expect(historyDetail).not.toContain('markReplyReviewed');
     expect(historyDetailServer).not.toContain('markReplyReviewed');
     expect(historyServer).not.toContain('markReplyReviewed');
-    expect(historyServer).toContain('Reply marked handled.');
     expect(historyDetailServer).toContain('Reply marked handled.');
     expect(historyServer).not.toContain('Reply marked reviewed.');
     expect(historyDetailServer).not.toContain('Reply marked reviewed.');
