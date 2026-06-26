@@ -105,8 +105,6 @@
             {#if communication.replyCount}
               <span class="pill good">Acknowledged</span>
               {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} new</span>{/if}
-            {:else if communication.status === 'accepted' || communication.status === 'sent'}
-              <span class="pill">No reply yet</span>
             {/if}
           </div>
         </article>
