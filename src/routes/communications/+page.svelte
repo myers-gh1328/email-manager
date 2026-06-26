@@ -13,9 +13,11 @@
   ];
   let historyReturnTo = $derived(historyPageHref(currentHistoryPage));
   let newEmailHref = $derived(composeNewEmailHref());
+  let historyClearHref = $derived(data.returnTo ? `/communications?returnTo=${encodeURIComponent(data.returnTo)}` : '/communications');
 
   function historyPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
     if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
@@ -27,6 +29,7 @@
 
   function replyFilterHref(replyStatus: string) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
     if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
@@ -64,6 +67,7 @@
       </div>
     </div>
     <form class="inline-filters" method="GET" action="/communications">
+      {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
       {#if data.selectedContactId}<input type="hidden" name="contactId" value={data.selectedContactId} />{/if}
       {#if data.selectedSourceId}<input type="hidden" name="sourceId" value={data.selectedSourceId} />{/if}
       {#if data.selectedReplyStatus}<input type="hidden" name="replyStatus" value={data.selectedReplyStatus} />{/if}
@@ -84,7 +88,7 @@
         {#if data.selectedContactId}<span class="pill">Filtered to selected contact</span>{/if}
         {#if data.selectedSourceId}<span class="pill">Filtered to selected scheduled email</span>{/if}
         {#if data.selectedReplyStatus}<span class="pill">Filtered to emails needing replies</span>{/if}
-        <a class="button-link" href="/communications">Clear filters</a>
+        <a class="button-link" href={historyClearHref}>Clear filters</a>
       </div>
     {/if}
     <p class="help-text">

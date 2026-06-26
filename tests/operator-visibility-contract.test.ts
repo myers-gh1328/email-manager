@@ -500,6 +500,9 @@ describe('operator visibility contract', () => {
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('Clear filters');
     expect(history).toContain('historyReturnTo');
+    expect(history).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(history).toContain('{#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}');
+    expect(history).toContain('href={historyClearHref}');
     expect(history).toContain('returnTo=${encodeURIComponent(historyReturnTo)}');
     expect(history).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}');
     expect(history).not.toContain('<div class="reply-list">');
@@ -532,6 +535,8 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('?/markReplyHandled');
     expect(historyDetailServer).toContain('markReplyHandled');
     expect(historyServer).toContain('markReplyHandled');
+    expect(historyServer).toContain('localReturnTo');
+    expect(historyServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyServer).toContain("replyStatus: url.searchParams.get('replyStatus') || undefined");
     expect(historyDetail).not.toContain('Reply reviewed');
     expect(historyDetail).not.toContain('Mark reviewed');
