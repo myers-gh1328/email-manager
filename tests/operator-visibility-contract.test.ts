@@ -33,4 +33,18 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/lib/shared/navigation.ts', 'utf8')).toContain('emailTestModeEnabled');
     expect(readFileSync('src/lib/server/llm.ts', 'utf8')).toContain('listAiModels');
   });
+
+  test('keeps risky send actions and approval language off the dashboard', () => {
+    const dashboard = readFileSync('src/routes/+page.svelte', 'utf8');
+    expect(dashboard).not.toContain('resendFailedToday');
+    expect(dashboard).not.toContain('Resend failed today');
+    expect(dashboard).not.toContain('approved due now');
+    expect(dashboard).not.toContain('No upcoming approved sends');
+    expect(dashboard).not.toContain('>Campaigns<');
+    expect(dashboard).not.toContain('Manage campaigns');
+    expect(dashboard).not.toContain("'Approved'");
+    expect(dashboard).toContain('Attention needed');
+    expect(dashboard).toContain('Scheduled Emails');
+    expect(dashboard).toContain('Review failed emails');
+  });
 });

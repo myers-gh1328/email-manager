@@ -1,8 +1,7 @@
 	<script lang="ts">
-	  import { enhance } from '$app/forms';
 	  import { formatDateTime } from '$lib/shared/format';
 
-	  let { data, form } = $props();
+	  let { data } = $props();
 	</script>
 
 <svelte:head>
@@ -13,73 +12,64 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">Overview</p>
-      <h2>Upcoming class email work</h2>
+      <h2>What needs attention today</h2>
     </div>
-    <form method="POST" action="?/resendFailedToday" use:enhance>
-      <button class="secondary" type="submit" disabled={!data.failedTodayCount || !data.settings.schedulerEnabled}>Resend failed today</button>
-    </form>
   </div>
 
   <div class="metric-grid">
-    <article><span>{data.stats.contacts}</span><p>Contacts</p></article>
-    <article><span>{data.stats.classSessions}</span><p>Scheduled classes</p></article>
-    <article><span>{data.stats.templates}</span><p>Templates</p></article>
-    <article><span>{data.stats.pendingDeliveries}</span><p>Pending sends</p></article>
-  </div>
-
-  <div class="status-row">
-    <span class:good={data.schedulerStatus.ready}>{data.schedulerStatus.ready ? 'Automatic sending ready' : 'Automatic sending blocked'}</span>
-    <span class:good={data.settings.smtpHost && data.settings.smtpFrom}>{data.settings.smtpHost && data.settings.smtpFrom ? 'SMTP configured' : 'SMTP incomplete'}</span>
-    <span class:good={!data.settings.emailTestModeEnabled}>{data.settings.emailTestModeEnabled ? 'Test mode on' : 'Live delivery mode'}</span>
-    <span class:good={!data.settings.outboundKillSwitchEnabled}>{data.settings.outboundKillSwitchEnabled ? 'Outbound paused' : 'Outbound enabled'}</span>
-    <span class:good={data.remoteStatus.ready}>{data.remoteStatus.enabled ? (data.remoteStatus.ready ? 'Remote access ready' : 'Remote access needs setup') : 'Local/private mode'}</span>
-    <span class:good={data.settings.aiEnabled}>{data.settings.aiEnabled ? 'AI enabled' : 'AI disabled'}</span>
+    <a href="/contacts"><span>{data.stats.contacts}</span><p>Contacts</p></a>
+    <a href="/classes"><span>{data.stats.classSessions}</span><p>Classes</p></a>
+    <a href="/templates"><span>{data.stats.templates}</span><p>Templates</p></a>
+    <a href="/campaigns"><span>{data.stats.pendingDeliveries}</span><p>Ready to send</p></a>
   </div>
 
   <section class="panel-form spaced">
-    <h3>Scheduler status</h3>
-    {#if data.schedulerStatus.ready}
-      <p class="success">Automatic sending is enabled and not blocked by test mode or SMTP setup.</p>
-    {:else}
+    <h3>Attention needed</h3>
+    {#if !data.schedulerStatus.ready || data.failedTodayCount || (data.remoteStatus.enabled && !data.remoteStatus.ready)}
       <div class="list">
         {#each data.schedulerStatus.blockedReasons as reason}
-          <p class="error">{reason}</p>
+          <a class="row-card" href="/settings">
+            <strong>Email sending needs setup</strong>
+            <p>{reason}</p>
+          </a>
         {/each}
+        {#if data.failedTodayCount}
+          <a class="row-card" href="/communications?search=failed">
+            <strong>Review failed emails</strong>
+            <p>{data.failedTodayCount} failed today. Review the affected messages before retrying.</p>
+          </a>
+        {/if}
+        {#if data.remoteStatus.enabled && !data.remoteStatus.ready}
+          {#each data.remoteStatus.blockedReasons as reason}
+            <a class="row-card" href="/settings">
+              <strong>Remote access needs setup</strong>
+              <p>{reason}</p>
+            </a>
+          {/each}
+        {/if}
       </div>
+    {:else}
+      <p class="success">No setup or sending issues need attention.</p>
     {/if}
     <div class="status-row">
-      <span>{data.schedulerStatus.dueApprovedCount} approved due now</span>
+      <span>{data.schedulerStatus.dueApprovedCount} ready to send now</span>
       <span>{data.failedTodayCount} failed today</span>
       {#if data.schedulerStatus.nextApproved}
         <span>Next sends {formatDateTime(data.schedulerStatus.nextApproved.scheduledFor)}</span>
       {:else}
-        <span>No upcoming approved sends</span>
+        <span>No upcoming scheduled sends</span>
       {/if}
     </div>
   </section>
-
-  {#if data.remoteStatus.enabled && !data.remoteStatus.ready}
-    <section class="panel-form spaced">
-      <h3>Remote access setup</h3>
-      <div class="list">
-        {#each data.remoteStatus.blockedReasons as reason}
-          <p class="error">{reason}</p>
-        {/each}
-      </div>
-    </section>
-  {/if}
-
-  {#if form?.message}<p class={form.resent !== undefined ? 'success spaced' : 'error spaced'}>{form.message}</p>{/if}
-  {#if form?.resent !== undefined}<p class="success spaced">Mail server accepted {form.resent} resent email{form.resent === 1 ? '' : 's'}.</p>{/if}
 </section>
 
 <section class="band">
   <div class="section-heading compact">
     <div>
-      <p class="eyebrow">Campaigns</p>
+      <p class="eyebrow">Scheduled Emails</p>
       <h2>Recent schedules</h2>
     </div>
-    <a class="button-link" href="/campaigns">Manage campaigns</a>
+    <a class="button-link" href="/campaigns">Manage scheduled emails</a>
   </div>
   <div class="list">
     {#each data.campaigns as campaign}
@@ -88,10 +78,10 @@
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
         </div>
-        <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Approved' : 'Draft'}</span>
+        <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Scheduled' : 'Draft'}</span>
       </article>
     {:else}
-      <p class="empty">No campaigns scheduled.</p>
+      <p class="empty">No class emails scheduled.</p>
     {/each}
   </div>
 </section>
