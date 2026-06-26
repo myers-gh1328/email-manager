@@ -106,7 +106,9 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('Recent emails');
     expect(contacts).toContain('View all in History');
     expect(contacts).toContain('/communications?contactId=');
-    expect(contacts).toContain('href={`/communications/${communication.id}`}');
+    expect(contacts).toContain('contactHistoryHref');
+    expect(contacts).toContain('returnTo=${encodeURIComponent(contactHistoryHref)}');
+    expect(contacts).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}');
     expect(contacts).toContain("communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'");
     expect(contacts).toContain('Needs reply');
     expect(contacts).not.toContain('communication.unreviewedReplyCount} new');

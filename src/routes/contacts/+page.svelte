@@ -8,6 +8,7 @@
   let contactsSearch = $derived(data.contactsPage.search ?? '');
   let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
   let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
+  let contactHistoryHref = $derived(data.contactDetail ? `/communications?contactId=${data.contactDetail.contact.id}` : '/communications');
 
   function showImageImportBusy() {
     importingImage = true;
@@ -196,13 +197,13 @@
               <h3>Recent emails</h3>
               <p class="help-text">Showing the 3 most recent messages for this person.</p>
             </div>
-            <a class="button-link" href={`/communications?contactId=${data.contactDetail.contact.id}`}>View all in History</a>
+            <a class="button-link" href={contactHistoryHref}>View all in History</a>
           </div>
           <div class="list">
             {#each data.contactDetail.communications as communication}
               <article class="row-card tall">
                 <div>
-                  <a href={`/communications/${communication.id}`}><strong>{communication.subject}</strong></a>
+                  <a href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}><strong>{communication.subject}</strong></a>
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>
