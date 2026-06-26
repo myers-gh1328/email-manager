@@ -290,7 +290,7 @@
       <button type="submit">Enroll</button>
     </form>
     <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
-      <h3>Email this class</h3>
+      <h3>Create scheduled email</h3>
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
       {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
@@ -311,8 +311,8 @@
     </form>
     {#if form?.previews}
       <section class="panel-form">
-        <h3>Student email preview</h3>
-        <p class="body-copy">Will schedule {form.previews.filter((preview) => !preview.skipped).length} private emails, one to each student. Students will not see each other.</p>
+        <h3>Scheduled email preview</h3>
+        <p class="body-copy">Will create {form.previews.filter((preview) => !preview.skipped).length} scheduled emails, one to each student. Students will not see each other.</p>
         <div class="list">
           {#each form.previews as preview}
             <article class="row-card tall">
