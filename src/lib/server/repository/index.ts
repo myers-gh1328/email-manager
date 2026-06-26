@@ -426,8 +426,8 @@ export class AppRepository {
     return getCampaign(this.db, id);
   }
 
-  getCampaignDetail(id: string) {
-    return getCampaignDetail(this.db, id);
+  getCampaignDetail(id: string, recipientPageInput?: { limit?: number; offset?: number; search?: string }) {
+    return getCampaignDetail(this.db, id, recipientPageInput);
   }
 
   updateCampaign(id: string, input: { name: string; scheduledFor: string; approved: boolean }) {

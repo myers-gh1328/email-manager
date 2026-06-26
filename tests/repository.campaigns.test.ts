@@ -731,6 +731,35 @@ describe('repository campaigns and deliveries', () => {
     ]);
   });
 
+  test('paginates scheduled email detail recipients', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Hi {{firstName}}', body: 'Class: {{courseName}}' });
+    for (const firstName of ['Ari', 'Blair', 'Casey']) {
+      const contact = repo.createContact({ firstName, lastName: 'Student', email: `${firstName.toLowerCase()}@example.com` });
+      repo.enrollContact(session.id, contact.id);
+    }
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+
+    const detail = repo.getCampaignDetail(campaign.id, { limit: 2, offset: 0, search: 'student' });
+
+    expect(detail.recipients).toHaveLength(2);
+    expect(detail.recipientPage).toMatchObject({
+      total: 3,
+      limit: 2,
+      offset: 0,
+      search: 'student'
+    });
+  });
+
   test('updates campaign lifecycle fields while protecting sent campaigns from deletion', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });

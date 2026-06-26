@@ -4,8 +4,13 @@ import { errorText, formText, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
 import { getSettings } from '$lib/server/settings';
 
-export const load = ({ params }) => {
-  const detail = repo.getCampaignDetail(params.id);
+export const load = ({ params, url }) => {
+  const page = Math.max(Number(url.searchParams.get('page') ?? '1'), 1);
+  const detail = repo.getCampaignDetail(params.id, {
+    limit: 25,
+    offset: (page - 1) * 25,
+    search: url.searchParams.get('search') ?? ''
+  });
   return { ...detail, scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor) };
 };
 

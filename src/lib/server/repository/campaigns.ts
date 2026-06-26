@@ -226,12 +226,15 @@ export function deleteCampaign(db: DatabaseSync, id: string) {
   db.prepare('delete from campaigns where id = ?').run(id);
 }
 
-export function getCampaignDetail(db: DatabaseSync, id: string) {
+export function getCampaignDetail(db: DatabaseSync, id: string, recipientPageInput: { limit?: number; offset?: number; search?: string } = {}) {
   const campaign = getCampaign(db, id);
   const classSession = getClassSession(db, campaign.classSessionId);
   const template = getTemplate(db, campaign.templateId);
   const deliveries = new Map(listDeliveries(db, id).map((delivery) => [delivery.recipientId, delivery]));
-  const recipients = listEnrollments(db, campaign.classSessionId)
+  const limit = Math.min(Math.max(recipientPageInput.limit ?? 25, 1), 100);
+  const offset = Math.max(recipientPageInput.offset ?? 0, 0);
+  const search = recipientPageInput.search?.trim() ?? '';
+  const filteredRecipients = listEnrollments(db, campaign.classSessionId)
     .map((contact) => {
       const delivery = deliveries.get(contact.id);
       return {
@@ -245,8 +248,15 @@ export function getCampaignDetail(db: DatabaseSync, id: string) {
       };
     })
     .sort((a, b) => recipientStatusRank(a.status) - recipientStatusRank(b.status) || a.name.localeCompare(b.name));
+  const searchedRecipients = search
+    ? filteredRecipients.filter((recipient) => {
+        const pattern = search.toLowerCase();
+        return recipient.name.toLowerCase().includes(pattern) || recipient.email.toLowerCase().includes(pattern);
+      })
+    : filteredRecipients;
+  const recipients = searchedRecipients.slice(offset, offset + limit);
 
-  return { campaign, classSession, template, recipients };
+  return { campaign, classSession, template, recipients, recipientPage: { total: searchedRecipients.length, limit, offset, search } };
 }
 
 function recipientStatusRank(status: string) {

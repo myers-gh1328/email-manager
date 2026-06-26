@@ -5,6 +5,9 @@
   let { data, form } = $props();
   const retryableStatuses = ['failed', 'retry_scheduled', 'needs_attention'];
   let retryableRecipientCount = $derived(data.recipients.filter((recipient) => retryableStatuses.includes(recipient.status)).length);
+  let recipientSearch = $derived(data.recipientPage.search ?? '');
+  let currentRecipientPage = $derived(Math.floor(data.recipientPage.offset / data.recipientPage.limit) + 1);
+  let totalRecipientPages = $derived(Math.max(Math.ceil(data.recipientPage.total / data.recipientPage.limit), 1));
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -18,6 +21,14 @@
 
   function confirmDelete() {
     return confirm('Delete this scheduled email? Draft and unsent delivery rows will be removed.');
+  }
+
+  function recipientPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.recipientPage.search) params.set('search', data.recipientPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/campaigns/${data.campaign.id}?${query}` : `/campaigns/${data.campaign.id}`;
   }
 </script>
 
@@ -59,6 +70,14 @@
 
     <div class="preview-list">
       <h3>Recipients</h3>
+      <form class="inline-filters" method="GET" action={`/campaigns/${data.campaign.id}`}>
+        <label>
+          <span class="sr-only">Search recipients</span>
+          <input name="search" value={recipientSearch} placeholder="Search recipients" />
+        </label>
+        <button class="secondary" type="submit">Search</button>
+      </form>
+      <p class="help-text">Showing {data.recipients.length} of {data.recipientPage.total} recipients.</p>
       <form method="POST" action="?/retrySelected" use:enhance>
         {#each data.recipients as recipient}
           <article>
@@ -87,6 +106,19 @@
           <p class="help-text">No failed recipients to retry.</p>
         {/if}
       </form>
+      {#if totalRecipientPages > 1}
+        <nav class="pagination" aria-label="Recipient pages">
+          <a class="button-link" aria-disabled={currentRecipientPage === 1} href={recipientPageHref(Math.max(currentRecipientPage - 1, 1))}>Previous</a>
+          <span>Page {currentRecipientPage} of {totalRecipientPages}</span>
+          <a
+            class="button-link"
+            aria-disabled={currentRecipientPage >= totalRecipientPages}
+            href={recipientPageHref(Math.min(currentRecipientPage + 1, totalRecipientPages))}
+          >
+            Next
+          </a>
+        </nav>
+      {/if}
     </div>
   </div>
 
@@ -113,3 +145,14 @@
     </section>
   </div>
 </section>
+
+<style>
+  .inline-filters,
+  .pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+</style>
