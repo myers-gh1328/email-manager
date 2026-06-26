@@ -654,6 +654,8 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
     expect(historyDetail).toContain('<p class="eyebrow">Email detail</p>');
     expect(historyDetail).not.toContain('History detail');
+    expect(historyDetail).toContain("communication.className || 'View class'");
+    expect(historyDetail).not.toContain("communication.className || 'Class detail'");
     expect(historyDetail).toContain('href={data.returnTo || \'/communications\'}');
     expect(historyDetail).toContain('data.actionMessage');
     expect(historyDetail).toContain('communication.classSessionId');

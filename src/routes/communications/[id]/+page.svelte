@@ -61,7 +61,7 @@
       {#if communication.classSessionId}
         <div>
           <dt>Class</dt>
-          <dd><a href={`/classes/${communication.classSessionId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>{communication.className || 'Class detail'}</a></dd>
+          <dd><a href={`/classes/${communication.classSessionId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>{communication.className || 'View class'}</a></dd>
         </div>
       {/if}
     </dl>
