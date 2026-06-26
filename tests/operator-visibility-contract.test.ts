@@ -41,7 +41,7 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/lib/server/class-default-campaigns.ts', 'utf8')).toContain('syncDefaultCampaignsForCourseType');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('scheduledCampaigns');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('scheduledCampaignsPage = repo.listCampaignsForClassSession');
-    expect(readFileSync('src/routes/classes/+page.server.ts', 'utf8')).toContain('checklistItems: repo.listChecklistItems()');
+    expect(readFileSync('src/routes/settings/+page.server.ts', 'utf8')).toContain('createChecklistItem');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain(
       'checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map'
     );
@@ -121,6 +121,11 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Enroll student');
     expect(classes).not.toContain('Manage class setup');
     expect(classes).not.toContain('defaults.');
+    expect(classesServer).not.toContain('checklistItems: repo.listChecklistItems()');
+    expect(classesServer).not.toContain('selectedCourseDefaults');
+    expect(classesServer).not.toContain('createCourse:');
+    expect(classesServer).not.toContain('createLocation:');
+    expect(classesServer).not.toContain('saveCourseDefaults:');
     expect(classes).toContain('Manage courses, locations, and prep tasks');
     expect(classes).toContain('addLabel="Add course"');
     expect(classes).toContain('addLabel="Add location"');
@@ -173,10 +178,10 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('<span class="pill">Default</span>');
     expect(classDetail).not.toContain('course setup');
     expect(classDetail).not.toContain('setup emails');
-    expect(classesServer).toContain('Course emails updated.');
     expect(classesServer).toContain('course email');
     expect(classesServer).not.toContain('Course email defaults updated.');
     expect(classesServer).not.toContain('default email');
+    expect(classDetailServer).toContain('Class updated. Scheduled');
     expect(classDetailServer).toContain('course email');
     expect(classDetailServer).not.toContain('default email');
   });
@@ -205,14 +210,15 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('courseTypesPage = repo.listCourseTypesPage');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('locationsPage = repo.listLocationsPage');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('checklistItemsPage = repo.listChecklistItemsPage');
-    for (const source of [settingsServer, classesServer]) {
-      expect(source).toContain('Prep task added.');
-      expect(source).toContain('Prep task updated.');
-      expect(source).toContain('Prep task deleted.');
-      expect(source).not.toContain('Checklist item added.');
-      expect(source).not.toContain('Checklist item updated.');
-      expect(source).not.toContain('Checklist item deleted.');
-    }
+    expect(settingsServer).toContain('Prep task added.');
+    expect(settingsServer).toContain('Prep task updated.');
+    expect(settingsServer).toContain('Prep task deleted.');
+    expect(settingsServer).not.toContain('Checklist item added.');
+    expect(settingsServer).not.toContain('Checklist item updated.');
+    expect(settingsServer).not.toContain('Checklist item deleted.');
+    expect(classesServer).not.toContain('Prep task added.');
+    expect(classesServer).not.toContain('Prep task updated.');
+    expect(classesServer).not.toContain('Prep task deleted.');
   });
 
   test('uses plain scheduled-email language instead of approval campaign copy', () => {
