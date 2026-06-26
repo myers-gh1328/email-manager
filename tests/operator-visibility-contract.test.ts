@@ -608,9 +608,12 @@ describe('operator visibility contract', () => {
     expect(history).toContain("value: 'failed', label: 'Failed'");
     expect(history).toContain('name="sourceId"');
     expect(history).toContain('Active filters');
-    expect(history).toContain('Filtered to selected contact');
-    expect(history).toContain('Filtered to selected scheduled email');
-    expect(history).toContain('Filtered to emails needing replies');
+    expect(history).toContain('This contact');
+    expect(history).toContain('This scheduled email');
+    expect(history).toContain('Needs a reply');
+    expect(history).not.toContain('Filtered to selected contact');
+    expect(history).not.toContain('Filtered to selected scheduled email');
+    expect(history).not.toContain('Filtered to emails needing replies');
     expect(history).toContain('newEmailHref');
     expect(history).toContain('href={newEmailHref}');
     expect(history).toContain("params.set('returnTo', historyReturnTo)");

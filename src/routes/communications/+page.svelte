@@ -139,9 +139,9 @@
     {#if data.selectedContactId || data.selectedSourceId || data.selectedReplyStatus || data.selectedStatus || data.selectedType}
       <div class="active-filters" aria-label="Active filters">
         <strong>Active filters</strong>
-        {#if data.selectedContactId}<span class="pill">Filtered to selected contact</span>{/if}
-        {#if data.selectedSourceId}<span class="pill">Filtered to selected scheduled email</span>{/if}
-        {#if data.selectedReplyStatus}<span class="pill">Filtered to emails needing replies</span>{/if}
+        {#if data.selectedContactId}<span class="pill">This contact</span>{/if}
+        {#if data.selectedSourceId}<span class="pill">This scheduled email</span>{/if}
+        {#if data.selectedReplyStatus}<span class="pill">Needs a reply</span>{/if}
         {#if data.selectedStatus}<span class="pill">Filtered to {data.selectedStatus === 'failed' ? 'failed emails' : 'sent emails'}</span>{/if}
         {#if data.selectedType}<span class="pill">Filtered to {data.selectedType === 'scheduled' ? 'scheduled emails' : 'direct emails'}</span>{/if}
         <a class="button-link" href={historyClearHref}>Clear filters</a>
