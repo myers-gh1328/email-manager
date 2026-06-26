@@ -3,6 +3,8 @@
   import { deliveryStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
+  const retryableStatuses = ['failed', 'retry_scheduled', 'needs_attention'];
+  let retryableRecipientCount = $derived(data.recipients.filter((recipient) => retryableStatuses.includes(recipient.status)).length);
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -59,7 +61,7 @@
           <article>
             <div class="row-card tall no-shadow">
               <div>
-                {#if ['failed', 'retry_scheduled', 'needs_attention'].includes(recipient.status)}
+                {#if retryableStatuses.includes(recipient.status)}
                   <label class="check"><input name="recipientIds" type="checkbox" value={recipient.contactId} /> <strong>{recipient.name}</strong></label>
                 {:else}
                   <strong>{recipient.name}</strong>
@@ -76,7 +78,11 @@
         {:else}
           <p class="empty">No recipients enrolled.</p>
         {/each}
-        <button class="secondary" type="submit">Retry selected</button>
+        {#if retryableRecipientCount}
+          <button class="secondary" type="submit">Retry selected</button>
+        {:else if data.recipients.length}
+          <p class="help-text">No failed recipients to retry.</p>
+        {/if}
       </form>
     </div>
   </div>
