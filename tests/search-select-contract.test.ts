@@ -10,6 +10,24 @@ describe('SearchSelect contract', () => {
     expect(source).not.toContain('<datalist');
   });
 
+  test('filters options in the shared app-data select and can link to add-new workflows', () => {
+    const source = readFileSync('src/lib/SearchSelect.svelte', 'utf8');
+    const classes = readFileSync('src/routes/classes/+page.svelte', 'utf8');
+    const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
+    const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
+
+    expect(source).toContain('bind:value={search}');
+    expect(source).toContain('filteredOptions');
+    expect(source).toContain('No options match that search.');
+    expect(source).toContain('addHref');
+    expect(source).toContain('addLabel');
+    expect(classes).toContain('addLabel="Add course"');
+    expect(classes).toContain('addLabel="Add location"');
+    expect(scheduledEmails).toContain('addLabel="Add class"');
+    expect(scheduledEmails).toContain('addLabel="Add template"');
+    expect(newEmail).toContain('addLabel="Add template"');
+  });
+
   test('uses a shared searchable contact multi-select for direct email recipients', () => {
     const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const picker = readFileSync('src/lib/ContactMultiSelect.svelte', 'utf8');

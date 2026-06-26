@@ -154,6 +154,8 @@
         options={courseOptions}
         value={data.session.courseTypeId}
         placeholder="Search courses"
+        addHref="/settings"
+        addLabel="Add course"
         required
       />
       <SearchSelect
@@ -162,6 +164,8 @@
         options={locationOptions}
         value={data.session.locationId}
         placeholder="Search locations"
+        addHref="/settings"
+        addLabel="Add location"
         required
       />
       <label>Start date<input bind:value={editStartsOn} name="startsOn" type="date" required /></label>
@@ -178,7 +182,16 @@
     <details class="action-panel" open={form?.panel === 'email'}>
       <summary>Email this class</summary>
       <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
-        <SearchSelect name="emailChoice" label="Template" options={templateOptions} value={form?.emailChoice ?? ''} placeholder="Choose email template" required />
+        <SearchSelect
+          name="emailChoice"
+          label="Template"
+          options={templateOptions}
+          value={form?.emailChoice ?? ''}
+          placeholder="Choose email template"
+          addHref="/templates?action=add"
+          addLabel="Add template"
+          required
+        />
         <button type="submit">Preview student emails</button>
       </form>
       {#if form?.previews}

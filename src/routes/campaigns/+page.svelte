@@ -111,8 +111,24 @@
     {#if data.action === 'preview'}
       <form method="POST" action="?/previewCampaign" class="panel-form" use:enhance>
         <h3>Preview class email</h3>
-        <SearchSelect name="classSessionId" label="Class" options={classOptions} placeholder="Search classes" required />
-        <SearchSelect name="templateId" label="Template" options={templateOptions} placeholder="Search templates" required />
+        <SearchSelect
+          name="classSessionId"
+          label="Class"
+          options={classOptions}
+          placeholder="Search classes"
+          addHref="/classes?action=session"
+          addLabel="Add class"
+          required
+        />
+        <SearchSelect
+          name="templateId"
+          label="Template"
+          options={templateOptions}
+          placeholder="Search templates"
+          addHref="/templates?action=add"
+          addLabel="Add template"
+          required
+        />
         <div class="button-row">
           <button type="submit">Preview personalization</button>
           <a class="button-link" href="/campaigns">Cancel</a>
@@ -123,8 +139,24 @@
       <form method="POST" action="?/createCampaign" class="panel-form" use:enhance>
         <h3>Schedule class email</h3>
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
-        <SearchSelect name="classSessionId" label="Class" options={classOptions} placeholder="Search classes" required />
-        <SearchSelect name="templateId" label="Template" options={templateOptions} placeholder="Search templates" required />
+        <SearchSelect
+          name="classSessionId"
+          label="Class"
+          options={classOptions}
+          placeholder="Search classes"
+          addHref="/classes?action=session"
+          addLabel="Add class"
+          required
+        />
+        <SearchSelect
+          name="templateId"
+          label="Template"
+          options={templateOptions}
+          placeholder="Search templates"
+          addHref="/templates?action=add"
+          addLabel="Add template"
+          required
+        />
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
         <input name="scheduleMode" type="hidden" value="draft" />
         <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>

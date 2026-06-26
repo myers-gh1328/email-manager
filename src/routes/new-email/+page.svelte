@@ -68,7 +68,15 @@
     <h3>Compose email</h3>
     <ContactMultiSelect contacts={data.contacts} {selectedContactIds} />
 
-    <SearchSelect name="templateId" label="Template" options={templateOptions} value={selectedTemplateId} placeholder="Search templates" />
+    <SearchSelect
+      name="templateId"
+      label="Template"
+      options={templateOptions}
+      value={selectedTemplateId}
+      placeholder="Search templates"
+      addHref="/templates?action=add"
+      addLabel="Add template"
+    />
     <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>
     <label>Subject<input name="subject" value={subject} placeholder="Quick class update" /></label>
     <EmailBodyEditor name="body" rows={10} placeholder={'Hi {{firstName}},'} value={body} fields={variableFields} />

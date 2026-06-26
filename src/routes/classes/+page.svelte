@@ -88,8 +88,24 @@
     {#if data.action === 'session'}
       <form method="POST" action="?/createClassSession" class="panel-form" use:enhance>
         <h3>Add class</h3>
-        <SearchSelect name="courseTypeId" label="Course" options={courseOptions} placeholder="Search courses" required />
-        <SearchSelect name="locationId" label="Location" options={locationOptions} placeholder="Search locations" required />
+        <SearchSelect
+          name="courseTypeId"
+          label="Course"
+          options={courseOptions}
+          placeholder="Search courses"
+          addHref="/settings"
+          addLabel="Add course"
+          required
+        />
+        <SearchSelect
+          name="locationId"
+          label="Location"
+          options={locationOptions}
+          placeholder="Search locations"
+          addHref="/settings"
+          addLabel="Add location"
+          required
+        />
         <p class="help-text"><a href="/settings">Manage class setup</a> for courses, locations, and defaults.</p>
         <label>Start date<input bind:value={newClassStartsOn} name="startsOn" type="date" required /></label>
         <label>End date<input bind:value={newClassEndsOn} name="endsOn" type="date" oninput={() => (endDateTouched = true)} required /></label>
