@@ -21,7 +21,7 @@
     <a href="/contacts"><span>{data.stats.contacts}</span><p>Contacts</p></a>
     <a href="/classes"><span>{data.stats.classSessions}</span><p>Classes</p></a>
     <a href="/templates"><span>{data.stats.templates}</span><p>Templates</p></a>
-    <a href="/campaigns"><span>{data.stats.campaigns}</span><p>Scheduled Emails</p></a>
+    <a href="/scheduled-emails"><span>{data.stats.campaigns}</span><p>Scheduled Emails</p></a>
   </div>
 
   <section class="panel-form spaced">
@@ -78,11 +78,11 @@
       <p class="eyebrow">Scheduled Emails</p>
       <h2>Recent scheduled emails</h2>
     </div>
-    <a class="button-link" href="/campaigns">Manage scheduled emails</a>
+    <a class="button-link" href="/scheduled-emails">Manage scheduled emails</a>
   </div>
   <div class="list">
     {#each data.recentScheduledEmails as campaign}
-      <a class="row-card" href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(dashboardReturnTo)}`}>
+      <a class="row-card" href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(dashboardReturnTo)}`}>
         <div>
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>

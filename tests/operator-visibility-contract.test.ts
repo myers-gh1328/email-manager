@@ -64,8 +64,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).not.toContain('ready to send now');
     expect(dashboard).not.toContain('<p>Ready to send</p>');
     expect(dashboard).toContain('<p>Scheduled Emails</p>');
-    expect(dashboard).toContain('<a href="/campaigns"><span>{data.stats.campaigns}</span><p>Scheduled Emails</p></a>');
-    expect(dashboard).not.toContain('<a href="/campaigns"><span>{data.stats.pendingDeliveries}</span><p>Scheduled Emails</p></a>');
+    expect(dashboard).toContain('<a href="/scheduled-emails"><span>{data.stats.campaigns}</span><p>Scheduled Emails</p></a>');
+    expect(dashboard).not.toContain('<a href="/scheduled-emails"><span>{data.stats.pendingDeliveries}</span><p>Scheduled Emails</p></a>');
     expect(dashboard).not.toContain('<p>Prepared scheduled emails</p>');
     expect(dashboard).not.toContain('<p>Recipient emails prepared</p>');
     expect(dashboard).not.toContain('<div class="status-row">');
@@ -95,7 +95,7 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('email issue');
     expect(dashboard).toContain('data.recentScheduledEmails');
     expect(dashboard).toContain('dashboardReturnTo');
-    expect(dashboard).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(dashboardReturnTo)}`}');
+    expect(dashboard).toContain('href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(dashboardReturnTo)}`}');
     expect(dashboard).toContain('scheduledEmailStatusLabel(campaign.readyToSend)');
     expect(dashboard).toContain('class:good={campaign.readyToSend}');
     expect(dashboard).not.toContain('campaign.approved');
@@ -367,12 +367,12 @@ describe('operator visibility contract', () => {
   });
 
   test('uses plain scheduled-email language instead of approval campaign copy', () => {
-    const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
-    const scheduledEmailsServer = readFileSync('src/routes/campaigns/+page.server.ts', 'utf8');
-    const scheduledEmailDetailServer = readFileSync('src/routes/campaigns/[id]/+page.server.ts', 'utf8');
+    const scheduledEmails = readFileSync('src/routes/scheduled-emails/+page.svelte', 'utf8');
+    const scheduledEmailsServer = readFileSync('src/routes/scheduled-emails/+page.server.ts', 'utf8');
+    const scheduledEmailDetailServer = readFileSync('src/routes/scheduled-emails/[id]/+page.server.ts', 'utf8');
     const scheduledEmailRepository = readFileSync('src/lib/server/repository/campaigns.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
-    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
+    const scheduledEmailDetail = readFileSync('src/routes/scheduled-emails/[id]/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
 
@@ -401,12 +401,12 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('href={`/history?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmails).toContain('scheduledEmailReturnTo');
     expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
-    expect(scheduledEmails).toContain('href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
-    expect(scheduledEmails).not.toContain('href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
-    expect(scheduledEmails).toContain("href={data.returnTo || '/campaigns'}");
+    expect(scheduledEmails).toContain('href={`/scheduled-emails?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmails).not.toContain('href={`/scheduled-emails?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmails).toContain("href={data.returnTo || '/scheduled-emails'}");
     expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
-    expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
-    expect(scheduledEmailDetail).toContain("href={data.returnTo || '/campaigns'}");
+    expect(scheduledEmails).toContain('href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmailDetail).toContain("href={data.returnTo || '/scheduled-emails'}");
     expect(scheduledEmailDetailServer).toContain('localReturnTo');
     expect(scheduledEmailDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(scheduledEmailDetail).toContain('Ready to send');
@@ -526,8 +526,8 @@ describe('operator visibility contract', () => {
   });
 
   test('keeps global send-due actions out of scheduled email detail', () => {
-    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
-    const scheduledEmailDetailServer = readFileSync('src/routes/campaigns/[id]/+page.server.ts', 'utf8');
+    const scheduledEmailDetail = readFileSync('src/routes/scheduled-emails/[id]/+page.svelte', 'utf8');
+    const scheduledEmailDetailServer = readFileSync('src/routes/scheduled-emails/[id]/+page.server.ts', 'utf8');
 
     expect(scheduledEmailDetail).not.toContain('Send due now');
     expect(scheduledEmailDetail).not.toContain('?/sendDueNow');
@@ -539,7 +539,7 @@ describe('operator visibility contract', () => {
   });
 
   test('formats technical delivery statuses before showing them to instructors', () => {
-    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
+    const scheduledEmailDetail = readFileSync('src/routes/scheduled-emails/[id]/+page.svelte', 'utf8');
     const history = readFileSync('src/routes/history/+page.svelte', 'utf8');
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
@@ -553,7 +553,7 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('data.scheduledCampaignsPage.total');
     expect(classDetail).toContain('classEmailsPageHref');
     expect(classDetail).toContain('classDetailReturnTo = $derived(classEmailsPageHref(currentClassEmailsPage))');
-    expect(classDetail).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}');
+    expect(classDetail).toContain('href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}');
     expect(classDetail).toContain('Page {currentClassEmailsPage} of {totalClassEmailsPages}');
     expect(classDetailServer).toContain('scheduledCampaignsPage: withVisibleScheduledEmailsPage(scheduledCampaignsPage)');
     expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
@@ -705,7 +705,7 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('communication.classSessionId');
     expect(historyDetail).toContain('detailReturnTo');
     expect(historyDetail).toContain('href={`/contacts?contactId=${communication.contactId}&returnTo=${encodeURIComponent(detailReturnTo)}`}');
-    expect(historyDetail).toContain('href={`/campaigns/${communication.sourceId}?returnTo=${encodeURIComponent(detailReturnTo)}`}');
+    expect(historyDetail).toContain('href={`/scheduled-emails/${communication.sourceId}?returnTo=${encodeURIComponent(detailReturnTo)}`}');
     expect(historyDetail).toContain('href={`/classes/${communication.classSessionId}?returnTo=${encodeURIComponent(detailReturnTo)}`}');
     expect(historyDetail).toContain("params.set('returnTo', detailReturnTo)");
     expect(historyDetailServer).toContain('localReturnTo');

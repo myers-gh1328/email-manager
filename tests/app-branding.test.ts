@@ -6,7 +6,7 @@ const userFacingFiles = [
   'src/routes/+layout.svelte',
   'src/routes/+page.svelte',
   'src/routes/setup/+page.svelte',
-  'src/routes/campaigns/+page.svelte',
+  'src/routes/scheduled-emails/+page.svelte',
   'src/routes/classes/+page.svelte',
   'src/routes/contacts/+page.svelte',
   'src/routes/templates/+page.svelte',

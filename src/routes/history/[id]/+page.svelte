@@ -50,7 +50,7 @@
         <dt>Source</dt>
         <dd>
           {#if communication.source === 'campaign' && communication.sourceId}
-            <a href={`/campaigns/${communication.sourceId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>Scheduled email</a>
+            <a href={`/scheduled-emails/${communication.sourceId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>Scheduled email</a>
           {:else if communication.source === 'campaign'}
             Scheduled email
           {:else}

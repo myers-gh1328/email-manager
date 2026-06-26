@@ -138,7 +138,7 @@
         {#each data.scheduledCampaigns as campaign}
           <article class="row-card tall">
             <div>
-              <a href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}><strong>{campaign.name}</strong></a>
+              <a href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}><strong>{campaign.name}</strong></a>
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
                 {campaign.source === 'course_default' ? 'From course' : 'Added for this class'}

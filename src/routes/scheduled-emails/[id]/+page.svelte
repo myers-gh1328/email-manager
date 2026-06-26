@@ -29,7 +29,7 @@
     if (data.recipientPage.search) params.set('search', data.recipientPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
-    return query ? `/campaigns/${data.campaign.id}?${query}` : `/campaigns/${data.campaign.id}`;
+    return query ? `/scheduled-emails/${data.campaign.id}?${query}` : `/scheduled-emails/${data.campaign.id}`;
   }
 </script>
 
@@ -46,7 +46,7 @@
       </div>
       <div class="button-row compact">
         <a class="button-link" href={`/history?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>View in History</a>
-        <a class="button-link" href={data.returnTo || '/campaigns'}>Back</a>
+        <a class="button-link" href={data.returnTo || '/scheduled-emails'}>Back</a>
       </div>
     </div>
     <dl class="detail-facts">
@@ -73,7 +73,7 @@
 
     <div class="preview-list">
       <h3>Recipients</h3>
-      <form class="inline-filters" method="GET" action={`/campaigns/${data.campaign.id}`}>
+      <form class="inline-filters" method="GET" action={`/scheduled-emails/${data.campaign.id}`}>
         <label>
           <span class="sr-only">Search recipients</span>
           <input name="search" value={recipientSearch} placeholder="Search recipients" />

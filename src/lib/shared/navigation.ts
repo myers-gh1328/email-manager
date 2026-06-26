@@ -7,7 +7,7 @@ export const baseNavItems = [
   { href: '/contacts', label: 'Contacts' },
   { href: '/classes', label: 'Classes' },
   { href: '/templates', label: 'Templates' },
-  { href: '/campaigns', label: 'Scheduled Emails' },
+  { href: '/scheduled-emails', label: 'Scheduled Emails' },
   { href: '/history', label: 'History' },
   { href: '/new-email', label: 'New Email' },
   { href: '/settings', label: 'Settings' }

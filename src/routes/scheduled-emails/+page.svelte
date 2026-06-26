@@ -12,7 +12,7 @@
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
   let scheduledEmailReturnTo = $derived(campaignsPageHref(currentCampaignsPage));
   let campaignWorkflowReturnTo = $derived(
-    `/campaigns${data.action ? `?action=${encodeURIComponent(data.action)}&returnTo=${encodeURIComponent(data.returnTo || scheduledEmailReturnTo)}` : ''}`
+    `/scheduled-emails${data.action ? `?action=${encodeURIComponent(data.action)}&returnTo=${encodeURIComponent(data.returnTo || scheduledEmailReturnTo)}` : ''}`
   );
   let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
@@ -36,7 +36,7 @@
     if (data.campaignsPage.status) params.set('status', data.campaignsPage.status);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
-    return query ? `/campaigns?${query}` : '/campaigns';
+    return query ? `/scheduled-emails?${query}` : '/scheduled-emails';
   }
 
   function statusFilterHref(status: string) {
@@ -45,7 +45,7 @@
     if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
     if (status) params.set('status', status);
     const query = params.toString();
-    return query ? `/campaigns?${query}` : '/campaigns';
+    return query ? `/scheduled-emails?${query}` : '/scheduled-emails';
   }
 </script>
 
@@ -63,16 +63,16 @@
     </div>
     {#if form?.message || data.actionMessage}<p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>{/if}
     <div class="action-row">
-      <a class:active={data.action === 'preview'} class="button-link" href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Create scheduled email</a>
+      <a class:active={data.action === 'preview'} class="button-link" href={`/scheduled-emails?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Create scheduled email</a>
     </div>
-    <form class="inline-filters" method="GET" action="/campaigns">
+    <form class="inline-filters" method="GET" action="/scheduled-emails">
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search scheduled emails
         <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
       </label>
       <button type="submit">Search</button>
-      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href={data.returnTo ? `/campaigns?returnTo=${encodeURIComponent(data.returnTo)}` : '/campaigns'}>Clear</a>{/if}
+      {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href={data.returnTo ? `/scheduled-emails?returnTo=${encodeURIComponent(data.returnTo)}` : '/scheduled-emails'}>Clear</a>{/if}
     </form>
     <div class="segmented-control" aria-label="Filter scheduled emails">
       {#each statusFilters as filter}
@@ -84,7 +84,7 @@
       {#each data.campaigns as campaign}
         <article class="row-card">
           <div>
-            <a href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{campaign.name}</strong></a>
+            <a href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{campaign.name}</strong></a>
             <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
             <p>{scheduledEmailDeliverySummary(campaign)}</p>
           </div>
@@ -162,7 +162,7 @@
         />
         <div class="button-row">
           <button type="submit">Preview personalization</button>
-          <a class="button-link" href={data.returnTo || '/campaigns'}>Cancel</a>
+          <a class="button-link" href={data.returnTo || '/scheduled-emails'}>Cancel</a>
         </div>
       </form>
     {/if}
