@@ -36,7 +36,7 @@
     <dl class="detail-facts">
       <div>
         <dt>Recipient</dt>
-        <dd><a href={`/contacts?contactId=${communication.contactId}`}>{communication.contactName}</a></dd>
+        <dd><a href={`/contacts?contactId=${communication.contactId}&returnTo=${encodeURIComponent(detailReturnTo)}`}>{communication.contactName}</a></dd>
       </div>
       <div>
         <dt>Delivery</dt>
@@ -50,7 +50,7 @@
         <dt>Source</dt>
         <dd>
           {#if communication.source === 'campaign' && communication.sourceId}
-            <a href={`/campaigns/${communication.sourceId}`}>Scheduled email</a>
+            <a href={`/campaigns/${communication.sourceId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>Scheduled email</a>
           {:else if communication.source === 'campaign'}
             Scheduled email
           {:else}
@@ -61,7 +61,7 @@
       {#if communication.classSessionId}
         <div>
           <dt>Class</dt>
-          <dd><a href={`/classes/${communication.classSessionId}`}>{communication.className || 'Class detail'}</a></dd>
+          <dd><a href={`/classes/${communication.classSessionId}?returnTo=${encodeURIComponent(detailReturnTo)}`}>{communication.className || 'Class detail'}</a></dd>
         </div>
       {/if}
     </dl>
