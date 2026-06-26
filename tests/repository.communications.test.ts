@@ -2,6 +2,25 @@ import { describe, expect, test } from 'vitest';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository communications', () => {
+  test('creates indexes for scalable history pagination and filters', () => {
+    const repo = createTestRepository();
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { all: (...args: unknown[]) => Array<{ name: string }> } } }).db;
+
+    const indexNames = db
+      .prepare("select name from sqlite_master where type = 'index' and tbl_name = 'communications'")
+      .all()
+      .map((row) => row.name);
+
+    expect(indexNames).toEqual(
+      expect.arrayContaining([
+        'idx_communications_created',
+        'idx_communications_contact_created',
+        'idx_communications_source_created',
+        'idx_communications_status_created'
+      ])
+    );
+  });
+
   test('records outbound communication history by contact with newest first', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

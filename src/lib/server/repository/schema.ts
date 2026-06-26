@@ -336,6 +336,14 @@ export function migrate(db: DatabaseSync) {
     create unique index if not exists idx_communications_message_id_unique
       on communications(message_id)
       where message_id != '';
+    create index if not exists idx_communications_created
+      on communications(created_at);
+    create index if not exists idx_communications_contact_created
+      on communications(contact_id, created_at);
+    create index if not exists idx_communications_source_created
+      on communications(source_id, created_at);
+    create index if not exists idx_communications_status_created
+      on communications(status, created_at);
     create index if not exists idx_communication_replies_communication_id
       on communication_replies(communication_id, received_at);
     create index if not exists idx_campaign_deliveries_status_next_attempt
