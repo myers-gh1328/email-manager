@@ -36,7 +36,9 @@ describe('operator visibility contract', () => {
 
   test('keeps risky send actions and approval language off the dashboard', () => {
     const dashboard = readFileSync('src/routes/+page.svelte', 'utf8');
+    const dashboardServer = readFileSync('src/routes/+page.server.ts', 'utf8');
     expect(dashboard).not.toContain('resendFailedToday');
+    expect(dashboardServer).not.toContain('resendFailedToday');
     expect(dashboard).not.toContain('Resend failed today');
     expect(dashboard).not.toContain('approved due now');
     expect(dashboard).not.toContain('No upcoming approved sends');
