@@ -529,6 +529,29 @@ describe('repository contacts and classes', () => {
     ]);
   });
 
+  test('limits checklist state to visible roster contacts when contact ids are supplied', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-07-12', location: 'Blue Quarry' });
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const jordan = repo.createContact({ firstName: 'Jordan', lastName: 'Lee', email: 'jordan@example.com' });
+    repo.enrollContact(session.id, maya.id);
+    repo.enrollContact(session.id, jordan.id);
+    const item = repo.createChecklistItem({ label: 'Medical form complete' });
+
+    repo.setEnrollmentChecklistCompletion({
+      classSessionId: session.id,
+      contactId: maya.id,
+      itemScope: 'global',
+      itemId: item.id,
+      completed: true
+    });
+
+    expect(repo.listEnrollmentChecklistState(session.id, [maya.id])).toMatchObject([
+      { contactId: maya.id, itemId: item.id, itemScope: 'global', completed: true }
+    ]);
+  });
+
   test('ignores course-type checklist completion for another course type', () => {
     const repo = createTestRepository();
     const openWater = repo.createCourseType({ name: 'Open Water' });

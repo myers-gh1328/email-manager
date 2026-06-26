@@ -42,7 +42,7 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('scheduledCampaigns');
     expect(readFileSync('src/routes/classes/+page.server.ts', 'utf8')).toContain('checklistItems: repo.listChecklistItems()');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain(
-      'checklistState: repo.listEnrollmentChecklistState(params.id)'
+      'checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map'
     );
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('toggleChecklistItem');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('communicationPage = repo.listCommunicationsPage');
@@ -142,6 +142,8 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('<summary>Import CSV roster</summary>');
     expect(classDetail).not.toContain('<summary>Import roster photo</summary>');
     expect(classDetailServer).toContain('Prep item updated.');
+    expect(classDetailServer).toContain('detail.roster.map((contact) => contact.id)');
+    expect(classDetailServer).toContain('repo.listEnrollmentChecklistState(params.id, detail.roster.map');
     expect(classDetailServer).not.toContain('Checklist updated.');
   });
 

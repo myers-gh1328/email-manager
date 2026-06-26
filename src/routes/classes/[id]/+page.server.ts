@@ -15,19 +15,20 @@ import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params, url }) => {
   const page = Math.max(Number(url.searchParams.get('page') ?? '1'), 1);
+  const detail = repo.getClassSessionDetail(params.id, {
+    limit: 25,
+    offset: (page - 1) * 25,
+    search: url.searchParams.get('search') ?? ''
+  });
   return {
-    ...repo.getClassSessionDetail(params.id, {
-      limit: 25,
-      offset: (page - 1) * 25,
-      search: url.searchParams.get('search') ?? ''
-    }),
+    ...detail,
     contactOptions: loadContactOptions(),
     courseTypes: repo.listCourseTypes(),
     locations: repo.listLocations(),
     templateOptions: loadTemplateOptions(),
     defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
     scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
-    checklistState: repo.listEnrollmentChecklistState(params.id),
+    checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
     settings: getSettings()
   };
 };

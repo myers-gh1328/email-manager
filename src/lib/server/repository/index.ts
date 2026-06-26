@@ -298,8 +298,8 @@ export class AppRepository {
     return listChecklistForClassSession(this.db, classSessionId);
   }
 
-  listEnrollmentChecklistState(classSessionId: string) {
-    return listEnrollmentChecklistState(this.db, classSessionId);
+  listEnrollmentChecklistState(classSessionId: string, contactIds?: string[]) {
+    return listEnrollmentChecklistState(this.db, classSessionId, contactIds);
   }
 
   setEnrollmentChecklistCompletion(input: EnrollmentChecklistCompletionInput) {
