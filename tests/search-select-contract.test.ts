@@ -24,6 +24,7 @@ describe('SearchSelect contract', () => {
     expect(source).toContain('No options match that search.');
     expect(source).toContain('addHref');
     expect(source).toContain('addLabel');
+    expect(classes).toContain('addHref="/settings?section=app-data"');
     expect(classes).toContain('addLabel="Add course"');
     expect(classes).toContain('addLabel="Add location"');
     expect(scheduledEmails).toContain('addLabel="Add class"');
@@ -128,6 +129,8 @@ describe('SearchSelect contract', () => {
     expect(classDetailServer).not.toContain('locations: repo.listLocations()');
     expect(classes).toContain('searchHref="/courses/search"');
     expect(classes).toContain('searchHref="/locations/search"');
+    expect(classes).toContain('addHref="/settings?section=app-data"');
+    expect(classDetail).toContain('addHref="/settings?section=app-data"');
     expect(classDetail).toContain('searchHref="/courses/search"');
     expect(classDetail).toContain('searchHref="/locations/search"');
     expect(courseSearchRoute).toContain('repo.listCourseTypesPage');

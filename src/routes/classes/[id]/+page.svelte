@@ -230,7 +230,7 @@
         options={courseOptions}
         value={data.session.courseTypeId}
         placeholder="Search courses"
-        addHref="/settings"
+        addHref="/settings?section=app-data"
         addLabel="Add course"
         searchHref="/courses/search"
         required
@@ -241,7 +241,7 @@
         options={locationOptions}
         value={data.session.locationId}
         placeholder="Search locations"
-        addHref="/settings"
+        addHref="/settings?section=app-data"
         addLabel="Add location"
         searchHref="/locations/search"
         required
