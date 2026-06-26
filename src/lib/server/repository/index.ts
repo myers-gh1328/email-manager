@@ -91,6 +91,7 @@ import {
   listCommunications,
   listCommunicationsPage,
   listContactCommunications,
+  listRecentCommunicationMessageIds,
   listRecentContactCommunications,
   listEmailTestAudits,
   listEmailTestAuditsPage,
@@ -582,6 +583,10 @@ export class AppRepository {
 
   listCommunicationMessageIds() {
     return listCommunicationMessageIds(this.db);
+  }
+
+  listRecentCommunicationMessageIds(limit?: number) {
+    return listRecentCommunicationMessageIds(this.db, limit);
   }
 
   recordEmailTestAudit(input: EmailTestAuditInput) {

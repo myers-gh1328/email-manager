@@ -337,6 +337,20 @@ export function listCommunicationMessageIds(db: DatabaseSync) {
     .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
 }
 
+export function listRecentCommunicationMessageIds(db: DatabaseSync, limit = 1000) {
+  const boundedLimit = Math.min(Math.max(limit, 1), 5000);
+  return db
+    .prepare(
+      `select id, message_id
+       from communications
+       where message_id != '' and status in ('accepted', 'sent')
+       order by coalesce(sent_at, created_at) desc, rowid desc
+       limit ?`
+    )
+    .all(boundedLimit)
+    .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
+}
+
 export function getCommunication(db: DatabaseSync, id: string) {
   return listCommunicationById(db, id);
 }

@@ -8,7 +8,7 @@ const client = vi.hoisted(() => ({
 }));
 
 const repo = vi.hoisted(() => ({
-  listCommunicationMessageIds: vi.fn(),
+  listRecentCommunicationMessageIds: vi.fn(),
   recordCommunicationReply: vi.fn()
 }));
 
@@ -47,7 +47,7 @@ describe('reply sync IMAP adapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     settings.replySyncPasswordConfigured = true;
-    repo.listCommunicationMessageIds.mockReturnValue([{ id: 'communication-1', messageId: '<sent@example.com>' }]);
+    repo.listRecentCommunicationMessageIds.mockReturnValue([{ id: 'communication-1', messageId: '<sent@example.com>' }]);
     repo.recordCommunicationReply.mockReturnValue({ created: true });
     client.connect.mockResolvedValue(undefined);
     client.mailboxOpen.mockResolvedValue({ exists: 2, uidValidity: 99 });
