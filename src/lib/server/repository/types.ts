@@ -137,6 +137,38 @@ export interface CampaignInput {
   sendOffsetMinutes?: number;
 }
 
+export interface CampaignRecord {
+  id: string;
+  classSessionId: string;
+  templateId: string;
+  name: string;
+  scheduledFor: string;
+  approved: boolean;
+  source: string;
+  defaultPurpose: string;
+  defaultLabel: string;
+  sendOffsetMinutes: number;
+  templateName: string;
+  courseName: string;
+  startsOn: string;
+  endsOn: string;
+  startTime: string;
+}
+
+export interface CampaignPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface CampaignPage {
+  items: CampaignRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface CommunicationInput {
   contactId: string;
   channel: 'email';

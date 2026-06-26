@@ -112,13 +112,21 @@ export function loadTemplatesData() {
   };
 }
 
-export function loadCampaignsData() {
+export function loadCampaignsData(input: { search?: string; page?: number } = {}) {
+  const limit = 25;
+  const page = Math.max(input.page ?? 1, 1);
+  const campaignsPage = repo.listCampaignsPage({
+    search: input.search,
+    limit,
+    offset: (page - 1) * limit
+  });
   return {
     contacts: repo.listContacts(),
     classSessions: repo.listClassSessions(),
     locations: repo.listLocations(),
     templates: repo.listTemplates(),
-    campaigns: repo.listCampaigns(),
+    campaigns: campaignsPage.items,
+    campaignsPage,
     settings: getSettings()
   };
 }

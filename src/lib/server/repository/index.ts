@@ -41,6 +41,7 @@ import {
   getCampaignDetail,
   hasSentDeliveries,
   listCampaigns,
+  listCampaignsPage,
   listCampaignsForClassSession,
   listDeliveries,
   listPendingDeliveries,
@@ -108,6 +109,7 @@ import type {
   AgentApprovalInput,
   AgentAuditEventInput,
   CampaignInput,
+  CampaignPageInput,
   ChecklistItemInput,
   ClassSessionInput,
   ContactPageInput,
@@ -140,6 +142,9 @@ export type {
   AgentAuditEventInput,
   AgentRisk,
   CampaignInput,
+  CampaignPage,
+  CampaignPageInput,
+  CampaignRecord,
   ChecklistItem,
   ChecklistItemInput,
   ChecklistItemScope,
@@ -379,6 +384,10 @@ export class AppRepository {
 
   listCampaigns() {
     return listCampaigns(this.db);
+  }
+
+  listCampaignsPage(input?: CampaignPageInput) {
+    return listCampaignsPage(this.db, input);
   }
 
   listCampaignsForClassSession(classSessionId: string) {

@@ -7,6 +7,9 @@
     data.classSessions.map((session) => ({ value: session.id, label: `${session.courseName} · ${formatClassSchedule(session)}` }))
   );
   let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
+  let campaignsSearch = $derived(data.campaignsPage.search ?? '');
+  let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
+  let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
 
   function formatClassSchedule(session: { startsOn: string; endsOn?: string; startTime?: string }) {
     const endsOn = session.endsOn || session.startsOn;
@@ -16,6 +19,14 @@
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  }
+
+  function campaignsPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/campaigns?${query}` : '/campaigns';
   }
 </script>
 
@@ -36,6 +47,15 @@
       <a class:active={data.action === 'preview'} class="button-link" href="/campaigns?action=preview">Preview class email</a>
       <a class:active={data.action === 'schedule'} class="button-link" href="/campaigns?action=schedule">Schedule class email</a>
     </div>
+    <form class="inline-filters" method="GET" action="/campaigns">
+      <label>
+        Search scheduled emails
+        <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
+      </label>
+      <button type="submit">Search</button>
+      {#if data.campaignsPage.search}<a class="button-link" href="/campaigns">Clear</a>{/if}
+    </form>
+    <p class="help-text">Showing {data.campaigns.length} of {data.campaignsPage.total} scheduled emails.</p>
     <div class="list">
       {#each data.campaigns as campaign}
         <article class="row-card">
@@ -49,6 +69,19 @@
         <p class="empty">No class emails scheduled.</p>
       {/each}
     </div>
+    {#if totalCampaignsPages > 1}
+      <nav class="pagination" aria-label="Scheduled email pages">
+        <a class="button-link" aria-disabled={currentCampaignsPage === 1} href={campaignsPageHref(Math.max(currentCampaignsPage - 1, 1))}>Previous</a>
+        <span>Page {currentCampaignsPage} of {totalCampaignsPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentCampaignsPage >= totalCampaignsPages}
+          href={campaignsPageHref(Math.min(currentCampaignsPage + 1, totalCampaignsPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
     {#if form?.previews}
       <div class="preview-list">
         <h3>Preview</h3>

@@ -8,6 +8,35 @@ import { sendDueCampaignsWithDependencies } from '../src/lib/server/send-due-cam
 import { baseAppSettings } from './settings-helpers';
 
 describe('repository campaigns and deliveries', () => {
+  test('lists scheduled emails with pagination and search', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const reminder = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const welcome = repo.createTemplate({ name: 'Welcome', subject: 'Welcome', body: 'Hello.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: reminder.id,
+      name: 'Rescue prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: welcome.id,
+      name: 'Welcome note',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ limit: 1, offset: 0, search: 'prep' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
+  });
+
   test('records successful campaign delivery once per contact', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });

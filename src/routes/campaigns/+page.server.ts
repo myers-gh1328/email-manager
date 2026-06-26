@@ -6,7 +6,10 @@ import { loadCampaignsData } from '$lib/server/page-data';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ url }) => ({
-  ...loadCampaignsData(),
+  ...loadCampaignsData({
+    search: url.searchParams.get('search') ?? '',
+    page: Number(url.searchParams.get('page') ?? '1')
+  }),
   action: url.searchParams.get('action') ?? ''
 });
 

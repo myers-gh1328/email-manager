@@ -4,7 +4,7 @@ import { getClassSession, listEnrollments } from './contacts';
 import { newId, now } from './ids';
 import { mapCampaign, mapDelivery, rowString } from './mappers';
 import { getTemplate } from './templates';
-import type { CampaignInput, Row } from './types';
+import type { CampaignInput, CampaignPage, CampaignPageInput, Row } from './types';
 
 export function createCampaign(db: DatabaseSync, input: CampaignInput) {
   const id = newId();
@@ -42,6 +42,51 @@ export function listCampaigns(db: DatabaseSync) {
     )
     .all()
     .map(mapCampaign);
+}
+
+export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {}): CampaignPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(c.name) like ?
+        or lower(t.name) like ?
+        or lower(ct.name) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const fromSql = `
+    from campaigns c
+    join templates t on t.id = c.template_id
+    join class_sessions cs on cs.id = c.class_session_id
+    join course_types ct on ct.id = cs.course_type_id
+  `;
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       ${fromSql}
+       ${whereSql}
+       order by c.scheduled_for desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapCampaign(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string) {
