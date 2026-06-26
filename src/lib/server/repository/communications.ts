@@ -197,6 +197,8 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
   const replyStatus = input.replyStatus === 'needs_reply' ? input.replyStatus : '';
   const requestedStatus = input.status?.trim() ?? '';
   const status = ['sent', 'failed'].includes(requestedStatus) ? requestedStatus : '';
+  const requestedType = input.type?.trim() ?? '';
+  const type = ['direct', 'scheduled'].includes(requestedType) ? requestedType : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
@@ -216,6 +218,12 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
   }
   if (status === 'failed') {
     where.push("cm.status = 'failed'");
+  }
+  if (type === 'direct') {
+    where.push("cm.source = 'direct'");
+  }
+  if (type === 'scheduled') {
+    where.push("cm.source = 'campaign'");
   }
   if (search) {
     const pattern = `%${search.toLowerCase()}%`;
@@ -276,7 +284,8 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
     contactId,
     sourceId,
     replyStatus,
-    status
+    status,
+    type
   };
 }
 

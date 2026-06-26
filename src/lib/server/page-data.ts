@@ -228,7 +228,7 @@ export function withReadyToSend<T extends { approved: boolean }>(campaign: T) {
   };
 }
 
-export function loadCommunicationsData(input: { contactId?: string; sourceId?: string; replyStatus?: string; status?: string; search?: string; page?: number } = {}) {
+export function loadCommunicationsData(input: { contactId?: string; sourceId?: string; replyStatus?: string; status?: string; type?: string; search?: string; page?: number } = {}) {
   const limit = 25;
   const page = Math.max(input.page ?? 1, 1);
   const communicationPage = repo.listCommunicationsPage({
@@ -236,6 +236,7 @@ export function loadCommunicationsData(input: { contactId?: string; sourceId?: s
     sourceId: input.sourceId,
     replyStatus: input.replyStatus,
     status: input.status,
+    type: input.type,
     search: input.search,
     limit,
     offset: (page - 1) * limit
@@ -247,6 +248,7 @@ export function loadCommunicationsData(input: { contactId?: string; sourceId?: s
     selectedSourceId: input.sourceId ?? '',
     selectedReplyStatus: input.replyStatus ?? '',
     selectedStatus: input.status ?? '',
+    selectedType: input.type ?? '',
     settings: getSettings()
   };
 }

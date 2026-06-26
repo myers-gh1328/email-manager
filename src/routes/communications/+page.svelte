@@ -6,8 +6,14 @@
   let historySearch = $derived(data.communicationPage.search ?? '');
   let historyReplyStatus = $derived(data.communicationPage.replyStatus ?? '');
   let historyStatus = $derived(data.communicationPage.status ?? '');
+  let historyType = $derived(data.communicationPage.type ?? '');
   let currentHistoryPage = $derived(Math.floor(data.communicationPage.offset / data.communicationPage.limit) + 1);
   let totalHistoryPages = $derived(Math.max(Math.ceil(data.communicationPage.total / data.communicationPage.limit), 1));
+  const typeFilters = [
+    { value: '', label: 'All email' },
+    { value: 'direct', label: 'Direct' },
+    { value: 'scheduled', label: 'Scheduled' }
+  ];
   const statusFilters = [
     { value: '', label: 'All delivery' },
     { value: 'sent', label: 'Sent' },
@@ -29,6 +35,7 @@
     if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
     if (data.selectedReplyStatus) params.set('replyStatus', data.selectedReplyStatus);
     if (data.selectedStatus) params.set('status', data.selectedStatus);
+    if (data.selectedType) params.set('type', data.selectedType);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
     return query ? `/communications?${query}` : '/communications';
@@ -41,6 +48,7 @@
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
     if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
     if (data.selectedStatus) params.set('status', data.selectedStatus);
+    if (data.selectedType) params.set('type', data.selectedType);
     if (replyStatus) params.set('replyStatus', replyStatus);
     const query = params.toString();
     return query ? `/communications?${query}` : '/communications';
@@ -53,7 +61,21 @@
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
     if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
     if (data.selectedReplyStatus) params.set('replyStatus', data.selectedReplyStatus);
+    if (data.selectedType) params.set('type', data.selectedType);
     if (status) params.set('status', status);
+    const query = params.toString();
+    return query ? `/communications?${query}` : '/communications';
+  }
+
+  function typeFilterHref(type: string) {
+    const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
+    if (data.communicationPage.search) params.set('search', data.communicationPage.search);
+    if (data.selectedContactId) params.set('contactId', data.selectedContactId);
+    if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
+    if (data.selectedReplyStatus) params.set('replyStatus', data.selectedReplyStatus);
+    if (data.selectedStatus) params.set('status', data.selectedStatus);
+    if (type) params.set('type', type);
     const query = params.toString();
     return query ? `/communications?${query}` : '/communications';
   }
@@ -92,12 +114,18 @@
       {#if data.selectedSourceId}<input type="hidden" name="sourceId" value={data.selectedSourceId} />{/if}
       {#if data.selectedReplyStatus}<input type="hidden" name="replyStatus" value={data.selectedReplyStatus} />{/if}
       {#if data.selectedStatus}<input type="hidden" name="status" value={data.selectedStatus} />{/if}
+      {#if data.selectedType}<input type="hidden" name="type" value={data.selectedType} />{/if}
       <label>
         <span class="sr-only">Search history</span>
         <input name="search" value={historySearch} placeholder="Search by name, email, or subject" />
       </label>
       <button class="secondary" type="submit">Search</button>
     </form>
+    <div class="segmented-control" aria-label="Filter email type">
+      {#each typeFilters as filter}
+        <a class:active={historyType === filter.value} href={typeFilterHref(filter.value)}>{filter.label}</a>
+      {/each}
+    </div>
     <div class="segmented-control" aria-label="Filter email delivery status">
       {#each statusFilters as filter}
         <a class:active={historyStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
@@ -108,13 +136,14 @@
         <a class:active={historyReplyStatus === filter.value} href={replyFilterHref(filter.value)}>{filter.label}</a>
       {/each}
     </div>
-    {#if data.selectedContactId || data.selectedSourceId || data.selectedReplyStatus || data.selectedStatus}
+    {#if data.selectedContactId || data.selectedSourceId || data.selectedReplyStatus || data.selectedStatus || data.selectedType}
       <div class="active-filters" aria-label="Active filters">
         <strong>Active filters</strong>
         {#if data.selectedContactId}<span class="pill">Filtered to selected contact</span>{/if}
         {#if data.selectedSourceId}<span class="pill">Filtered to selected scheduled email</span>{/if}
         {#if data.selectedReplyStatus}<span class="pill">Filtered to emails needing replies</span>{/if}
         {#if data.selectedStatus}<span class="pill">Filtered to {data.selectedStatus === 'failed' ? 'failed emails' : 'sent emails'}</span>{/if}
+        {#if data.selectedType}<span class="pill">Filtered to {data.selectedType === 'scheduled' ? 'scheduled emails' : 'direct emails'}</span>{/if}
         <a class="button-link" href={historyClearHref}>Clear filters</a>
       </div>
     {/if}

@@ -7,6 +7,7 @@ export const load = ({ url }) => ({
     sourceId: url.searchParams.get('sourceId') || undefined,
     replyStatus: url.searchParams.get('replyStatus') || undefined,
     status: url.searchParams.get('status') || undefined,
+    type: url.searchParams.get('type') || undefined,
     search: url.searchParams.get('search') || undefined,
     page: Number(url.searchParams.get('page') || '1')
   }),

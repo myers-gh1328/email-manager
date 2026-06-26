@@ -595,6 +595,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain("params.set('replyStatus', data.selectedReplyStatus)");
     expect(history).toContain('data.selectedStatus');
     expect(history).toContain("params.set('status', data.selectedStatus)");
+    expect(history).toContain('data.selectedType');
+    expect(history).toContain("params.set('type', data.selectedType)");
+    expect(history).toContain("value: 'direct', label: 'Direct'");
+    expect(history).toContain("value: 'scheduled', label: 'Scheduled'");
     expect(history).toContain("value: 'sent', label: 'Sent'");
     expect(history).toContain("value: 'failed', label: 'Failed'");
     expect(history).toContain('name="sourceId"');
@@ -607,6 +611,7 @@ describe('operator visibility contract', () => {
     expect(history).toContain("params.set('returnTo', historyReturnTo)");
     expect(history).not.toContain('href="/new-email">New Email');
     expect(history).toContain('aria-label="Filter email history"');
+    expect(history).toContain('aria-label="Filter email type"');
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('aria-label="Filter email delivery status"');
     expect(history).toContain('Clear filters');
@@ -655,6 +660,7 @@ describe('operator visibility contract', () => {
     expect(historyServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyServer).toContain("replyStatus: url.searchParams.get('replyStatus') || undefined");
     expect(historyServer).toContain("status: url.searchParams.get('status') || undefined");
+    expect(historyServer).toContain("type: url.searchParams.get('type') || undefined");
     expect(historyDetail).not.toContain('Reply reviewed');
     expect(historyDetail).not.toContain('Mark reviewed');
     expect(historyDetail).not.toContain('mark replies reviewed');

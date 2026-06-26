@@ -373,6 +373,7 @@ export interface CommunicationHistoryPageInput {
   sourceId?: string;
   replyStatus?: string;
   status?: string;
+  type?: string;
 }
 
 export interface CommunicationHistoryPage {
@@ -385,6 +386,7 @@ export interface CommunicationHistoryPage {
   sourceId: string;
   replyStatus: string;
   status: string;
+  type: string;
 }
 
 export interface EmailTestAuditInput {

@@ -407,6 +407,44 @@ describe('repository communications', () => {
     });
   });
 
+  test('filters communication history by email type', () => {
+    const repo = createTestRepository();
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const lee = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Direct update',
+      body: 'Direct.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: lee.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: 'campaign-123',
+      subject: 'Scheduled update',
+      body: 'Scheduled.',
+      status: 'accepted'
+    });
+
+    const direct = repo.listCommunicationsPage({ type: 'direct' });
+    const scheduled = repo.listCommunicationsPage({ type: 'scheduled' });
+
+    expect(direct).toMatchObject({
+      type: 'direct',
+      total: 1,
+      items: [{ subject: 'Direct update', source: 'direct' }]
+    });
+    expect(scheduled).toMatchObject({
+      type: 'scheduled',
+      total: 1,
+      items: [{ subject: 'Scheduled update', source: 'campaign' }]
+    });
+  });
+
   test('records redirected test email audits separately from student history', () => {
     const repo = createTestRepository();
 
