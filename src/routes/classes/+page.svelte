@@ -84,8 +84,8 @@
     {/if}
   </div>
 
-  <div class="form-stack">
-    {#if data.action === 'session'}
+  {#if data.action === 'session'}
+    <div class="form-stack">
       <form method="POST" action="?/createClassSession" class="panel-form" use:enhance>
         <h3>Add class</h3>
         <SearchSelect
@@ -118,11 +118,6 @@
           <a class="button-link" href="/classes">Cancel</a>
         </div>
       </form>
-    {:else}
-      <section class="panel-form">
-        <h3>Class details</h3>
-        <p class="empty">Select a class to manage its roster, requirements, and scheduled emails.</p>
-      </section>
-    {/if}
-  </div>
+    </div>
+  {/if}
 </section>

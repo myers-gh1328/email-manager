@@ -121,6 +121,8 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Enroll student');
     expect(classes).not.toContain('Manage class setup');
     expect(classes).not.toContain('defaults.');
+    expect(classes).not.toContain('<h3>Class details</h3>');
+    expect(classes).not.toContain('Select a class to manage its roster, requirements, and scheduled emails.');
     expect(classesServer).not.toContain('checklistItems: repo.listChecklistItems()');
     expect(classesServer).not.toContain('selectedCourseDefaults');
     expect(classesServer).not.toContain('createCourse:');
