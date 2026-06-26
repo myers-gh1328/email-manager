@@ -162,7 +162,7 @@
       </form>
       {#if form?.draft}
         <form method="POST" action={form.draft.templateId ? '?/updateTemplate' : '?/createTemplate'} class="panel-form draft-result" use:enhance={draftWithAi}>
-          <h3>Review AI draft</h3>
+          <h3>Edit AI draft</h3>
           {#if form.draft.templateId}<input name="templateId" type="hidden" value={form.draft.templateId} />{/if}
           {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <label>Name<input name="name" value={form.draft.name} required /></label>

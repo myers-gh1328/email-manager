@@ -386,6 +386,8 @@ describe('operator visibility contract', () => {
 
     expect(templates).toContain('<h2>Email templates</h2>');
     expect(templates).not.toContain('Reusable personalized emails');
+    expect(templates).toContain('<h3>Edit AI draft</h3>');
+    expect(templates).not.toContain('Review AI draft');
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
