@@ -227,6 +227,9 @@
             {#each data.courseTypes as course}
               <form method="POST" action="?/updateCourse" class="inline-edit-form" use:enhance>
                 <input type="hidden" name="courseId" value={course.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
                 <label>Name<input name="name" value={course.name} required /></label>
                 <label>Description<textarea name="description" rows="2">{course.description}</textarea></label>
                 <button type="submit">Save</button>
@@ -236,6 +239,8 @@
           </div>
           <form method="POST" action="?/createCourse" class="inline-edit-form add-row" use:enhance>
             {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
             <label>New course type<input name="name" required /></label>
             <label>Description<textarea name="description" rows="2"></textarea></label>
             <button type="submit">Add course type</button>
@@ -248,6 +253,9 @@
             {#each data.locations as location}
               <form method="POST" action="?/updateLocation" class="inline-edit-form" use:enhance>
                 <input type="hidden" name="locationId" value={location.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
                 <label>Name<input name="name" value={location.name} required /></label>
                 <label>Address<textarea name="address" rows="2">{location.address}</textarea></label>
                 <input type="hidden" name="phone" value={location.phone} />
@@ -262,6 +270,8 @@
           </div>
           <form method="POST" action="?/createLocation" class="inline-edit-form add-row" use:enhance>
             {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
             <label>New location<input name="name" required /></label>
             <label>Address<textarea name="address" rows="2"></textarea></label>
             <button type="submit">Add location</button>
@@ -274,6 +284,9 @@
             {#each data.checklistItems as item}
               <form method="POST" action="?/updateChecklistItem" class="inline-edit-form compact-row" use:enhance>
                 <input type="hidden" name="itemId" value={item.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
                 <label>Task<input name="label" value={item.label} required /></label>
                 <div class="button-row">
                   <button type="submit">Save</button>
@@ -285,6 +298,8 @@
           </div>
           <form method="POST" action="?/createChecklistItem" class="inline-edit-form compact-row add-row" use:enhance>
             {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
             <label>New prep task<input name="label" required /></label>
             <button type="submit">Add prep task</button>
           </form>

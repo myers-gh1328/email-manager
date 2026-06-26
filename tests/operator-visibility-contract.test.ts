@@ -297,9 +297,16 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('?/createCourse');
     expect(settings).toContain('?/createLocation');
     expect(settings).toContain('?/createChecklistItem');
+    expect(settings).toContain('{#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}');
+    expect(settings).toContain('{#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}');
     expect(settingsServer).toContain("appDataSearch: url.searchParams.get('appDataSearch') ?? ''");
     expect(settings).toContain('name="section" value="app-data"');
     expect(settingsServer).toContain("appDataPage: Number(url.searchParams.get('appDataPage') ?? '1')");
+    expect(settingsServer).toContain('settingsAppDataActionReturn');
+    expect(settingsServer).toContain("params.set('section', 'app-data')");
+    expect(settingsServer).toContain("params.set('appDataSearch', search)");
+    expect(settingsServer).toContain("params.set('appDataPage', String(page))");
+    expect(settingsServer).toContain('throw redirect(303, settingsAppDataActionReturn(form,');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('courseTypesPage = repo.listCourseTypesPage');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('locationsPage = repo.listLocationsPage');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('checklistItemsPage = repo.listChecklistItemsPage');

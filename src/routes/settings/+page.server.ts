@@ -17,7 +17,7 @@ import { testSmtpSettings } from '$lib/server/mailer';
 import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
 import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
-import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
+import { localReturnTo } from '$lib/server/return-to';
 import {
   aiApiKeyForModelLoad,
   getAiApiKey,
@@ -106,37 +106,37 @@ export const actions = {
   createCourse: async ({ request }) => {
     const form = await request.formData();
     repo.createCourseType({ name: required(form, 'name'), description: text(form, 'description') });
-    return returnAfterCreate(form, 'Course type added.');
+    throw redirect(303, settingsAppDataActionReturn(form, 'Course type added.'));
   },
   updateCourse: async ({ request }) => {
     const form = await request.formData();
     repo.updateCourseType(required(form, 'courseId'), { name: required(form, 'name'), description: text(form, 'description') });
-    return { message: 'Course type updated.' };
+    throw redirect(303, settingsAppDataActionReturn(form, 'Course type updated.'));
   },
   createLocation: async ({ request }) => {
     const form = await request.formData();
     repo.createLocation(locationInput(form));
-    return returnAfterCreate(form, 'Location added.');
+    throw redirect(303, settingsAppDataActionReturn(form, 'Location added.'));
   },
   updateLocation: async ({ request }) => {
     const form = await request.formData();
     repo.updateLocation(required(form, 'locationId'), locationInput(form));
-    return { message: 'Location updated.' };
+    throw redirect(303, settingsAppDataActionReturn(form, 'Location updated.'));
   },
   createChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.createChecklistItem({ label: required(form, 'label') });
-    return returnAfterCreate(form, 'Prep task added.');
+    throw redirect(303, settingsAppDataActionReturn(form, 'Prep task added.'));
   },
   updateChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.updateChecklistItem(required(form, 'itemId'), { label: required(form, 'label') });
-    return { message: 'Prep task updated.' };
+    throw redirect(303, settingsAppDataActionReturn(form, 'Prep task updated.'));
   },
   deleteChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.deleteChecklistItem(required(form, 'itemId'));
-    return { message: 'Prep task deleted.' };
+    throw redirect(303, settingsAppDataActionReturn(form, 'Prep task deleted.'));
   },
   saveExternalSignOnProvider: async ({ request }) => {
     const form = await request.formData();
@@ -265,6 +265,19 @@ function locationInput(form: FormData) {
     meetingInstructions: text(form, 'meetingInstructions'),
     notes: text(form, 'notes')
   };
+}
+
+function settingsAppDataActionReturn(form: FormData, message: string) {
+  const params = new URLSearchParams();
+  const search = formText(form.get('appDataSearch'));
+  const page = Math.max(Number(formText(form.get('appDataPage')) || '1'), 1);
+  const returnTo = localReturnTo(formText(form.get('returnTo')));
+  params.set('section', 'app-data');
+  if (search) params.set('appDataSearch', search);
+  if (page > 1) params.set('appDataPage', String(page));
+  if (returnTo) params.set('returnTo', returnTo);
+  params.set('message', message);
+  return `/settings?${params.toString()}`;
 }
 
 function externalSignOnProviderInputIsConfigured(
