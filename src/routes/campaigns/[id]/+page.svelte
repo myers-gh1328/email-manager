@@ -14,25 +14,25 @@
   }
 
   function confirmDelete() {
-    return confirm('Delete this campaign? Draft and unsent delivery rows will be removed.');
+    return confirm('Delete this scheduled email? Draft and unsent delivery rows will be removed.');
   }
 </script>
 
 <svelte:head>
-  <title>{data.campaign.name} · Campaign</title>
+  <title>{data.campaign.name} · Scheduled Email</title>
 </svelte:head>
 
 <section class="band two-column">
   <div>
     <div class="section-heading compact">
       <div>
-        <p class="eyebrow">Campaign detail</p>
+        <p class="eyebrow">Scheduled email detail</p>
         <h2>{data.campaign.name}</h2>
       </div>
       <a class="button-link" href="/campaigns">Back</a>
     </div>
     <div class="status-row">
-      <span class:good={data.campaign.approved}>{data.campaign.approved ? 'Approved' : 'Draft'}</span>
+      <span class:good={data.campaign.approved}>{data.campaign.approved ? 'Ready to send' : 'Draft'}</span>
       <span>{data.campaign.courseName}</span>
       <span>{formatClassSchedule(data.campaign)}</span>
       <span>{data.campaign.templateName}</span>
@@ -75,19 +75,19 @@
       <label>Name<input name="name" value={data.campaign.name} required /></label>
       <label>Send at<input name="scheduledFor" type="datetime-local" value={data.scheduledForInput} required /></label>
       {#if data.campaign.approved}
-        <label class="check"><input name="approved" type="checkbox" checked /> Approved</label>
+        <label class="check"><input name="approved" type="checkbox" checked /> Ready to send</label>
       {:else}
-        <p class="body-copy">Draft campaigns must be approved from a preview-backed scheduling flow.</p>
+        <p class="body-copy">Draft scheduled emails must be created from a preview-backed scheduling flow before they can send.</p>
       {/if}
       <div class="button-row">
-        <button type="submit">Update campaign</button>
+        <button type="submit">Update scheduled email</button>
         <button class="danger" type="submit" formaction="?/deleteCampaign" onclick={confirmDelete}>Delete draft</button>
       </div>
     </form>
     <details class="action-panel">
       <summary>Send due now</summary>
       <form method="POST" action="?/sendDueNow" class="panel-form" use:enhance>
-        <p class="body-copy">Attempts all due approved campaigns. Successful campaign deliveries are still protected from resending.</p>
+        <p class="body-copy">Attempts scheduled emails that are due now. Successful deliveries are still protected from resending.</p>
         <button type="submit">Send due now</button>
       </form>
     </details>

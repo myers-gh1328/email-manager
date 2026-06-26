@@ -140,7 +140,7 @@
         </label>
         <label class="check with-help">
           <span><input name="schedulerEnabled" type="checkbox" checked={data.settings.schedulerEnabled} /> Scheduled sending</span>
-          <small>When on, approved scheduled campaigns can send automatically while the app server is running.</small>
+          <small>When on, scheduled emails marked ready can send automatically while the app server is running.</small>
         </label>
         <label class="check with-help">
           <span><input name="emailTestModeEnabled" type="checkbox" checked={data.settings.emailTestModeEnabled} /> Email test mode</span>
@@ -407,7 +407,7 @@
       <div class="toggle-grid">
         <label class="check with-help">
           <span><input name="aiEnabled" type="checkbox" checked={data.settings.aiEnabled} /> AI assistance</span>
-          <small>Enables template drafting with your local AI endpoint. Email sending still requires your approval.</small>
+          <small>Enables template drafting with your local AI endpoint. Email sending still requires your explicit action.</small>
         </label>
         <label class="check with-help">
           <span><input name="aiVisionEnabled" type="checkbox" checked={data.settings.aiVisionEnabled} /> AI model supports vision</span>
@@ -508,9 +508,9 @@
         <form method="POST" action="?/updateAgentAccess" class="panel-form" use:enhance>
           <label class="check with-help">
             <span><input name="agentEnabled" type="checkbox" checked={data.settings.agentEnabled} /> Enable AI agent access</span>
-            <small>Let AI assistants like Claude Code operate this app through approved local tools.</small>
+            <small>Let AI assistants like Claude Code operate this app through local tools you have enabled.</small>
           </label>
-          <p class="help-text">Risky actions like sending email still require explicit approval.</p>
+          <p class="help-text">Risky actions like sending email still require an explicit confirmation step.</p>
           <button type="submit">Save agent access</button>
         </form>
       </details>
@@ -523,9 +523,9 @@
           <label class="check"><span><input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} /> Let agents view my app data</span></label>
           <label class="check"><span><input name="editRecords" type="checkbox" checked={data.settings.agentPermissions.editRecords} /> Let agents draft and edit records</span></label>
           <label class="check"><span><input name="importData" type="checkbox" checked={data.settings.agentPermissions.importData} /> Let agents import roster data</span></label>
-          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my approval</span></label>
-          <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule approved emails</span></label>
-          <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send approved emails</span></label>
+          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my review</span></label>
+          <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule reviewed emails</span></label>
+          <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send confirmed emails</span></label>
           <label class="check"><span><input name="updateSettings" type="checkbox" checked={data.settings.agentPermissions.updateSettings} /> Let agents update selected settings</span></label>
           <label class="check"><span><input name="manageAgentAccess" type="checkbox" checked={data.settings.agentPermissions.manageAgentAccess} /> Let agents manage agent access</span></label>
           <button type="submit">Save agent permissions</button>

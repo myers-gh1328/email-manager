@@ -83,4 +83,21 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('?/createLocation');
     expect(settings).toContain('?/createChecklistItem');
   });
+
+  test('uses plain scheduled-email language instead of approval campaign copy', () => {
+    const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
+    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+
+    for (const source of [scheduledEmails, scheduledEmailDetail, classDetail, settings]) {
+      expect(source).not.toContain('Approved');
+      expect(source).not.toContain('approved campaigns');
+      expect(source).not.toContain('approved scheduled campaigns');
+    }
+    expect(scheduledEmailDetail).not.toContain('Campaign detail');
+    expect(scheduledEmailDetail).not.toContain('· Campaign');
+    expect(scheduledEmailDetail).toContain('Scheduled email detail');
+    expect(scheduledEmailDetail).toContain('Ready to send');
+  });
 });

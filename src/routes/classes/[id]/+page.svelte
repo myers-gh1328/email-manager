@@ -105,7 +105,7 @@
                 {#if campaign.failedCount} · {campaign.failedCount} failed{/if}
               </p>
             </div>
-            <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Approved' : 'Draft'}</span>
+            <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Ready to send' : 'Draft'}</span>
           </article>
         {:else}
           <p class="empty">No emails are scheduled for this class yet.</p>
