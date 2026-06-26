@@ -43,6 +43,10 @@ describe('SearchSelect contract', () => {
     expect(picker).toContain('Search recipients');
     expect(picker).toContain("name = 'contactIds'");
     expect(picker).toContain('selectedContactIds');
+    expect(picker).toContain('addHref');
+    expect(picker).toContain('addLabel');
+    expect(newEmail).toContain('addLabel="Add contact"');
+    expect(newEmail).toContain('addHref="/contacts?action=add"');
   });
 
   test('uses the shared contact picker for class enrollment without a one-field collapse', () => {
@@ -53,6 +57,8 @@ describe('SearchSelect contract', () => {
     expect(classDetail).toContain('<ContactMultiSelect');
     expect(classDetail).toContain("name=\"contactId\"");
     expect(classDetail).toContain("mode=\"single\"");
+    expect(classDetail).toContain('addLabel="Add contact"');
+    expect(classDetail).toContain('addHref="/contacts?action=add"');
     expect(classDetail).not.toContain('<summary>Add student</summary>');
     expect(picker).toContain("mode = 'multi'");
     expect(picker).toContain("type={mode === 'single' ? 'radio' : 'checkbox'}");

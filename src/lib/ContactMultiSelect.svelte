@@ -13,7 +13,9 @@
     name = 'contactIds',
     legend = 'Recipients',
     mode = 'multi',
-    searchHref = '/contacts/search'
+    searchHref = '/contacts/search',
+    addHref = '',
+    addLabel = ''
   }: {
     contacts: ContactOption[];
     selectedContactIds?: string[];
@@ -21,6 +23,8 @@
     legend?: string;
     mode?: 'multi' | 'single';
     searchHref?: string;
+    addHref?: string;
+    addLabel?: string;
   } = $props();
 
   let search = $state('');
@@ -65,7 +69,10 @@
 </script>
 
 <fieldset class="contact-picker">
-  <legend>{legend}</legend>
+  <div class="field-header">
+    <legend>{legend}</legend>
+    {#if addHref && addLabel}<a class="button-link" href={addHref}>{addLabel}</a>{/if}
+  </div>
   <label class="sr-only" for={`${name}-search`}>Search recipients</label>
   <input id={`${name}-search`} bind:value={search} placeholder="Search recipients" />
   {#if mode === 'multi'}

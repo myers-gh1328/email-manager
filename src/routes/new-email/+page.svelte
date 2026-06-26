@@ -66,7 +66,7 @@
   {/if}
   <form method="POST" action="?/previewDirectEmail" class="panel-form" data-local-busy use:enhance={draftWithAi}>
     <h3>Compose email</h3>
-    <ContactMultiSelect contacts={data.contactOptions} {selectedContactIds} />
+    <ContactMultiSelect contacts={data.contactOptions} {selectedContactIds} addHref="/contacts?action=add" addLabel="Add contact" />
 
     <SearchSelect
       name="templateId"
