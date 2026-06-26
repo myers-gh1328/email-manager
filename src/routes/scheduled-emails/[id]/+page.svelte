@@ -51,7 +51,7 @@
     </div>
     <dl class="detail-facts">
       <div>
-        <dt>Status</dt>
+        <dt>Send readiness</dt>
         <dd><span class:good={data.campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(data.campaign.readyToSend)}</span></dd>
       </div>
       <div>

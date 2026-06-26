@@ -397,7 +397,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).not.toContain('<div class="status-row">');
     expect(scheduledEmailDetail).toContain('<dl class="detail-facts">');
-    expect(scheduledEmailDetail).toContain('<dt>Status</dt>');
+    expect(scheduledEmailDetail).toContain('<dt>Send readiness</dt>');
+    expect(scheduledEmailDetail).not.toContain('<dt>Status</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Class</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Template</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
