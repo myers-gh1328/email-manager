@@ -280,6 +280,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');
+    expect(scheduledEmails.indexOf('<div class="list">')).toBeLessThan(scheduledEmails.indexOf('<div class="form-stack">'));
+    expect(scheduledEmails).not.toContain('<section class="band two-column">');
     expect(scheduledEmailDetail).toContain('Search recipients');
     expect(scheduledEmailDetail).toContain('data.recipientPage.total');
     expect(scheduledEmailDetail).toContain('recipientPageHref');
