@@ -109,6 +109,14 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).not.toContain('Checklist updated.');
   });
 
+  test('keeps class email as a visible primary action instead of a one-item collapse', () => {
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+
+    expect(classDetail).toContain('<h3>Email this class</h3>');
+    expect(classDetail).toContain('Preview student emails');
+    expect(classDetail).not.toContain('<summary>Email this class</summary>');
+  });
+
   test('names inherited class emails without default or class-type jargon', () => {
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
     const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');

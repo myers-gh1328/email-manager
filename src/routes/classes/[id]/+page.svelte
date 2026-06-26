@@ -185,51 +185,49 @@
       <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" />
       <button type="submit">Enroll</button>
     </form>
-    <details class="action-panel" open={form?.panel === 'email'}>
-      <summary>Email this class</summary>
-      <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
-        <SearchSelect
-          name="emailChoice"
-          label="Template"
-          options={templateOptions}
-          value={form?.emailChoice ?? ''}
-          placeholder="Choose email template"
-          addHref="/templates?action=create"
-          addLabel="Add template"
-          searchHref="/templates/search"
-          required
-        />
-        <button type="submit">Preview student emails</button>
-      </form>
-      {#if form?.previews}
-        <section class="panel-form">
-          <h3>Preview</h3>
-          <p class="body-copy">Will schedule {form.previews.filter((preview) => !preview.skipped).length} private emails, one to each student. Students will not see each other.</p>
-          <div class="list">
-            {#each form.previews as preview}
-              <article class="row-card tall">
-                <div>
-                  <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
-                  <p>{preview.subject}</p>
-                  <p>{preview.body}</p>
-                  {#if preview.missing.length}<p class="error">Missing: {preview.missing.join(', ')}</p>{/if}
-                  {#if preview.skipped}<p class="error">Skipped: {preview.reason}</p>{/if}
-                </div>
-              </article>
-            {/each}
-          </div>
-          <form method="POST" action="?/scheduleClassEmail" class="inline-edit-form" use:enhance>
-            <input name="templateId" type="hidden" value={form.templateId} />
-            <input name="defaultPurpose" type="hidden" value={form.defaultPurpose ?? ''} />
-            <input name="defaultLabel" type="hidden" value={form.defaultLabel ?? ''} />
-            <input name="sendOffsetMinutes" type="hidden" value={form.sendOffsetMinutes ?? ''} />
-            <input name="previewToken" type="hidden" value={form.previewToken} />
-            <label>Send at<input name="scheduledFor" type="datetime-local" value={form.suggestedScheduledFor ?? ''} required /></label>
-            <button type="submit">Schedule individual emails</button>
-          </form>
-        </section>
-      {/if}
-    </details>
+    <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
+      <h3>Email this class</h3>
+      <SearchSelect
+        name="emailChoice"
+        label="Template"
+        options={templateOptions}
+        value={form?.emailChoice ?? ''}
+        placeholder="Choose email template"
+        addHref="/templates?action=create"
+        addLabel="Add template"
+        searchHref="/templates/search"
+        required
+      />
+      <button type="submit">Preview student emails</button>
+    </form>
+    {#if form?.previews}
+      <section class="panel-form">
+        <h3>Preview</h3>
+        <p class="body-copy">Will schedule {form.previews.filter((preview) => !preview.skipped).length} private emails, one to each student. Students will not see each other.</p>
+        <div class="list">
+          {#each form.previews as preview}
+            <article class="row-card tall">
+              <div>
+                <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
+                <p>{preview.subject}</p>
+                <p>{preview.body}</p>
+                {#if preview.missing.length}<p class="error">Missing: {preview.missing.join(', ')}</p>{/if}
+                {#if preview.skipped}<p class="error">Skipped: {preview.reason}</p>{/if}
+              </div>
+            </article>
+          {/each}
+        </div>
+        <form method="POST" action="?/scheduleClassEmail" class="inline-edit-form" use:enhance>
+          <input name="templateId" type="hidden" value={form.templateId} />
+          <input name="defaultPurpose" type="hidden" value={form.defaultPurpose ?? ''} />
+          <input name="defaultLabel" type="hidden" value={form.defaultLabel ?? ''} />
+          <input name="sendOffsetMinutes" type="hidden" value={form.sendOffsetMinutes ?? ''} />
+          <input name="previewToken" type="hidden" value={form.previewToken} />
+          <label>Send at<input name="scheduledFor" type="datetime-local" value={form.suggestedScheduledFor ?? ''} required /></label>
+          <button type="submit">Schedule individual emails</button>
+        </form>
+      </section>
+    {/if}
     <form method="POST" action="?/importCsv" enctype="multipart/form-data" class="panel-form" use:enhance>
       <h3>Import CSV roster</h3>
       <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
