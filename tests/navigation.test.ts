@@ -16,10 +16,15 @@ describe('navigation visibility', () => {
   });
 
   test('uses plain operator language on email workflow pages', () => {
+    const layout = readFileSync('src/routes/+layout.svelte', 'utf8');
     const scheduledEmailsPage = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
     const historyPage = readFileSync('src/routes/communications/+page.svelte', 'utf8');
     const newEmailPage = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const testSendsPage = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
+
+    expect(layout).toContain('<h1>Training Communications Studio</h1>');
+    expect(layout).toContain('<p class="eyebrow">Email operations</p>');
+    expect(layout).not.toContain('<h1>Class communications</h1>');
 
     expect(scheduledEmailsPage).toContain('<title>Scheduled Emails · Training Communications Studio</title>');
     expect(scheduledEmailsPage).toContain('<p class="eyebrow">Scheduled Emails</p>');

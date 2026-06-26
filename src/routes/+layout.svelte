@@ -70,8 +70,8 @@
     <aside class="sidebar" class:open={navOpen}>
       <div class="sidebar-heading">
         <div>
-          <p class="eyebrow">Training Communications Studio</p>
-          <h1>Class communications</h1>
+          <p class="eyebrow">Email operations</p>
+          <h1>Training Communications Studio</h1>
         </div>
         <button
           class="secondary nav-toggle"
