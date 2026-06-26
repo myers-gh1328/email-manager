@@ -63,7 +63,7 @@ export function updateTemplate(db: DatabaseSync, id: string, input: TemplateInpu
 export function deleteTemplate(db: DatabaseSync, id: string) {
   const campaignCount = db.prepare('select count(*) as value from campaigns where template_id = ?').get(id) as Row;
   if (Number(campaignCount.value) > 0) {
-    throw new Error('Template is used by an existing campaign and cannot be deleted.');
+    throw new Error('Template is used by an existing scheduled email and cannot be deleted.');
   }
   db.prepare('delete from templates where id = ?').run(id);
 }

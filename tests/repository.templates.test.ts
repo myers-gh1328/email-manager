@@ -39,7 +39,7 @@ describe('repository templates', () => {
     expect(repo.listTemplates()).toEqual([]);
   });
 
-  test('does not delete templates used by campaigns', () => {
+  test('does not delete templates used by scheduled emails', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
     const course = repo.createCourseType({ name: 'Rescue Diver' });
@@ -49,12 +49,12 @@ describe('repository templates', () => {
     repo.createCampaign({
       classSessionId: session.id,
       templateId: template.id,
-      name: 'Campaign',
+      name: 'Scheduled email',
       scheduledFor: '2026-08-05T13:00:00.000Z',
       approved: true
     });
 
-    expect(() => repo.deleteTemplate(template.id)).toThrow('Template is used by an existing campaign and cannot be deleted.');
+    expect(() => repo.deleteTemplate(template.id)).toThrow('Template is used by an existing scheduled email and cannot be deleted.');
     expect(repo.getTemplate(template.id).name).toBe('Used');
   });
 

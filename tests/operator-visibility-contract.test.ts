@@ -513,6 +513,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailRepository).not.toContain('Campaign delivery not found');
     expect(scheduledEmailRepository).toContain('Scheduled email not found');
     expect(scheduledEmailRepository).toContain('Scheduled email delivery not found');
+    expect(readFileSync('src/lib/server/repository/templates.ts', 'utf8')).not.toContain('existing campaign');
+    expect(readFileSync('src/lib/server/repository/templates.ts', 'utf8')).toContain('existing scheduled email');
     expect(settings).not.toContain('Blocks campaign sends');
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
     expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");
