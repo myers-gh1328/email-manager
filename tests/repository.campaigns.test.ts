@@ -136,6 +136,48 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
   });
 
+  test('counts all attention delivery states on class scheduled email summaries', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const transient = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const attention = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });
+    repo.enrollContact(session.id, transient.id);
+    repo.enrollContact(session.id, attention.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const transientClaim = repo.claimNextEligibleDelivery(campaign.id, { source: 'automatic', subject: 'Reminder', body: 'Details.' });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: transientClaim!.id,
+      attemptId: transientClaim!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+    const attentionClaim = repo.claimNextEligibleDelivery(campaign.id, { source: 'automatic', subject: 'Reminder', body: 'Details.' });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: attentionClaim!.id,
+      attemptId: attentionClaim!.attemptId!,
+      failureKind: 'permanent',
+      failureSummary: 'Recipient rejected',
+      retryable: false
+    });
+
+    const [summary] = repo.listCampaignsForClassSession(session.id);
+
+    expect(summary).toMatchObject({
+      recipientCount: 2,
+      failedCount: 2
+    });
+  });
+
   test('filters scheduled email list by emails needing preview', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Rescue Diver' });

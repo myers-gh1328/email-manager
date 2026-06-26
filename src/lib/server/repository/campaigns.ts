@@ -411,7 +411,7 @@ function deliveryCounts(db: DatabaseSync, campaignId: string) {
       const value = Number(row.value);
       if (status === 'pending') counts.pending = value;
       if (status === 'sent') counts.sent = value;
-      if (status === 'failed') counts.failed = value;
+      if (['failed', 'retry_scheduled', 'needs_attention'].includes(status)) counts.failed += value;
       return counts;
     },
     initialCounts
