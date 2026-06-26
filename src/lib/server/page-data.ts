@@ -37,10 +37,10 @@ export function schedulerStatus(
   const scheduledEmailStatus = Array.isArray(scheduledEmails)
     ? {
         dueReadyCount: scheduledEmails.filter(
-          (campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() <= Date.now()
+          (campaign) => isReadyToSend(campaign) && new Date(campaign.scheduledFor).getTime() <= Date.now()
         ).length,
         nextReady: scheduledEmails
-          .filter((campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() >= Date.now())
+          .filter((campaign) => isReadyToSend(campaign) && new Date(campaign.scheduledFor).getTime() >= Date.now())
           .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime())[0]
       }
     : scheduledEmails;
@@ -234,6 +234,10 @@ export function withReadyToSend<T extends { approved: boolean }>(campaign: T) {
     ...visibleCampaign,
     readyToSend: approved
   };
+}
+
+function isReadyToSend(campaign: { approved: boolean }) {
+  return withReadyToSend(campaign).readyToSend;
 }
 
 export function loadCommunicationsData(input: { contactId?: string; sourceId?: string; replyStatus?: string; status?: string; type?: string; search?: string; page?: number } = {}) {
