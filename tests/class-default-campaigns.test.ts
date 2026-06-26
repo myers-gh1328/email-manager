@@ -53,6 +53,27 @@ describe('class default campaign sync', () => {
     expect(repo.listCampaignsForClassSession(secondSession.id)[0]).toMatchObject({ templateId: secondTemplate.id, sendOffsetMinutes: -12 * 60 });
   });
 
+  test('syncs course defaults through a course-scoped class query', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Advanced' });
+    const unrelatedCourse = repo.createCourseType({ name: 'Rescue' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', startTime: '09:00', location: 'Pool' });
+    repo.createClassSession({ courseTypeId: unrelatedCourse.id, startsOn: '2026-08-03', startTime: '09:00', location: 'Lake' });
+    repo.setCourseTypeDefaultTemplate({ courseTypeId: course.id, purpose: 'reminder', templateId: template.id, sendOffsetMinutes: -24 * 60 });
+    const listAll = repo.listClassSessions.bind(repo);
+    const listAllSpy = () => {
+      throw new Error('sync should not list every class session');
+    };
+    repo.listClassSessions = listAllSpy;
+
+    const result = syncDefaultCampaignsForCourseType(repo, course.id);
+
+    repo.listClassSessions = listAll;
+    expect(result).toEqual({ created: 1, updated: 0, deleted: 0, skippedSent: 0 });
+    expect(repo.listCampaignsForClassSession(session.id)).toMatchObject([{ source: 'course_default' }]);
+  });
+
   test('resyncs unsent inherited campaign times after a class schedule changes', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Open Water' });

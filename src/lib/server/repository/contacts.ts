@@ -373,6 +373,27 @@ export function listClassSessions(db: DatabaseSync) {
     .map(mapClassSession);
 }
 
+export function listClassSessionsForCourseType(db: DatabaseSync, courseTypeId: string) {
+  return db
+    .prepare(
+      `select cs.*, ct.name as course_name,
+        l.name as location_name,
+        l.address as location_address,
+        l.phone as location_phone,
+        l.website as location_website,
+        l.parking_notes as location_parking_notes,
+        l.meeting_instructions as location_meeting_instructions,
+        l.notes as location_notes
+       from class_sessions cs
+       join course_types ct on ct.id = cs.course_type_id
+       left join locations l on l.id = cs.location_id
+       where cs.course_type_id = ?
+       order by cs.starts_on desc`
+    )
+    .all(courseTypeId)
+    .map((row) => mapClassSession(row as Row));
+}
+
 export function listClassSessionsPage(db: DatabaseSync, input: ClassSessionPageInput = {}): ClassSessionPage {
   const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
   const offset = Math.max(input.offset ?? 0, 0);

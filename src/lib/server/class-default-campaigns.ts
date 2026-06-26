@@ -8,7 +8,7 @@ export function syncDefaultCampaignsForClass(repo: AppRepository, classSessionId
 
 export function syncDefaultCampaignsForCourseType(repo: AppRepository, courseTypeId: string) {
   const result = { created: 0, updated: 0, deleted: 0, skippedSent: 0 };
-  for (const session of repo.listClassSessions().filter((item) => item.courseTypeId === courseTypeId)) {
+  for (const session of repo.listClassSessionsForCourseType(courseTypeId)) {
     const classResult = syncClass(repo, session.id);
     result.created += classResult.created;
     result.updated += classResult.updated;

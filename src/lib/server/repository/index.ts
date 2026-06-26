@@ -17,6 +17,7 @@ import {
   getCourseType,
   getLocation,
   listClassSessions,
+  listClassSessionsForCourseType,
   listClassSessionsPage,
   listContacts,
   listContactsPage,
@@ -365,6 +366,10 @@ export class AppRepository {
 
   listClassSessions() {
     return listClassSessions(this.db);
+  }
+
+  listClassSessionsForCourseType(courseTypeId: string) {
+    return listClassSessionsForCourseType(this.db, courseTypeId);
   }
 
   listClassSessionsPage(input?: ClassSessionPageInput) {
