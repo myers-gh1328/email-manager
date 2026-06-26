@@ -43,8 +43,8 @@
   <section class="panel-form spaced">
     <div class="section-heading compact">
       <div>
-        <h3>Every recorded email</h3>
-        <p class="help-text">Search sent, failed, and replied-to emails without opening a new email.</p>
+        <h3>Email records</h3>
+        <p class="help-text">Search sent, failed, and replied-to emails.</p>
       </div>
     </div>
     <form class="inline-filters" method="GET" action="/communications">
@@ -100,13 +100,23 @@
               </div>
             {/if}
           </div>
-          <div class="status-stack">
-            <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span>
-            {#if communication.replyCount}
-              <span class="pill good">Student replied</span>
-              {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} Needs reply</span>{/if}
-            {/if}
-          </div>
+          <dl class="history-facts">
+            <div>
+              <dt>Delivery</dt>
+              <dd><span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span></dd>
+            </div>
+            <div>
+              <dt>Replies</dt>
+              <dd>
+                {#if communication.replyCount}
+                  <span class="pill good">Student replied</span>
+                  {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} Needs reply</span>{/if}
+                {:else}
+                  <span class="muted">None</span>
+                {/if}
+              </dd>
+            </div>
+          </dl>
         </article>
       {:else}
         <p class="empty">No email history recorded yet.</p>
@@ -146,11 +156,25 @@
     padding: 10px;
   }
 
-  .status-stack {
+  .history-facts {
     align-items: flex-end;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin: 0;
+  }
+
+  .history-facts div {
+    display: grid;
+    gap: 4px;
+    justify-items: end;
+  }
+
+  .history-facts dt {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
   }
 
   .inline-filters,
@@ -164,8 +188,12 @@
 
   @media (max-width: 720px) {
     .reply-card,
-    .status-stack {
+    .history-facts {
       align-items: stretch;
+    }
+
+    .history-facts div {
+      justify-items: start;
     }
   }
 </style>

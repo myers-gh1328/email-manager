@@ -300,7 +300,7 @@ describe('operator visibility contract', () => {
 
     expect(history).toContain('replyHref');
     expect(history).toContain('Reply');
-    expect(history).toContain('without opening a new email');
+    expect(history).toContain('Search sent, failed, and replied-to emails.');
     expect(history).not.toContain('compose workflow');
     expect(history).not.toContain('No reply yet');
     expect(history).not.toContain('Acknowledged');
@@ -309,6 +309,12 @@ describe('operator visibility contract', () => {
     expect(history).toContain('Student replied');
     expect(history).toContain('Needs reply');
     expect(history).toContain('Reply reviewed');
+    expect(history).toContain('<h3>Email records</h3>');
+    expect(history).toContain('<dl class="history-facts">');
+    expect(history).toContain('<dt>Delivery</dt>');
+    expect(history).toContain('<dt>Replies</dt>');
+    expect(history).not.toContain('Every recorded email');
+    expect(history).not.toContain('<div class="status-stack">');
     expect(history).toContain('/new-email?');
     expect(newEmailServer).toContain("url.searchParams.get('subject')");
     expect(newEmailServer).toContain("url.searchParams.get('body')");
