@@ -14,7 +14,7 @@
     { value: '', label: 'All' },
     { value: 'upcoming', label: 'Upcoming' },
     { value: 'ready', label: 'Ready to send' },
-    { value: 'needs_review', label: 'Needs review' },
+    { value: 'needs_review', label: 'Needs attention' },
     { value: 'sent', label: 'Sent' },
     { value: 'draft', label: 'Draft' }
   ];

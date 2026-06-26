@@ -23,7 +23,7 @@ describe('shared formatting helpers', () => {
 
   test('formats technical send statuses for instructors', () => {
     expect(deliveryStatusLabel('retry_scheduled')).toBe('Will retry');
-    expect(deliveryStatusLabel('needs_attention')).toBe('Needs review');
+    expect(deliveryStatusLabel('needs_attention')).toBe('Needs attention');
     expect(deliveryStatusLabel('not planned')).toBe('Not prepared');
     expect(messageStatusLabel('accepted')).toBe('Accepted by mail server');
     expect(messageStatusLabel('sent')).toBe('Sent');
@@ -39,7 +39,7 @@ describe('shared formatting helpers', () => {
       '4 recipients · 3 prepared · 1 sent'
     );
     expect(scheduledEmailDeliverySummary({ recipientCount: 2, pendingCount: 0, sentCount: 1, failedCount: 1 })).toBe(
-      '2 recipients · 1 sent · 1 needs review'
+      '2 recipients · 1 sent · 1 needs attention'
     );
   });
 });

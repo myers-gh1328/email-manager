@@ -30,7 +30,7 @@ export function deliveryStatusLabel(status: string) {
     sent: 'Sent',
     failed: 'Failed',
     retry_scheduled: 'Will retry',
-    needs_attention: 'Needs review',
+    needs_attention: 'Needs attention',
     skipped: 'Skipped',
     'not planned': 'Not prepared'
   };
@@ -59,6 +59,6 @@ export function scheduledEmailDeliverySummary(counts: {
   const parts = [`${counts.recipientCount} recipient${counts.recipientCount === 1 ? '' : 's'}`];
   if (counts.pendingCount) parts.push(`${counts.pendingCount} prepared`);
   if (counts.sentCount) parts.push(`${counts.sentCount} sent`);
-  if (counts.failedCount) parts.push(`${counts.failedCount} needs review`);
+  if (counts.failedCount) parts.push(`${counts.failedCount} needs attention`);
   return parts.join(' · ');
 }
