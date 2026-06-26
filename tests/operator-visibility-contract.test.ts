@@ -267,6 +267,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Delete scheduled email');
     expect(scheduledEmailDetail).not.toContain('Delete draft');
     expect(scheduledEmailDetail).not.toContain('<h3>Lifecycle</h3>');
+    expect(scheduledEmailDetail).not.toContain('<section class="band two-column">');
     expect(scheduledEmailDetail).not.toContain('<summary>Template snapshot</summary>');
     expect(scheduledEmailDetail).not.toContain('preview-backed scheduling flow');
     expect(scheduledEmailDetail).toContain('Draft emails need a student preview before they can be marked ready.');

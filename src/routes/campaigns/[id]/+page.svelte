@@ -36,7 +36,7 @@
   <title>{data.campaign.name} · Scheduled Email</title>
 </svelte:head>
 
-<section class="band two-column">
+<section class="band">
   <div>
     <div class="section-heading compact">
       <div>
