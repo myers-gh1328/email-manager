@@ -366,6 +366,15 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).not.toContain('default email');
   });
 
+  test('keeps single-action SMTP testing visible instead of hiding it in a one-item collapse', () => {
+    const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+
+    expect(settings).toContain('<h3>Test SMTP</h3>');
+    expect(settings).toContain('name="testEmail"');
+    expect(settings).toContain('Send test email');
+    expect(settings).not.toContain('<summary>Test SMTP</summary>');
+  });
+
   test('gives setup data a clear Settings home', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
     const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');

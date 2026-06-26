@@ -754,23 +754,26 @@
         </form>
       {/if}
     </details>
-    {/if}
+     {/if}
 
-    {#if sectionMatches('Test SMTP', ['send test email smtp accepted provider'])}
-    <details class="settings-section settings-panel">
-      <summary>Test SMTP</summary>
-      <form method="POST" action="?/testSmtp" class="panel-form" use:enhance>
-        <label>
-          Send test to
-          <input name="testEmail" type="email" value={data.settings.smtpFrom} required />
-          <span class="help-text">Sends a small test message and reports whether the SMTP server accepted it.</span>
-        </label>
-        <button type="submit">Send test email</button>
-      </form>
-    </details>
-    {/if}
-  </div>
-</section>
+     {#if sectionMatches('Test SMTP', ['send test email smtp accepted provider'])}
+     <section class="settings-section settings-panel visible-panel">
+       <form method="POST" action="?/testSmtp" class="panel-form" use:enhance>
+         <div>
+           <p class="eyebrow">SMTP test</p>
+           <h3>Test SMTP</h3>
+         </div>
+         <label>
+           Send test to
+           <input name="testEmail" type="email" value={data.settings.smtpFrom} required />
+           <span class="help-text">Sends a small test message and reports whether the SMTP server accepted it.</span>
+         </label>
+         <button type="submit">Send test email</button>
+       </form>
+     </section>
+     {/if}
+   </div>
+ </section>
 
 <style>
   .settings-page {
