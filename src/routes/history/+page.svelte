@@ -132,7 +132,7 @@
       </div>
       <div class="filter-group">
         <span class="filter-label">Send status</span>
-        <div class="segmented-control" aria-label="Filter email delivery status">
+        <div class="segmented-control" aria-label="Filter email send status">
           {#each statusFilters as filter}
             <a class:active={historyStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
           {/each}
