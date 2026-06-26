@@ -92,7 +92,7 @@
             <p>{formatDateTime(reply.receivedAt)}{#if reply.subject} · {reply.subject}{/if}</p>
             <p>{reply.snippet || reply.textBody}</p>
           </div>
-          {#if reply.reviewedAt}
+          {#if reply.handledAt}
             <span class="pill good">Reply handled</span>
           {:else}
             <div class="button-row compact">

@@ -330,7 +330,7 @@ export interface CommunicationReply {
   htmlBody: string;
   snippet: string;
   receivedAt: string;
-  reviewedAt: string;
+  handledAt: string;
   createdAt: string;
 }
 
