@@ -254,10 +254,24 @@ describe('operator visibility contract', () => {
 
   test('keeps class email as a visible primary action instead of a one-item collapse', () => {
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
     expect(classDetail).toContain('<h3>Email this class</h3>');
     expect(classDetail).toContain('Preview student emails');
     expect(classDetail).not.toContain('<summary>Email this class</summary>');
+    expect(classDetail).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(classDetail).toContain('{#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}');
+    expect(classDetail).toContain('{#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}');
+    expect(classDetail).toContain('{#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}');
+    expect(classDetail).toContain('{#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}');
+    expect(classDetail).toContain('{#if form?.returnTo}<input name="returnTo" type="hidden" value={form.returnTo} />{/if}');
+    expect(classDetail).toContain('{#if form?.search}<input name="search" type="hidden" value={form.search} />{/if}');
+    expect(classDetail).toContain('{#if form?.page}<input name="page" type="hidden" value={form.page} />{/if}');
+    expect(classDetail).toContain('{#if form?.emailSearch}<input name="emailSearch" type="hidden" value={form.emailSearch} />{/if}');
+    expect(classDetail).toContain('{#if form?.emailPage}<input name="emailPage" type="hidden" value={form.emailPage} />{/if}');
+    expect(classDetailServer).toContain("returnTo: text(form, 'returnTo')");
+    expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Class email scheduled.'))");
+    expect(classDetailServer).not.toContain("return { panel: 'email', message: 'Class email scheduled.' }");
   });
 
   test('names inherited class emails without default or class-type jargon', () => {

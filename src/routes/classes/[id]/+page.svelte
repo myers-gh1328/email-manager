@@ -291,6 +291,11 @@
     </form>
     <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
       <h3>Email this class</h3>
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+      {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+      {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+      {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+      {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
       <SearchSelect
         name="emailChoice"
         label="Template"
@@ -322,6 +327,11 @@
           {/each}
         </div>
         <form method="POST" action="?/scheduleClassEmail" class="inline-edit-form" use:enhance>
+          {#if form?.returnTo}<input name="returnTo" type="hidden" value={form.returnTo} />{/if}
+          {#if form?.search}<input name="search" type="hidden" value={form.search} />{/if}
+          {#if form?.page}<input name="page" type="hidden" value={form.page} />{/if}
+          {#if form?.emailSearch}<input name="emailSearch" type="hidden" value={form.emailSearch} />{/if}
+          {#if form?.emailPage}<input name="emailPage" type="hidden" value={form.emailPage} />{/if}
           <input name="templateId" type="hidden" value={form.templateId} />
           <input name="defaultPurpose" type="hidden" value={form.defaultPurpose ?? ''} />
           <input name="defaultLabel" type="hidden" value={form.defaultLabel ?? ''} />

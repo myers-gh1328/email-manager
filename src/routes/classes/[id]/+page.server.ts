@@ -116,7 +116,12 @@ export const actions = {
       defaultLabel: choice.defaultLabel,
       sendOffsetMinutes: choice.sendOffsetMinutes,
       suggestedScheduledFor: suggestedScheduledFor(params.id, choice.sendOffsetMinutes),
-      previewToken: classEmailPreviewToken(params.id, choice.templateId)
+      previewToken: classEmailPreviewToken(params.id, choice.templateId),
+      returnTo: text(form, 'returnTo'),
+      search: text(form, 'search'),
+      page: text(form, 'page'),
+      emailSearch: text(form, 'emailSearch'),
+      emailPage: text(form, 'emailPage')
     };
   },
   scheduleClassEmail: async ({ params, request }) => {
@@ -144,7 +149,7 @@ export const actions = {
       sendOffsetMinutes: sendOffsetMinutes ? Number(sendOffsetMinutes) : 0
     });
     repo.ensurePendingDeliveries(campaign.id);
-    return { panel: 'email', message: 'Class email scheduled.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Class email scheduled.'));
   },
   back: async () => {
     throw redirect(303, '/classes');
