@@ -75,7 +75,7 @@
   <title>{data.session.courseName} · Class</title>
 </svelte:head>
 
-<section class="band two-column">
+<section class="band">
   <div>
     <div class="section-heading compact">
       <div>

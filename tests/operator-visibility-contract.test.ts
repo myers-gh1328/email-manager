@@ -160,6 +160,7 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).toContain('detail.roster.map((contact) => contact.id)');
     expect(classDetailServer).toContain('repo.listEnrollmentChecklistState(params.id, detail.roster.map');
     expect(classDetailServer).not.toContain('Checklist updated.');
+    expect(classDetail).not.toContain('<section class="band two-column">');
   });
 
   test('keeps class email as a visible primary action instead of a one-item collapse', () => {
