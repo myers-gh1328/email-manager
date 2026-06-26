@@ -94,6 +94,17 @@ describe('operator visibility contract', () => {
     expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
 
+  test('makes class detail roster prep understandable without checklist jargon', () => {
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
+
+    expect(classDetail).toContain('Roster and prep');
+    expect(classDetail).toContain('Prep items');
+    expect(classDetail).toContain('student-prep-items');
+    expect(classDetailServer).toContain('Prep item updated.');
+    expect(classDetailServer).not.toContain('Checklist updated.');
+  });
+
   test('gives setup data a Settings App Data home', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
     expect(settings).toContain('<summary>App Data</summary>');

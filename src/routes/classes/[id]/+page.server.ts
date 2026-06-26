@@ -61,7 +61,7 @@ export const actions = {
       itemId: required(form, 'itemId'),
       completed: text(form, 'completed') === 'true'
     });
-    return { message: 'Checklist updated.' };
+    return { message: 'Prep item updated.' };
   },
   importCsv: async ({ params, request }) => {
     const form = await request.formData();

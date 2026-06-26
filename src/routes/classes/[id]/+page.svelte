@@ -110,7 +110,14 @@
         {/each}
       </div>
     </section>
-    <div class="list spaced">
+    <section class="spaced">
+      <div class="section-heading compact">
+        <div>
+          <p class="eyebrow">Roster and prep</p>
+          <h3>Students</h3>
+        </div>
+      </div>
+      <div class="list">
       {#each data.roster as contact}
         {@const checklist = checklistForContact(contact.id)}
         <article class="row-card">
@@ -118,7 +125,8 @@
             <strong>{contact.firstName} {contact.lastName}</strong>
             <p>{contact.email}</p>
             {#if checklist.length}
-              <div class="student-checklist">
+              <div class="student-prep-items" aria-label={`Prep items for ${contact.firstName} ${contact.lastName}`}>
+                <p class="prep-label">Prep items</p>
                 {#each checklist as item}
                   <form method="POST" action="?/toggleChecklistItem" use:enhance>
                     <input name="contactId" type="hidden" value={contact.id} />
@@ -142,7 +150,8 @@
       {:else}
         <p class="empty">No students enrolled.</p>
       {/each}
-    </div>
+      </div>
+    </section>
   </div>
 
   <div class="form-stack">
@@ -252,11 +261,20 @@
 </section>
 
 <style>
-  .student-checklist {
+  .student-prep-items {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     margin-top: 10px;
+  }
+
+  .prep-label {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 0 4px 0 0;
+    text-transform: uppercase;
   }
 
   .checklist-toggle {
