@@ -320,8 +320,8 @@
                 <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
                 <p>{preview.subject}</p>
                 <p>{preview.body}</p>
-                {#if preview.missing.length}<p class="error">Missing: {preview.missing.join(', ')}</p>{/if}
-                {#if preview.skipped}<p class="error">Skipped: {preview.reason}</p>{/if}
+                {#if preview.missing.length}<p class="error">Missing template fields: {preview.missing.join(', ')}</p>{/if}
+                {#if preview.skipped}<p class="error">Skipped because: {preview.reason}</p>{/if}
               </div>
             </article>
           {/each}
