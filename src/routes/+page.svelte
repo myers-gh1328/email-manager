@@ -89,7 +89,7 @@
         </div>
       </a>
     {:else}
-      <p class="empty">No class emails scheduled.</p>
+      <p class="empty">No scheduled emails yet.</p>
     {/each}
   </div>
 </section>
