@@ -175,7 +175,7 @@ function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number
 function classUpdatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class updated.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
-  return `Class updated. Scheduled ${defaultCampaignCount} course email${plural}.`;
+  return `Class updated. Created ${defaultCampaignCount} scheduled email${plural}.`;
 }
 
 function classDetailActionReturn(classSessionId: string, form: FormData, message: string) {

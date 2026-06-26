@@ -43,7 +43,7 @@ export const actions = {
 function classCreatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class added.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
-  return `Class added. Scheduled ${defaultCampaignCount} course email${plural}.`;
+  return `Class added. Created ${defaultCampaignCount} scheduled email${plural}.`;
 }
 
 function classActionError(error: unknown) {

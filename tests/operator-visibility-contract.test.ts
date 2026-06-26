@@ -234,6 +234,8 @@ describe('operator visibility contract', () => {
     expect(classesServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
     expect(classesServer).toContain('classActionReturn');
     expect(classesServer).toContain('throw redirect(303, classActionReturn(form,');
+    expect(classesServer).toContain('Created ${defaultCampaignCount} scheduled email');
+    expect(classesServer).not.toContain('Scheduled ${defaultCampaignCount} course email');
     expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
 
@@ -245,6 +247,8 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain("href={data.returnTo || '/classes'}");
     expect(classDetailServer).toContain('localReturnTo');
     expect(classDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
+    expect(classDetailServer).toContain('Created ${defaultCampaignCount} scheduled email');
+    expect(classDetailServer).not.toContain('Scheduled ${defaultCampaignCount} course email');
     expect(classDetail).toContain('Search students');
     expect(classDetail).toContain('data.rosterPage.total');
     expect(classDetail).toContain('rosterPageHref');
@@ -319,11 +323,13 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('<span class="pill">Default</span>');
     expect(classDetail).not.toContain('course setup');
     expect(classDetail).not.toContain('setup emails');
-    expect(classesServer).toContain('course email');
+    expect(classesServer).toContain('Created ${defaultCampaignCount} scheduled email');
+    expect(classesServer).not.toContain('course email');
     expect(classesServer).not.toContain('Course email defaults updated.');
     expect(classesServer).not.toContain('default email');
-    expect(classDetailServer).toContain('Class updated. Scheduled');
-    expect(classDetailServer).toContain('course email');
+    expect(classDetailServer).toContain('Class updated. Created');
+    expect(classDetailServer).toContain('scheduled email');
+    expect(classDetailServer).not.toContain('course email');
     expect(classDetailServer).not.toContain('default email');
   });
 
