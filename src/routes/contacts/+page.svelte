@@ -201,7 +201,7 @@
             {#each data.contactDetail.communications as communication}
               <article class="row-card tall">
                 <div>
-                  <strong>{communication.subject}</strong>
+                  <a href={`/communications/${communication.id}`}><strong>{communication.subject}</strong></a>
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>{communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}{#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} new{/if}</p>
