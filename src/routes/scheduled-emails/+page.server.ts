@@ -24,12 +24,12 @@ export const actions = {
     const templateId = required(form, 'templateId');
     const scheduleMode = text(form, 'scheduleMode') === 'ready' ? 'ready' : 'draft';
     if (scheduleMode === 'ready' && textToken(form, 'previewToken') !== campaignPreviewToken(classSessionId, templateId)) {
-      return fail(400, { error: true, message: 'Preview this class and template before creating a ready schedule.' });
+      return fail(400, { error: true, message: 'Preview this scheduled email before creating it.' });
     }
     if (scheduleMode === 'ready') {
       const preview = buildCampaignPreviews(classSessionId, templateId);
       if (hasMissingVariables(preview)) {
-        return fail(400, { error: true, message: 'Resolve missing template variables before creating a ready schedule.' });
+        return fail(400, { error: true, message: 'Resolve missing template variables before creating this scheduled email.' });
       }
     }
     const campaign = repo.createCampaign({

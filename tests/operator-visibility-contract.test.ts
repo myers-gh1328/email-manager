@@ -501,6 +501,9 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
     expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(scheduledEmails).toContain('data.actionMessage');
+    expect(scheduledEmailsServer).toContain('Preview this scheduled email before creating it.');
+    expect(scheduledEmailsServer).toContain('Resolve missing template variables before creating this scheduled email.');
+    expect(scheduledEmailsServer).not.toContain('ready schedule');
     expect(scheduledEmails).toContain('{#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}');
     expect(scheduledEmails).toContain('{#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}');
     expect(scheduledEmails).toContain('{#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}');
