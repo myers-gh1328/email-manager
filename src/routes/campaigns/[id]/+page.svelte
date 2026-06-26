@@ -55,11 +55,11 @@
       </div>
       <div>
         <dt>Class</dt>
-        <dd>{data.campaign.courseName} · {formatClassSchedule(data.campaign)}</dd>
+        <dd><a href={`/classes/${data.campaign.classSessionId}`}>{data.campaign.courseName}</a> · {formatClassSchedule(data.campaign)}</dd>
       </div>
       <div>
         <dt>Template</dt>
-        <dd>{data.campaign.templateName}</dd>
+        <dd><a href={`/templates?templateId=${data.campaign.templateId}`}>{data.campaign.templateName}</a></dd>
       </div>
       <div>
         <dt>Send time</dt>

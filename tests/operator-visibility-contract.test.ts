@@ -269,6 +269,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<dt>Class</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Template</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
+    expect(scheduledEmailDetail).toContain('href={`/classes/${data.campaign.classSessionId}`}');
+    expect(scheduledEmailDetail).toContain('href={`/templates?templateId=${data.campaign.templateId}`}');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('View in History');
     expect(scheduledEmailDetail).toContain('/communications?sourceId=');
