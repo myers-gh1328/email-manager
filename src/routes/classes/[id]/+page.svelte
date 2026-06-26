@@ -96,7 +96,7 @@
               <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
-                {campaign.source === 'course_default' ? 'Inherited from course type' : 'Manual schedule'}
+                {campaign.source === 'course_default' ? 'From course setup' : 'Manual schedule'}
                 · {scheduledEmailDeliverySummary(campaign)}
               </p>
             </div>
