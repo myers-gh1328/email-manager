@@ -46,6 +46,8 @@ describe('agent campaign send-due tools', () => {
     const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
+    expect(prepared.data.summary).toBe('Send due scheduled emails (1).');
+    expect(prepared.data.summary).not.toContain('approved campaigns');
     const result = await commitSendDueCampaignsTool(
       repo,
       { approvalId: prepared.data.approvalId, confirmationText: prepared.data.confirmationText },
@@ -130,7 +132,11 @@ describe('agent campaign send-due tools', () => {
     );
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('approval_changed');
+    if (!result.ok) {
+      expect(result.error.code).toBe('approval_changed');
+      expect(result.error.message).toBe('Due scheduled emails changed after approval was prepared.');
+      expect(result.error.message).not.toContain('approved campaigns');
+    }
     expect(sendOutboundEmail).not.toHaveBeenCalled();
   });
 

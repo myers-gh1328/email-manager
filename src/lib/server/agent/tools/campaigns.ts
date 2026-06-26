@@ -24,7 +24,7 @@ export function prepareSendDueCampaignsTool(repo: AppRepository, _input: Record<
   const prepared = prepareAgentApproval(repo, {
     toolName: 'commit_send_due_campaigns',
     risk: 'sends_email',
-    summary: `Send due approved campaigns (${dueCampaigns.length}).`,
+    summary: `Send due scheduled emails (${dueCampaigns.length}).`,
     operation: { preparedAt: new Date().toISOString(), campaignIds: dueCampaigns.map((campaign) => campaign.id) },
     review: {
       dueCampaigns: dueCampaigns.map((campaign) => ({
@@ -71,7 +71,7 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (!sameStringSet(preparedIds, currentIds)) {
     return agentError(
       'approval_changed',
-      'Due approved campaigns changed after approval was prepared.',
+      'Due scheduled emails changed after approval was prepared.',
       { approvalId: input.approvalId, preparedCampaignIds: preparedIds, currentCampaignIds: currentIds },
       { labels: settings.vocabulary }
     );
