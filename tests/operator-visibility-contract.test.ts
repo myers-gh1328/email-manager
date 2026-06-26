@@ -477,6 +477,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");
     expect(scheduledEmailsServer).not.toContain("form.get('approved') === 'on'");
     expect(scheduledEmails).toContain('Search scheduled emails');
+    expect(scheduledEmails).toContain('<h2>Scheduled emails</h2>');
+    expect(scheduledEmails).not.toContain('<h2>Manage scheduled emails</h2>');
     expect(scheduledEmails).toContain('Filter scheduled emails');
     expect(scheduledEmails).toContain('statusFilters');
     expect(scheduledEmails).toContain('statusFilterHref');

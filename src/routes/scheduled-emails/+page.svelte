@@ -58,7 +58,7 @@
     <div class="section-heading compact">
       <div>
         <p class="eyebrow">Scheduled Emails</p>
-        <h2>Manage scheduled emails</h2>
+        <h2>Scheduled emails</h2>
       </div>
     </div>
     {#if form?.message || data.actionMessage}<p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>{/if}
