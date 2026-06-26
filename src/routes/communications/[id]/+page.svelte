@@ -24,7 +24,7 @@
 <section class="band">
   <div class="section-heading compact">
     <div>
-      <p class="eyebrow">History detail</p>
+      <p class="eyebrow">Email detail</p>
       <h2>{communication.subject}</h2>
     </div>
     <a class="button-link" href={data.returnTo || '/communications'}>Back to History</a>
