@@ -109,7 +109,7 @@
               <strong>{purposeLabel(defaultTemplate.purpose)}</strong>
               <p>{defaultTemplate.templateName} · {timingLabel(defaultTemplate.sendOffsetMinutes)}</p>
             </div>
-            <span class="pill">From course</span>
+            <span class="pill">Automatic</span>
           </article>
         {:else}
           <p class="empty">No automatic scheduled emails are configured for this class.</p>
@@ -141,7 +141,7 @@
               <a href={`/scheduled-emails/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}><strong>{campaign.name}</strong></a>
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
-                {campaign.source === 'course_default' ? 'From course' : 'Added for this class'}
+                {campaign.source === 'course_default' ? 'Automatic' : 'Added for this class'}
                 · {scheduledEmailDeliverySummary(campaign)}
               </p>
             </div>
