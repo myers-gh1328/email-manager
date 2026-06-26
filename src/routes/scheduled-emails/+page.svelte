@@ -91,7 +91,7 @@
           <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>
         </article>
       {:else}
-        <p class="empty">No class emails scheduled.</p>
+        <p class="empty">No scheduled emails yet.</p>
       {/each}
     </div>
     {#if totalCampaignsPages > 1}
