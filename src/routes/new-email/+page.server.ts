@@ -46,6 +46,7 @@ export const actions = {
     const content = directEmailContent(form);
     const settings = getSettings();
     const previewToken = text(form, 'previewToken');
+    const returnTo = localReturnTo(text(form, 'returnTo'));
     const sourceId = directEmailOperationId({ contactIds, subject: content.subject, body: content.body, previewToken });
     try {
       await sendDirectEmail(repo, (to, subject, text) => sendOutboundEmail({ to, subject, text }), {
@@ -57,7 +58,10 @@ export const actions = {
         settings,
         surface: 'direct_email'
       });
-      throw redirect(303, `/communications?sourceId=${encodeURIComponent(sourceId)}`);
+      const params = new URLSearchParams();
+      params.set('sourceId', sourceId);
+      if (returnTo) params.set('returnTo', returnTo);
+      throw redirect(303, `/communications?${params.toString()}`);
     } catch (error) {
       if (isRedirect(error)) throw error;
       return fail(400, {
@@ -67,7 +71,7 @@ export const actions = {
         selectedTemplateId: content.templateId,
         subject: content.subject,
         body: content.body,
-        returnTo: localReturnTo(text(form, 'returnTo'))
+        returnTo
       });
     }
   },

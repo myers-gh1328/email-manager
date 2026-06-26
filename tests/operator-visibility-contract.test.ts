@@ -578,7 +578,9 @@ describe('operator visibility contract', () => {
     expect(newEmail).toContain('href={newEmailReturnTo || \'/communications\'}');
     expect(newEmail).toContain('name="returnTo"');
     expect(newEmailServer).toContain('directEmailOperationId');
-    expect(newEmailServer).toContain("throw redirect(303, `/communications?sourceId=${encodeURIComponent(sourceId)}`)");
+    expect(newEmailServer).toContain("params.set('sourceId', sourceId)");
+    expect(newEmailServer).toContain("params.set('returnTo', returnTo)");
+    expect(newEmailServer).toContain('throw redirect(303, `/communications?${params.toString()}`)');
     expect(pageData).toContain('prefillSubject');
     expect(pageData).toContain('prefillBody');
     expect(pageData).toContain('selectedReplyStatus');
