@@ -9,6 +9,7 @@ export const baseNavItems = [
   { href: '/templates', label: 'Templates' },
   { href: '/campaigns', label: 'Scheduled Emails' },
   { href: '/communications', label: 'History' },
+  { href: '/new-email', label: 'New Email' },
   { href: '/settings', label: 'Settings' }
 ];
 

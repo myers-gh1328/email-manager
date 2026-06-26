@@ -8,6 +8,7 @@ describe('navigation visibility', () => {
     const labels = items.map((item) => item.label);
     expect(labels).toContain('Scheduled Emails');
     expect(labels).toContain('History');
+    expect(labels).toContain('New Email');
     expect(labels).toContain('Test Sends');
     expect(labels).not.toContain('Campaigns');
     expect(labels).not.toContain('Communications');
@@ -17,6 +18,7 @@ describe('navigation visibility', () => {
   test('uses plain operator language on email workflow pages', () => {
     const scheduledEmailsPage = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
     const historyPage = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const newEmailPage = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const testSendsPage = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
 
     expect(scheduledEmailsPage).toContain('<title>Scheduled Emails · Training Communications Studio</title>');
@@ -26,8 +28,15 @@ describe('navigation visibility', () => {
 
     expect(historyPage).toContain('<title>History · Training Communications Studio</title>');
     expect(historyPage).toContain('<p class="eyebrow">History</p>');
+    expect(historyPage).toContain('href="/new-email"');
     expect(historyPage).not.toContain('>Communications<');
     expect(historyPage).not.toContain('Scheduled campaign');
+    expect(historyPage).not.toContain('Compose email');
+    expect(historyPage).not.toContain('sendDirectEmail');
+
+    expect(newEmailPage).toContain('<title>New Email · Training Communications Studio</title>');
+    expect(newEmailPage).toContain('<p class="eyebrow">New Email</p>');
+    expect(newEmailPage).toContain('Compose one-off email');
 
     expect(testSendsPage).toContain('<title>Test Sends · Training Communications Studio</title>');
     expect(testSendsPage).not.toContain('Test audit');

@@ -134,6 +134,15 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
   };
 }
 
+export function loadNewEmailData(contactId?: string) {
+  return {
+    contacts: repo.listContacts(),
+    templates: repo.listTemplates(),
+    selectedContactId: contactId ?? '',
+    settings: getSettings()
+  };
+}
+
 export function loadSettingsData() {
   const settings = getSettings();
   return {

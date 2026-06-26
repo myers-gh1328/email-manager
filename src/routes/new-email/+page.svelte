@@ -1,0 +1,120 @@
+<script lang="ts">
+  import { enhance } from '$app/forms';
+  import BusyOverlay from '$lib/BusyOverlay.svelte';
+  import SearchSelect from '$lib/SearchSelect.svelte';
+  import EmailBodyEditor from '$lib/EmailBodyEditor.svelte';
+  import { directEmailTokens, tokenFields } from '$lib/shared/template-fields';
+
+  let { data, form } = $props();
+  let drafting = $state(false);
+
+  let selectedContactIds = $derived(form?.selectedContactIds ?? (data.selectedContactId ? [data.selectedContactId] : []));
+  let selectedTemplateId = $derived(form?.selectedTemplateId ?? '');
+  let subject = $derived(form?.subject ?? '');
+  let body = $derived(form?.body ?? '');
+  let previewToken = $derived(form?.previewToken ?? '');
+  let recipientSearch = $state('');
+  let filteredContacts = $derived(
+    data.contacts.filter((contact) =>
+      `${contact.firstName} ${contact.lastName} ${contact.email}`.toLowerCase().includes(recipientSearch.toLowerCase())
+    )
+  );
+  let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
+  const variableFields = tokenFields(directEmailTokens);
+
+  function isSelected(contactId: string) {
+    return selectedContactIds.includes(contactId);
+  }
+
+  function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
+    const isAiSubmit = submitter instanceof HTMLButtonElement && submitter.formAction.includes('/aiDraftDirectEmail');
+    if (isAiSubmit) drafting = true;
+    return async ({ update }: { update: () => Promise<void> }) => {
+      try {
+        await update();
+      } finally {
+        if (isAiSubmit) drafting = false;
+      }
+    };
+  }
+</script>
+
+<svelte:head>
+  <title>New Email · Training Communications Studio</title>
+</svelte:head>
+
+<section class="band two-column">
+  <div>
+    <div class="section-heading compact">
+      <div>
+        <p class="eyebrow">New Email</p>
+        <h2>Compose one-off email</h2>
+      </div>
+      <a class="button-link" href="/communications">Back to History</a>
+    </div>
+
+    {#if form?.message && form?.previews}<p class="success spaced">{form.message}</p>{/if}
+
+    {#if form?.previews}
+      <div class="preview-list">
+        <h3>Preview</h3>
+        {#each form.previews as preview}
+          <article>
+            <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
+            <p>{preview.subject}</p>
+            <pre>{preview.body}</pre>
+            {#if preview.missing.length}<p class="error">Missing: {preview.missing.join(', ')}</p>{/if}
+          </article>
+        {/each}
+      </div>
+    {/if}
+  </div>
+
+  {#if drafting}
+    <BusyOverlay message="Drafting message..." />
+  {/if}
+  <form method="POST" action="?/previewDirectEmail" class="panel-form" data-local-busy use:enhance={draftWithAi}>
+    <h3>Compose email</h3>
+    <fieldset class="contact-picker">
+      <legend>Recipients</legend>
+      <label class="sr-only" for="recipient-search">Search recipients</label>
+      <input id="recipient-search" bind:value={recipientSearch} placeholder="Search recipients" />
+      {#each filteredContacts as contact}
+        <label class="check">
+          <input
+            name="contactIds"
+            type="checkbox"
+            value={contact.id}
+            checked={isSelected(contact.id)}
+            disabled={contact.doNotEmail}
+          />
+          <span>
+            {contact.firstName} {contact.lastName}
+            <small>{contact.email}</small>
+          </span>
+          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
+        </label>
+      {:else}
+        <p class="empty">{data.contacts.length ? 'No recipients match that search.' : 'Add contacts before sending direct email.'}</p>
+      {/each}
+    </fieldset>
+
+    <SearchSelect name="templateId" label="Template" options={templateOptions} value={selectedTemplateId} placeholder="Search templates" />
+    <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>
+    <label>Subject<input name="subject" value={subject} placeholder="Quick class update" /></label>
+    <EmailBodyEditor name="body" rows={10} placeholder={'Hi {{firstName}},'} value={body} fields={variableFields} />
+    <label>AI instruction<textarea name="prompt" rows="3" placeholder="Write a concise one-time update about tonight's pool session."></textarea></label>
+    <input name="previewToken" type="hidden" value={previewToken} />
+
+    {#if form?.message && !form?.previews}<p class={form.error ? 'error' : 'success'}>{form.message}</p>{/if}
+
+    <div class="button-row">
+      <button type="submit">Preview</button>
+      <button class="secondary" type="submit" formaction="?/aiDraftDirectEmail" formnovalidate disabled={!data.settings?.aiEnabled || drafting}>
+        {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
+        Draft with AI
+      </button>
+      <button type="submit" formaction="?/sendDirectEmail" disabled={!previewToken}>Send previewed email</button>
+    </div>
+  </form>
+</section>
