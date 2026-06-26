@@ -135,7 +135,7 @@ export const actions = {
     const form = await request.formData();
     const templateId = required(form, 'templateId');
     if (text(form, 'previewToken') !== classEmailPreviewToken(params.id, templateId)) {
-      return fail(400, { panel: 'email', message: 'Preview this class email before scheduling it.' });
+      return fail(400, { panel: 'email', message: 'Preview this scheduled email before creating it.' });
     }
     const previews = buildClassEmailPreviews(params.id, templateId);
     if (hasMissingVariables(previews)) {

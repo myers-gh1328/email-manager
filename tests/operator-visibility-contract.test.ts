@@ -302,7 +302,9 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('{#if form?.emailPage}<input name="emailPage" type="hidden" value={form.emailPage} />{/if}');
     expect(classDetailServer).toContain("returnTo: text(form, 'returnTo')");
     expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Scheduled email created.'))");
+    expect(classDetailServer).toContain("Preview this scheduled email before creating it.");
     expect(classDetailServer).not.toContain("Class email scheduled.");
+    expect(classDetailServer).not.toContain("Preview this class email before scheduling it.");
   });
 
   test('names inherited class emails without default or class-type jargon', () => {
