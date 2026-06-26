@@ -35,8 +35,8 @@
         {/each}
         {#if data.failedTodayCount}
           <a class="row-card" href="/communications?search=failed">
-            <strong>Review failed emails</strong>
-            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'} need review before retrying.</p>
+            <strong>Fix failed emails</strong>
+            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'} need attention before retrying.</p>
           </a>
         {/if}
         {#if data.remoteStatus.enabled && !data.remoteStatus.ready}
