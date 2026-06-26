@@ -152,7 +152,7 @@ function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number
 function classUpdatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class updated.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
-  return `Class updated. Scheduled ${defaultCampaignCount} default email${plural}.`;
+  return `Class updated. Scheduled ${defaultCampaignCount} setup email${plural}.`;
 }
 
 function classEmailPreviewToken(classSessionId: string, templateId: string) {

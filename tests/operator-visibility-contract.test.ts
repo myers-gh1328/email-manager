@@ -107,6 +107,8 @@ describe('operator visibility contract', () => {
 
   test('names inherited class emails without default or class-type jargon', () => {
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
     expect(classDetail).toContain('Course scheduled emails');
     expect(classDetail).toContain('Emails added from course setup');
@@ -114,6 +116,12 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('Course email defaults');
     expect(classDetail).not.toContain('Automatic schedules from this class type');
     expect(classDetail).not.toContain('<span class="pill">Default</span>');
+    expect(classesServer).toContain('Course setup emails updated.');
+    expect(classesServer).toContain('setup email');
+    expect(classesServer).not.toContain('Course email defaults updated.');
+    expect(classesServer).not.toContain('default email');
+    expect(classDetailServer).toContain('setup email');
+    expect(classDetailServer).not.toContain('default email');
   });
 
   test('gives setup data a Settings App Data home', () => {
