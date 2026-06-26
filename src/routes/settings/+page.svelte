@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import SearchSelect from '$lib/SearchSelect.svelte';
 
   let { data, form } = $props();
   let smtpAuthMethod = $state('');
@@ -17,6 +18,7 @@
   let replySyncUsername = $state('');
   let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
+  let aiModelOptions = $derived((form?.aiModels ?? []).map((model: string) => ({ value: model, label: model })));
 
   $effect(() => {
     if (!initialized) {
@@ -420,16 +422,17 @@
         <span class="help-text">The local AI server address. It should look like an OpenAI-compatible <code>/v1</code> endpoint.</span>
       </label>
       {#if form?.aiModels?.length}
-        <label>
-          Model
-          <select name="aiModel" bind:value={selectedAiModel} required>
-            <option value="">Choose a model</option>
-            {#each form.aiModels as model}
-              <option value={model}>{model}</option>
-            {/each}
-          </select>
+        <div>
+          <SearchSelect
+            name="aiModel"
+            label="Model"
+            options={aiModelOptions}
+            value={selectedAiModel}
+            placeholder="Search models"
+            required
+          />
           <span class="help-text">Loaded from the configured AI endpoint.</span>
-        </label>
+        </div>
       {:else}
         <label>
           Model

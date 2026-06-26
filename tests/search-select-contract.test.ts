@@ -103,4 +103,15 @@ describe('SearchSelect contract', () => {
     expect(classSearchRoute).toContain('repo.listClassSessionsPage');
     expect(templateSearchRoute).toContain('repo.listTemplatesPage');
   });
+
+  test('uses the shared search select for discovered AI models in settings', () => {
+    const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+
+    expect(settings).toContain("import SearchSelect from '$lib/SearchSelect.svelte'");
+    expect(settings).toContain('aiModelOptions');
+    expect(settings).toContain('<SearchSelect');
+    expect(settings).toContain('name="aiModel"');
+    expect(settings).toContain('placeholder="Search models"');
+    expect(settings).not.toContain('<select name="aiModel"');
+  });
 });
