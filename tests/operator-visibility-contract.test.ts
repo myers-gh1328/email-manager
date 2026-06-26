@@ -207,6 +207,9 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('rosterPageHref');
     expect(classDetail).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
     expect(classDetail).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(classDetail).toContain('data.actionMessage');
+    expect(classDetail).toContain('{#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}');
+    expect(classDetail).toContain('{#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}');
     expect(classDetail).toContain('{#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}');
     expect(classDetail).toContain('{#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}');
     expect(classDetail).toContain('Prep items');
@@ -216,6 +219,9 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('<summary>Import CSV roster</summary>');
     expect(classDetail).not.toContain('<summary>Import roster photo</summary>');
     expect(classDetailServer).toContain('Prep item updated.');
+    expect(classDetailServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(classDetailServer).toContain('classDetailActionReturn');
+    expect(classDetailServer).toContain('throw redirect(303, classDetailActionReturn(params.id, form,');
     expect(classDetailServer).toContain('detail.roster.map((contact) => contact.id)');
     expect(classDetailServer).toContain('repo.listEnrollmentChecklistState(params.id, detail.roster.map');
     expect(classDetailServer).not.toContain('Checklist updated.');

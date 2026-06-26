@@ -91,7 +91,9 @@
       <a class="button-link" href={data.returnTo || '/classes'}>Back</a>
     </div>
     <p class="body-copy">{formatClassSchedule(data.session)} · {data.session.location}</p>
-    {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}
+      <p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>
+    {/if}
     <section class="panel-form spaced">
       <div class="section-heading compact">
         <div>
@@ -193,6 +195,11 @@
                 <p class="prep-label">Prep items</p>
                 {#each checklist as item}
                   <form method="POST" action="?/toggleChecklistItem" use:enhance>
+                    {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+                    {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+                    {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+                    {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+                    {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
                     <input name="contactId" type="hidden" value={contact.id} />
                     <input name="itemScope" type="hidden" value={item.itemScope} />
                     <input name="itemId" type="hidden" value={item.itemId} />
@@ -207,6 +214,11 @@
             {/if}
           </div>
           <form method="POST" action="?/unenrollContact" use:enhance>
+            {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+            {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+            {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+            {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+            {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
             <input name="contactId" type="hidden" value={contact.id} />
             <button class="secondary" type="submit">Unenroll</button>
           </form>
@@ -234,6 +246,11 @@
   <div class="form-stack">
     <form method="POST" action="?/updateClassSession" class="panel-form" use:enhance>
       <h3>Edit class</h3>
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+      {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+      {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+      {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+      {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
       <SearchSelect
         name="courseTypeId"
         label="Course"
@@ -264,6 +281,11 @@
     </form>
     <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
       <h3>Add student</h3>
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+      {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+      {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+      {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+      {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
       <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" addHref={addContactHref} addLabel="Add contact" />
       <button type="submit">Enroll</button>
     </form>

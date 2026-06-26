@@ -38,6 +38,7 @@ export const load = ({ params, url }) => {
     scheduledCampaignsPage,
     checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
     returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+    actionMessage: url.searchParams.get('message') ?? '',
     settings: getSettings()
   };
 };
@@ -56,19 +57,17 @@ export const actions = {
 	      notes: text(form, 'notes')
 	    });
 	    const createdDefaults = syncDefaultCampaignsForClass(repo, params.id);
-	    return {
-	      message: classUpdatedMessage(createdDefaults.length)
-	    };
+	    throw redirect(303, classDetailActionReturn(params.id, form, classUpdatedMessage(createdDefaults.length)));
 	  },
   enrollContact: async ({ params, request }) => {
     const form = await request.formData();
     repo.enrollContact(params.id, required(form, 'contactId'));
-    return { message: 'Student enrolled.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Student enrolled.'));
   },
   unenrollContact: async ({ params, request }) => {
     const form = await request.formData();
     repo.unenrollContact(params.id, required(form, 'contactId'));
-    return { message: 'Student removed from roster.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Student removed from roster.'));
   },
   toggleChecklistItem: async ({ params, request }) => {
     const form = await request.formData();
@@ -79,7 +78,7 @@ export const actions = {
       itemId: required(form, 'itemId'),
       completed: text(form, 'completed') === 'true'
     });
-    return { message: 'Prep item updated.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Prep item updated.'));
   },
   importCsv: async ({ params, request }) => {
     const form = await request.formData();
@@ -170,6 +169,22 @@ function classUpdatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class updated.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
   return `Class updated. Scheduled ${defaultCampaignCount} course email${plural}.`;
+}
+
+function classDetailActionReturn(classSessionId: string, form: FormData, message: string) {
+  const params = new URLSearchParams();
+  const returnTo = localReturnTo(text(form, 'returnTo'));
+  const search = text(form, 'search');
+  const page = Math.max(Number(text(form, 'page') || '1'), 1);
+  const emailSearch = text(form, 'emailSearch');
+  const emailPage = Math.max(Number(text(form, 'emailPage') || '1'), 1);
+  if (returnTo) params.set('returnTo', returnTo);
+  if (search) params.set('search', search);
+  if (page > 1) params.set('page', String(page));
+  if (emailSearch) params.set('emailSearch', emailSearch);
+  if (emailPage > 1) params.set('emailPage', String(emailPage));
+  params.set('message', message);
+  return `/classes/${classSessionId}?${params.toString()}`;
 }
 
 function classEmailPreviewToken(classSessionId: string, templateId: string) {
