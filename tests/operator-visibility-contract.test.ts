@@ -96,6 +96,14 @@ describe('operator visibility contract', () => {
     expect(pageData).not.toContain('const campaigns = repo.listCampaigns()');
   });
 
+  test('removes retired busy-page layout helpers from the shared stylesheet', () => {
+    const styles = readFileSync('src/styles.css', 'utf8');
+
+    expect(styles).not.toContain('.two-column');
+    expect(styles).not.toContain('.status-row');
+    expect(styles).not.toContain('.token-help');
+  });
+
   test('keeps contact detail focused on recent email activity with a filtered History link', () => {
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
     const contactsServer = readFileSync('src/routes/contacts/+page.server.ts', 'utf8');
