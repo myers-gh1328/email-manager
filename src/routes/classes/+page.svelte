@@ -12,6 +12,7 @@
   let currentClassesPage = $derived(Math.floor(data.classSessionsPage.offset / data.classSessionsPage.limit) + 1);
   let totalClassesPages = $derived(Math.max(Math.ceil(data.classSessionsPage.total / data.classSessionsPage.limit), 1));
   let classesListReturnTo = $derived(classesPageHref(currentClassesPage));
+  let classesClearHref = $derived(data.returnTo ? `/classes?returnTo=${encodeURIComponent(data.returnTo)}` : '/classes');
   let classWorkflowReturnTo = $derived(data.returnTo || classesListReturnTo);
   let addClassReturnTo = $derived(`/classes?action=session&returnTo=${encodeURIComponent(classWorkflowReturnTo)}`);
   let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(addClassReturnTo)}`);
@@ -28,6 +29,7 @@
 
   function classesPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.classSessionsPage.search) params.set('search', data.classSessionsPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
@@ -51,12 +53,13 @@
     {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
 
     <form class="inline-filters" method="GET" action="/classes">
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
         Search classes
         <input name="search" value={classesSearch} placeholder="Course, location, or date" />
       </label>
       <button type="submit">Search</button>
-      {#if data.classSessionsPage.search}<a class="button-link" href="/classes">Clear</a>{/if}
+      {#if data.classSessionsPage.search}<a class="button-link" href={classesClearHref}>Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.classSessions.length} of {data.classSessionsPage.total} classes.</p>
 

@@ -167,6 +167,9 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('href="/settings?section=app-data">Manage courses, locations, and prep tasks</a>');
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
+    expect(classes).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(classes).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(classes).toContain('href={classesClearHref}');
     expect(classes).toContain('classesListReturnTo');
     expect(classes).toContain('classWorkflowReturnTo');
     expect(classes).toContain('addClassReturnTo');
