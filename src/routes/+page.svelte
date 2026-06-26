@@ -24,6 +24,23 @@
   </div>
 
   <section class="panel-form spaced">
+    <h3>Scheduled sending</h3>
+    <div class="list">
+      <div class="row-card">
+        <div>
+          <strong>{data.schedulerStatus.ready ? 'Automatic sending is ready' : 'Automatic sending needs setup'}</strong>
+          <p>
+            {data.schedulerStatus.dueReadyCount} ready scheduled email{data.schedulerStatus.dueReadyCount === 1 ? '' : 's'}
+            {#if data.schedulerStatus.nextReady}
+              · Next scheduled send: {data.schedulerStatus.nextReady.name} at {formatDateTime(data.schedulerStatus.nextReady.scheduledFor)}
+            {:else}
+              · No upcoming ready scheduled email
+            {/if}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <h3>Attention needed</h3>
     {#if !data.schedulerStatus.ready || data.failedTodayCount || (data.remoteStatus.enabled && !data.remoteStatus.ready)}
       <div class="list">
