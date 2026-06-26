@@ -145,13 +145,13 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Email Sending', ['delivery controls scheduled sending email test mode schedule automation'])}
+    {#if sectionMatches('Email Sending', ['sending controls scheduled sending email test mode schedule automation'])}
     <details class="settings-section settings-panel" open={sectionOpen('email-sending')}>
       <summary>Email Sending</summary>
     <form method="POST" action="?/updateDelivery" class="panel-form" use:enhance>
       <div>
         <p class="eyebrow">Sending</p>
-        <h3>Delivery controls</h3>
+        <h3>Sending controls</h3>
       </div>
       <div class="toggle-grid">
         <label class="check with-help">
@@ -191,7 +191,7 @@
           <span class="help-text">Default 50. Hard maximum 300.</span>
         </label>
       </div>
-      <button type="submit">Save delivery controls</button>
+      <button type="submit">Save sending controls</button>
     </form>
     </details>
     {/if}

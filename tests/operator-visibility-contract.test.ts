@@ -432,6 +432,12 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('Let agents prepare emails for my confirmation');
     expect(settings).not.toContain('Let agents prepare emails for my review');
     expect(settings).not.toContain('Let agents schedule reviewed emails');
+    expect(settings).toContain("sectionMatches('Email Sending', ['sending controls scheduled sending email test mode schedule automation'])");
+    expect(settings).toContain('<h3>Sending controls</h3>');
+    expect(settings).toContain('Save sending controls');
+    expect(settings).not.toContain("sectionMatches('Email Sending', ['delivery controls scheduled sending email test mode schedule automation'])");
+    expect(settings).not.toContain('<h3>Delivery controls</h3>');
+    expect(settings).not.toContain('Save delivery controls');
     expect(scheduledEmailDetail).not.toContain('Campaign detail');
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).not.toContain('<div class="status-row">');
