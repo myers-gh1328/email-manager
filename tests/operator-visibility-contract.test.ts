@@ -497,6 +497,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain('Scheduled email created.');
     expect(settings).not.toContain('Blocks campaign sends');
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
+    expect(settings).toContain("sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])");
+    expect(settings).toContain("sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings confirmation workflow risk'])");
+    expect(settings).not.toContain("sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token approval'])");
+    expect(settings).not.toContain("sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings approval workflow risk'])");
   });
 
   test('keeps global send-due actions out of scheduled email detail', () => {

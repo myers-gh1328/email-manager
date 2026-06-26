@@ -569,7 +569,7 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token approval'])}
+    {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])}
       <details class="settings-section settings-panel" open={sectionOpen('agent-access')}>
         <summary>Agent Access</summary>
         <form method="POST" action="?/updateAgentAccess" class="panel-form" use:enhance>
@@ -583,7 +583,7 @@
       </details>
     {/if}
 
-    {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings approval workflow risk'])}
+    {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings confirmation workflow risk'])}
       <details class="settings-section settings-panel" open={sectionOpen('agent-permissions')}>
         <summary>Agent Permissions</summary>
         <form method="POST" action="?/updateAgentPermissions" class="panel-form" use:enhance>
