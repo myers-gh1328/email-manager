@@ -136,7 +136,7 @@
       <div class="toggle-grid">
         <label class="check with-help">
           <span><input name="outboundKillSwitchEnabled" type="checkbox" checked={data.settings.outboundKillSwitchEnabled} /> Pause all outbound email</span>
-          <small>Blocks campaign sends, direct email, SMTP tests, and test-mode reroutes until turned off.</small>
+          <small>Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.</small>
         </label>
         <label class="check with-help">
           <span><input name="schedulerEnabled" type="checkbox" checked={data.settings.schedulerEnabled} /> Scheduled sending</span>

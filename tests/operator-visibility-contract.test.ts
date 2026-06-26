@@ -160,6 +160,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
     expect(scheduledEmailsServer).not.toContain('Campaign schedule created.');
     expect(scheduledEmailsServer).toContain('Scheduled email created.');
+    expect(settings).not.toContain('Blocks campaign sends');
+    expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
   });
 
   test('keeps global send-due actions out of scheduled email detail', () => {
