@@ -78,7 +78,7 @@
       {#if data.campaign.approved}
         <label class="check"><input name="approved" type="checkbox" checked /> Ready to send</label>
       {:else}
-        <p class="body-copy">Draft scheduled emails must be created from a preview-backed scheduling flow before they can send.</p>
+        <p class="body-copy">Draft emails need a student preview before they can be marked ready.</p>
       {/if}
       <div class="button-row">
         <button type="submit">Update scheduled email</button>
