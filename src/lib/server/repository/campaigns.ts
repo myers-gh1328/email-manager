@@ -310,7 +310,7 @@ export function hasSentDeliveries(db: DatabaseSync, campaignId: string) {
 }
 
 export function deleteCampaign(db: DatabaseSync, id: string) {
-  if (hasSentDeliveries(db, id)) throw new Error('Campaign has sent deliveries and cannot be deleted.');
+  if (hasSentDeliveries(db, id)) throw new Error('Scheduled email has sent deliveries and cannot be deleted.');
   db.prepare('delete from campaigns where id = ?').run(id);
 }
 

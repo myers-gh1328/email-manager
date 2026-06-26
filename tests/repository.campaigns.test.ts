@@ -986,7 +986,7 @@ describe('repository campaigns and deliveries', () => {
     const [delivery] = repo.ensurePendingDeliveries(campaign.id);
     repo.markDeliverySent(delivery.id, 'accepted');
 
-    expect(() => repo.deleteCampaign(campaign.id)).toThrow('Campaign has sent deliveries and cannot be deleted.');
+    expect(() => repo.deleteCampaign(campaign.id)).toThrow('Scheduled email has sent deliveries and cannot be deleted.');
   });
 
   test('stores course default source metadata with campaigns', () => {

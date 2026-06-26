@@ -370,6 +370,7 @@ describe('operator visibility contract', () => {
     const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
     const scheduledEmailsServer = readFileSync('src/routes/campaigns/+page.server.ts', 'utf8');
     const scheduledEmailDetailServer = readFileSync('src/routes/campaigns/[id]/+page.server.ts', 'utf8');
+    const scheduledEmailRepository = readFileSync('src/lib/server/repository/campaigns.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
@@ -503,6 +504,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
     expect(scheduledEmailsServer).not.toContain('Campaign schedule created.');
     expect(scheduledEmailsServer).toContain('Scheduled email created.');
+    expect(scheduledEmailRepository).not.toContain('Campaign has sent deliveries and cannot be deleted.');
+    expect(scheduledEmailRepository).toContain('Scheduled email has sent deliveries and cannot be deleted.');
     expect(settings).not.toContain('Blocks campaign sends');
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
     expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");
