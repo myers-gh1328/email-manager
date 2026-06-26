@@ -185,6 +185,38 @@ describe('repository communications', () => {
     ]);
   });
 
+  test('keeps paginated history rows summary-only while preserving reply counts', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const communication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Summary row',
+      body: 'Full body belongs on the detail page.',
+      status: 'accepted'
+    });
+    repo.recordCommunicationReply({
+      communicationId: communication.id,
+      providerKey: 'inbox:summary',
+      fromEmail: 'maya@example.com',
+      textBody: 'Reply text belongs on the detail page.',
+      receivedAt: '2026-06-22T12:00:00.000Z'
+    });
+
+    const [item] = repo.listCommunicationsPage({ search: 'summary' }).items;
+
+    expect(item).toMatchObject({
+      id: communication.id,
+      subject: 'Summary row',
+      body: '',
+      replies: [],
+      replyCount: 1,
+      unreviewedReplyCount: 1,
+      acknowledgedAt: '2026-06-22T12:00:00.000Z'
+    });
+  });
+
   test('filters communication history by scheduled email source', () => {
     const repo = createTestRepository();
     const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

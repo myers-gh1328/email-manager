@@ -16,10 +16,9 @@ import type {
 } from './types';
 
 function mapCommunication(row: Row, replies: CommunicationReply[] = []): CommunicationHistoryItem {
-  const acknowledgedAt = replies.reduce<string | undefined>(
-    (earliest, reply) => (!earliest || reply.receivedAt < earliest ? reply.receivedAt : earliest),
-    undefined
-  );
+  const acknowledgedAt = row.first_reply_at
+    ? text(row.first_reply_at)
+    : replies.reduce<string | undefined>((earliest, reply) => (!earliest || reply.receivedAt < earliest ? reply.receivedAt : earliest), undefined);
   return {
     id: text(row.id),
     contactId: text(row.contact_id),
@@ -40,8 +39,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     errorMessage: row.error_message ? text(row.error_message) : undefined,
     createdAt: text(row.created_at),
     replies,
-    replyCount: replies.length,
-    unreviewedReplyCount: replies.filter((reply) => !reply.reviewedAt).length,
+    replyCount: Number(row.reply_count ?? replies.length),
+    unreviewedReplyCount: Number(row.unreviewed_reply_count ?? replies.filter((reply) => !reply.reviewedAt).length),
     acknowledgedAt
   };
 }
@@ -221,9 +220,24 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
     .get(...params) as Row;
   const rows = db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.id, cm.contact_id, cm.channel, cm.source, cm.source_id,
+         cm.original_recipient, cm.effective_recipient, cm.test_mode, cm.subject,
+         '' as body, cm.status, cm.sent_at, cm.message_id, cm.provider_message,
+         cm.error_message, cm.created_at,
+         coalesce(replies.reply_count, 0) as reply_count,
+         coalesce(replies.unreviewed_reply_count, 0) as unreviewed_reply_count,
+         replies.first_reply_at,
+         c.first_name, c.last_name, c.email
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join (
+         select communication_id,
+           count(*) as reply_count,
+           sum(case when reviewed_at = '' then 1 else 0 end) as unreviewed_reply_count,
+           min(received_at) as first_reply_at
+         from communication_replies
+         group by communication_id
+       ) replies on replies.communication_id = cm.id
        ${whereSql}
        order by cm.created_at desc, cm.rowid desc
        limit ? offset ?`
@@ -232,7 +246,7 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
     .map((row) => row as Row);
 
   return {
-    items: withReplies(db, rows),
+    items: rows.map((row) => mapCommunication(row)),
     total: Number(totalRow.value ?? 0),
     limit,
     offset,
