@@ -338,7 +338,7 @@
           <input name="sendOffsetMinutes" type="hidden" value={form.sendOffsetMinutes ?? ''} />
           <input name="previewToken" type="hidden" value={form.previewToken} />
           <label>Send at<input name="scheduledFor" type="datetime-local" value={form.suggestedScheduledFor ?? ''} required /></label>
-          <button type="submit">Schedule individual emails</button>
+          <button type="submit">Create scheduled emails</button>
         </form>
       </section>
     {/if}
