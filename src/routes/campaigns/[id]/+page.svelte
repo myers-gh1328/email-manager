@@ -85,13 +85,6 @@
       </div>
     </form>
     <details class="action-panel">
-      <summary>Send due now</summary>
-      <form method="POST" action="?/sendDueNow" class="panel-form" use:enhance>
-        <p class="body-copy">Attempts scheduled emails that are due now. Successful deliveries are still protected from resending.</p>
-        <button type="submit">Send due now</button>
-      </form>
-    </details>
-    <details class="action-panel">
       <summary>Template snapshot</summary>
       <section class="panel-form">
         <p><strong>{data.template.subject}</strong></p>

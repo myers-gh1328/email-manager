@@ -1,9 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { sendDueCampaigns } from '$lib/server/background';
 import { repo } from '$lib/server/app';
 import { errorText, formText, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
-import { OutboundGateError } from '$lib/server/outbound-errors';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params }) => {
@@ -40,15 +38,6 @@ export const actions = {
       return fail(400, { message: errorText(error) });
     }
     throw redirect(303, '/campaigns');
-  },
-  sendDueNow: async () => {
-    try {
-      const sent = await sendDueCampaigns({ surface: 'manual_send_due' });
-      return { message: `Mail server accepted ${sent} due email${sent === 1 ? '' : 's'}.` };
-    } catch (error) {
-      if (error instanceof OutboundGateError) return fail(error.retryAfterSeconds ? 429 : 400, { message: error.message });
-      throw error;
-    }
   },
   retrySelected: async ({ params, request }) => {
     const form = await request.formData();

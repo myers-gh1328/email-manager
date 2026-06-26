@@ -147,6 +147,16 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
   });
 
+  test('keeps global send-due actions out of scheduled email detail', () => {
+    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
+    const scheduledEmailDetailServer = readFileSync('src/routes/campaigns/[id]/+page.server.ts', 'utf8');
+
+    expect(scheduledEmailDetail).not.toContain('Send due now');
+    expect(scheduledEmailDetail).not.toContain('?/sendDueNow');
+    expect(scheduledEmailDetailServer).not.toContain('sendDueNow');
+    expect(scheduledEmailDetailServer).not.toContain('manual_send_due');
+  });
+
   test('keeps Test Sends paginated and searchable', () => {
     const testSends = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
     const testSendsServer = readFileSync('src/routes/test-audit/+page.server.ts', 'utf8');
