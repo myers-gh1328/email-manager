@@ -43,7 +43,7 @@
     </div>
 
     <h3>Attention needed</h3>
-    {#if !data.schedulerStatus.ready || data.failedTodayCount || (data.remoteStatus.enabled && !data.remoteStatus.ready)}
+    {#if !data.schedulerStatus.ready || (data.remoteStatus.enabled && !data.remoteStatus.ready)}
       <div class="list">
         {#each data.schedulerStatus.blockedReasons as reason}
           <a class="row-card" href="/settings">
@@ -51,12 +51,6 @@
             <p>{reason}</p>
           </a>
         {/each}
-        {#if data.failedTodayCount}
-          <a class="row-card" href="/history?status=failed">
-            <strong>Failed emails</strong>
-            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'}. View failed sends in History before retrying from the scheduled email detail page.</p>
-          </a>
-        {/if}
         {#if data.remoteStatus.enabled && !data.remoteStatus.ready}
           {#each data.remoteStatus.blockedReasons as reason}
             <a class="row-card" href="/settings">

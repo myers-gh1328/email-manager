@@ -6,7 +6,6 @@ export function loadDashboardData() {
   const settings = getSettings();
   const nowIso = new Date().toISOString();
   const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items.map(withReadyToSend);
-  const retryWindow = localTodayWindow();
   return {
     stats: repo.stats(),
     recentScheduledEmails,
@@ -14,7 +13,6 @@ export function loadDashboardData() {
       dueReadyCount: repo.countReadyScheduledEmailsDue(nowIso),
       nextReady: repo.getNextReadyScheduledEmail(nowIso)
     }),
-    failedTodayCount: repo.countFailedCampaignDeliveriesBetween(retryWindow.startIso, retryWindow.endIso),
     remoteStatus: remoteAccessStatus(settings),
     settings
   };
