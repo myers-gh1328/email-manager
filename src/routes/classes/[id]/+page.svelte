@@ -86,7 +86,7 @@
         <p class="eyebrow">Class roster</p>
         <h2>{data.session.courseName}</h2>
       </div>
-      <a class="button-link" href="/classes">Back</a>
+      <a class="button-link" href={data.returnTo || '/classes'}>Back</a>
     </div>
     <p class="body-copy">{formatClassSchedule(data.session)} · {data.session.location}</p>
     {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}

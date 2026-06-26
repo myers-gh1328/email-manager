@@ -11,6 +11,7 @@
   let classesSearch = $derived(data.classSessionsPage.search ?? '');
   let currentClassesPage = $derived(Math.floor(data.classSessionsPage.offset / data.classSessionsPage.limit) + 1);
   let totalClassesPages = $derived(Math.max(Math.ceil(data.classSessionsPage.total / data.classSessionsPage.limit), 1));
+  let classesListReturnTo = $derived(classesPageHref(currentClassesPage));
   let addClassReturnTo = $derived(`/classes?action=session${data.classSessionsPage.search ? `&search=${encodeURIComponent(data.classSessionsPage.search)}` : ''}`);
   let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(addClassReturnTo)}`);
 
@@ -62,10 +63,10 @@
       {#each data.classSessions as session}
         <article class="row-card">
           <div>
-            <a href={`/classes/${session.id}`}><strong>{session.courseName}</strong></a>
+            <a href={`/classes/${session.id}?returnTo=${encodeURIComponent(classesListReturnTo)}`}><strong>{session.courseName}</strong></a>
             <p>{formatClassSchedule(session)} · {session.location}</p>
           </div>
-          <a class="button-link" href={`/classes/${session.id}`}>Open class</a>
+          <a class="button-link" href={`/classes/${session.id}?returnTo=${encodeURIComponent(classesListReturnTo)}`}>Open class</a>
         </article>
       {:else}
         <p class="empty">Create a class before adding a roster.</p>

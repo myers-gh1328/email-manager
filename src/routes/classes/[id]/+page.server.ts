@@ -11,6 +11,7 @@ import {
 } from '$lib/server/campaign-email';
 import { extractRosterFromImage } from '$lib/server/llm';
 import { importRosterRows, parseRosterCsv } from '$lib/server/roster-import';
+import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params, url }) => {
@@ -36,6 +37,7 @@ export const load = ({ params, url }) => {
     scheduledCampaigns: scheduledCampaignsPage.items.map(withReadyToSend),
     scheduledCampaignsPage,
     checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
     settings: getSettings()
   };
 };

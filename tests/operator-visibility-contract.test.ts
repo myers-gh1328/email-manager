@@ -134,7 +134,7 @@ describe('operator visibility contract', () => {
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     expect(classes).toContain('<h2>Scheduled classes</h2>');
     expect(classes).toContain('Open class');
-    expect(classes).toContain('href={`/classes/${session.id}`}');
+    expect(classes).not.toContain('href={`/classes/${session.id}`}');
     expect(classes).not.toContain('Course types and scheduled classes');
     expect(classes).not.toContain('Class management views');
     expect(classes).not.toContain('Checklist defaults');
@@ -154,6 +154,8 @@ describe('operator visibility contract', () => {
     expect(classes).toContain('addLabel="Add location"');
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
+    expect(classes).toContain('classesListReturnTo');
+    expect(classes).toContain('href={`/classes/${session.id}?returnTo=${encodeURIComponent(classesListReturnTo)}`}');
     expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
     expect(classes).not.toContain('<section class="band two-column">');
     expect(classesServer).toContain('page: Number(url.searchParams.get');
@@ -165,6 +167,9 @@ describe('operator visibility contract', () => {
     const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
     expect(classDetail).toContain('Roster and prep');
+    expect(classDetail).toContain("href={data.returnTo || '/classes'}");
+    expect(classDetailServer).toContain('localReturnTo');
+    expect(classDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(classDetail).toContain('Search students');
     expect(classDetail).toContain('data.rosterPage.total');
     expect(classDetail).toContain('rosterPageHref');
