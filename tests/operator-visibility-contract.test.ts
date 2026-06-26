@@ -152,9 +152,13 @@ describe('operator visibility contract', () => {
     const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
     const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
     expect(settings).toContain('<summary>App Data</summary>');
+    expect(settings).toContain('<p class="eyebrow">App data</p>');
     expect(settings).toContain('Course types');
     expect(settings).toContain('Locations');
-    expect(settings).toContain('Class prep defaults');
+    expect(settings).toContain('Prep tasks');
+    expect(settings).not.toContain('Reusable setup');
+    expect(settings).not.toContain('Class prep defaults');
+    expect(settings).not.toContain('No class prep defaults yet.');
     expect(settings).toContain('?/createCourse');
     expect(settings).toContain('?/createLocation');
     expect(settings).toContain('?/createChecklistItem');

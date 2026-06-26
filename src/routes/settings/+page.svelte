@@ -178,14 +178,14 @@
     </details>
     {/if}
 
-    {#if sectionMatches('App Data', ['course types locations class prep defaults setup checklist reusable class data'])}
+    {#if sectionMatches('App Data', ['course types locations prep tasks setup checklist class data'])}
     <details class="settings-section settings-panel wide" open={data.openSection === 'app-data'}>
       <summary>App Data</summary>
       <div class="panel-form">
         <div>
-          <p class="eyebrow">Reusable setup</p>
+          <p class="eyebrow">App data</p>
           <h3>Course types, locations, and class prep</h3>
-          <p class="help-text">Manage the lists used when creating classes. Scheduled email defaults stay with the selected class workflow.</p>
+          <p class="help-text">Manage the lists used when creating classes. Scheduled email setup stays with the selected class workflow.</p>
         </div>
 
         <section class="app-data-block">
@@ -234,7 +234,7 @@
         </section>
 
         <section class="app-data-block">
-          <h3>Class prep defaults</h3>
+          <h3>Prep tasks</h3>
           <div class="app-data-list">
             {#each data.checklistItems as item}
               <form method="POST" action="?/updateChecklistItem" class="inline-edit-form compact-row" use:enhance>
@@ -246,7 +246,7 @@
                 </div>
               </form>
             {/each}
-            {#if data.checklistItems.length === 0}<p class="muted">No class prep defaults yet.</p>{/if}
+            {#if data.checklistItems.length === 0}<p class="muted">No prep tasks yet.</p>{/if}
           </div>
           <form method="POST" action="?/createChecklistItem" class="inline-edit-form compact-row add-row" use:enhance>
             <label>New prep task<input name="label" required /></label>
