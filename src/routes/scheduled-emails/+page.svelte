@@ -121,7 +121,7 @@
         {/each}
       </div>
       <form method="POST" action="?/createCampaign" class="panel-form spaced" use:enhance>
-        <h3>Schedule this preview</h3>
+        <h3>Choose send time</h3>
         <input name="classSessionId" type="hidden" value={form.classSessionId} />
         <input name="templateId" type="hidden" value={form.templateId} />
         <input name="previewToken" type="hidden" value={form.previewToken} />
