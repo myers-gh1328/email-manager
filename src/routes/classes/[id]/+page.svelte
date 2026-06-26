@@ -182,6 +182,15 @@
         </label>
         <button class="secondary" type="submit">Search</button>
       </form>
+      <form method="POST" action="?/enrollContact" class="inline-filters enroll-student-form" use:enhance>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
+        {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+        {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
+        {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
+        <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" addHref={addContactHref} addLabel="Add contact" />
+        <button type="submit">Enroll</button>
+      </form>
       <p class="help-text">Showing {data.roster.length} of {data.rosterPage.total} students.</p>
       <div class="list">
       {#each data.roster as contact}
@@ -278,16 +287,6 @@
       <label>Start time<input name="startTime" type="time" value={data.session.startTime} /></label>
       <label>Notes<textarea name="notes" rows="3">{data.session.notes}</textarea></label>
       <button type="submit">Update class</button>
-    </form>
-    <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
-      <h3>Add student</h3>
-      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
-      {#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}
-      {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
-      {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
-      {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
-      <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" addHref={addContactHref} addLabel="Add contact" />
-      <button type="submit">Enroll</button>
     </form>
     <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
       <h3>Create scheduled email</h3>

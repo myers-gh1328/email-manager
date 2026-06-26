@@ -86,6 +86,9 @@ describe('SearchSelect contract', () => {
     expect(classDetail).toContain('addHref={addContactHref}');
     expect(classDetail).toContain('returnTo=');
     expect(classDetail).not.toContain('<summary>Add student</summary>');
+    expect(classDetail).not.toContain('<h3>Add student</h3>');
+    expect(classDetail).not.toContain('action="?/enrollContact" class="panel-form"');
+    expect(classDetail).toContain('action="?/enrollContact" class="inline-filters enroll-student-form"');
     expect(picker).toContain("mode = 'multi'");
     expect(picker).toContain("type={mode === 'single' ? 'radio' : 'checkbox'}");
   });
