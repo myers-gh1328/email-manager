@@ -20,7 +20,7 @@
     <a href="/contacts"><span>{data.stats.contacts}</span><p>Contacts</p></a>
     <a href="/classes"><span>{data.stats.classSessions}</span><p>Classes</p></a>
     <a href="/templates"><span>{data.stats.templates}</span><p>Templates</p></a>
-    <a href="/campaigns"><span>{data.stats.pendingDeliveries}</span><p>Prepared scheduled emails</p></a>
+    <a href="/campaigns"><span>{data.stats.campaigns}</span><p>Prepared scheduled emails</p></a>
   </div>
 
   <section class="panel-form spaced">

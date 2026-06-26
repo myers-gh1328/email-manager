@@ -64,6 +64,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).not.toContain('ready to send now');
     expect(dashboard).not.toContain('<p>Ready to send</p>');
     expect(dashboard).toContain('<p>Prepared scheduled emails</p>');
+    expect(dashboard).toContain('<a href="/campaigns"><span>{data.stats.campaigns}</span><p>Prepared scheduled emails</p></a>');
+    expect(dashboard).not.toContain('<a href="/campaigns"><span>{data.stats.pendingDeliveries}</span><p>Prepared scheduled emails</p></a>');
     expect(dashboard).not.toContain('<p>Recipient emails prepared</p>');
     expect(dashboard).not.toContain('<div class="status-row">');
     expect(dashboard).not.toContain('>Campaigns<');
