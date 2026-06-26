@@ -10,6 +10,14 @@
   let campaignsStatus = $derived(data.campaignsPage.status ?? '');
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
+  const statusFilters = [
+    { value: '', label: 'All' },
+    { value: 'upcoming', label: 'Upcoming' },
+    { value: 'ready', label: 'Ready to send' },
+    { value: 'needs_review', label: 'Needs review' },
+    { value: 'sent', label: 'Sent' },
+    { value: 'draft', label: 'Draft' }
+  ];
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -20,6 +28,14 @@
     if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
     if (data.campaignsPage.status) params.set('status', data.campaignsPage.status);
     if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/campaigns?${query}` : '/campaigns';
+  }
+
+  function statusFilterHref(status: string) {
+    const params = new URLSearchParams();
+    if (data.campaignsPage.search) params.set('search', data.campaignsPage.search);
+    if (status) params.set('status', status);
     const query = params.toString();
     return query ? `/campaigns?${query}` : '/campaigns';
   }
@@ -47,20 +63,14 @@
         Search scheduled emails
         <input name="search" value={campaignsSearch} placeholder="Name, class, or template" />
       </label>
-      <label>
-        Filter scheduled emails
-        <select name="status" value={campaignsStatus}>
-          <option value="">All statuses</option>
-          <option value="upcoming">Upcoming</option>
-          <option value="ready">Ready to send</option>
-          <option value="needs_review">Needs review</option>
-          <option value="sent">Sent</option>
-          <option value="draft">Draft</option>
-        </select>
-      </label>
       <button type="submit">Search</button>
       {#if data.campaignsPage.search || data.campaignsPage.status}<a class="button-link" href="/campaigns">Clear</a>{/if}
     </form>
+    <div class="segmented-control" aria-label="Filter scheduled emails">
+      {#each statusFilters as filter}
+        <a class:active={campaignsStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
+      {/each}
+    </div>
     <p class="help-text">Showing {data.campaigns.length} of {data.campaignsPage.total} scheduled emails.</p>
     <div class="list">
       {#each data.campaigns as campaign}
