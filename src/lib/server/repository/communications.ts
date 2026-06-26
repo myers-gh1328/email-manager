@@ -19,6 +19,7 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
   const acknowledgedAt = row.first_reply_at
     ? text(row.first_reply_at)
     : replies.reduce<string | undefined>((earliest, reply) => (!earliest || reply.receivedAt < earliest ? reply.receivedAt : earliest), undefined);
+  const unhandledReplyCount = Number(row.unreviewed_reply_count ?? replies.filter((reply) => !reply.reviewedAt).length);
   return {
     id: text(row.id),
     contactId: text(row.contact_id),
@@ -42,7 +43,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     createdAt: text(row.created_at),
     replies,
     replyCount: Number(row.reply_count ?? replies.length),
-    unreviewedReplyCount: Number(row.unreviewed_reply_count ?? replies.filter((reply) => !reply.reviewedAt).length),
+    unhandledReplyCount,
+    unreviewedReplyCount: unhandledReplyCount,
     acknowledgedAt
   };
 }

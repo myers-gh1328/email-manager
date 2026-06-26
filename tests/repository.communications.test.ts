@@ -109,6 +109,7 @@ describe('repository communications', () => {
     expect(duplicate.created).toBe(false);
     const history = repo.listContactCommunications(contact.id)[0];
     expect(history.replyCount).toBe(1);
+    expect(history.unhandledReplyCount).toBe(1);
     expect(history.unreviewedReplyCount).toBe(1);
     expect(history.acknowledgedAt).toBe('2026-06-22T12:00:00.000Z');
     expect(history.replies[0]).toMatchObject({
@@ -117,6 +118,7 @@ describe('repository communications', () => {
     });
 
     repo.markCommunicationReplyReviewed(history.replies[0].id);
+    expect(repo.listContactCommunications(contact.id)[0].unhandledReplyCount).toBe(0);
     expect(repo.listContactCommunications(contact.id)[0].unreviewedReplyCount).toBe(0);
   });
 
@@ -263,6 +265,7 @@ describe('repository communications', () => {
       body: '',
       replies: [],
       replyCount: 1,
+      unhandledReplyCount: 1,
       unreviewedReplyCount: 1,
       acknowledgedAt: '2026-06-22T12:00:00.000Z'
     });
@@ -314,6 +317,7 @@ describe('repository communications', () => {
         contactName: 'Maya Patel',
         subject: 'Needs answer',
         replyCount: 1,
+        unhandledReplyCount: 1,
         unreviewedReplyCount: 1
       }
     ]);

@@ -225,7 +225,7 @@
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>
-                      {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })}
+                      {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unhandledReplyCount })}
                     </p>
                   {/if}
                   {#if communication.status === 'failed' && communication.errorMessage}

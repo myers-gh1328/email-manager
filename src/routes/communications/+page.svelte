@@ -187,8 +187,8 @@
             <div>
               <dt>Replies</dt>
               <dd>
-                <span class:good={communication.replyCount && !communication.unreviewedReplyCount} class:warn={communication.unreviewedReplyCount} class="pill">
-                  {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })}
+                <span class:good={communication.replyCount && !communication.unhandledReplyCount} class:warn={communication.unhandledReplyCount} class="pill">
+                  {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unhandledReplyCount })}
                 </span>
               </dd>
             </div>
