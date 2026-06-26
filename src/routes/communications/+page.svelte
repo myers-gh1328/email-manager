@@ -10,17 +10,17 @@
   let currentHistoryPage = $derived(Math.floor(data.communicationPage.offset / data.communicationPage.limit) + 1);
   let totalHistoryPages = $derived(Math.max(Math.ceil(data.communicationPage.total / data.communicationPage.limit), 1));
   const typeFilters = [
-    { value: '', label: 'All email' },
+    { value: '', label: 'All email types' },
     { value: 'direct', label: 'Direct' },
     { value: 'scheduled', label: 'Scheduled' }
   ];
   const statusFilters = [
-    { value: '', label: 'All delivery' },
+    { value: '', label: 'All delivery statuses' },
     { value: 'sent', label: 'Sent' },
     { value: 'failed', label: 'Failed' }
   ];
   const replyFilters = [
-    { value: '', label: 'All replies' },
+    { value: '', label: 'All reply statuses' },
     { value: 'needs_reply', label: 'Needs reply' }
   ];
   let historyReturnTo = $derived(historyPageHref(currentHistoryPage));

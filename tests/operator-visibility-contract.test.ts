@@ -597,8 +597,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain("params.set('status', data.selectedStatus)");
     expect(history).toContain('data.selectedType');
     expect(history).toContain("params.set('type', data.selectedType)");
+    expect(history).toContain("value: '', label: 'All email types'");
     expect(history).toContain("value: 'direct', label: 'Direct'");
     expect(history).toContain("value: 'scheduled', label: 'Scheduled'");
+    expect(history).toContain("value: '', label: 'All delivery statuses'");
     expect(history).toContain("value: 'sent', label: 'Sent'");
     expect(history).toContain("value: 'failed', label: 'Failed'");
     expect(history).toContain('name="sourceId"');
@@ -612,6 +614,7 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('href="/new-email">New Email');
     expect(history).toContain('aria-label="Filter email history"');
     expect(history).toContain('aria-label="Filter email type"');
+    expect(history).toContain("value: '', label: 'All reply statuses'");
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('aria-label="Filter email delivery status"');
     expect(history).toContain('Clear filters');
