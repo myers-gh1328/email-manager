@@ -711,6 +711,8 @@ describe('operator visibility contract', () => {
     expect(historyDetailServer).not.toContain('markCommunicationReplyReviewed');
     expect(historyDetailServer).toContain('markCommunicationReplyHandled');
     expect(historyServer).not.toContain('markReplyReviewed');
+    expect(readFileSync('src/lib/server/repository/index.ts', 'utf8')).not.toContain('markCommunicationReplyReviewed');
+    expect(readFileSync('src/lib/server/repository/index.ts', 'utf8')).toContain('markCommunicationReplyHandled');
     expect(historyDetailServer).toContain('Reply marked handled.');
     expect(historyServer).not.toContain('Reply marked reviewed.');
     expect(historyDetailServer).not.toContain('Reply marked reviewed.');

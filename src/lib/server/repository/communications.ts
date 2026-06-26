@@ -385,13 +385,9 @@ export function recordCommunicationReply(db: DatabaseSync, input: CommunicationR
   return { ...getCommunicationReply(db, id), created: true };
 }
 
-export function markCommunicationReplyReviewed(db: DatabaseSync, id: string) {
+export function markCommunicationReplyHandled(db: DatabaseSync, id: string) {
   db.prepare("update communication_replies set reviewed_at = ? where id = ? and reviewed_at = ''").run(now(), id);
   return getCommunicationReply(db, id);
-}
-
-export function markCommunicationReplyHandled(db: DatabaseSync, id: string) {
-  return markCommunicationReplyReviewed(db, id);
 }
 
 function getCommunicationReply(db: DatabaseSync, id: string) {

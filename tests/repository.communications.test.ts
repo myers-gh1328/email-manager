@@ -117,7 +117,7 @@ describe('repository communications', () => {
       snippet: 'Got it.'
     });
 
-    repo.markCommunicationReplyReviewed(history.replies[0].id);
+    repo.markCommunicationReplyHandled(history.replies[0].id);
     expect(repo.listContactCommunications(contact.id)[0].unhandledReplyCount).toBe(0);
     expect(repo.listContactCommunications(contact.id)[0].unreviewedReplyCount).toBe(0);
   });
@@ -305,7 +305,7 @@ describe('repository communications', () => {
       textBody: 'All good.',
       receivedAt: '2026-06-22T12:01:00.000Z'
     });
-    repo.markCommunicationReplyReviewed(reply.id);
+    repo.markCommunicationReplyHandled(reply.id);
 
     const page = repo.listCommunicationsPage({ replyStatus: 'needs_reply' });
 
