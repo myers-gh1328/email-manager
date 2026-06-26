@@ -15,10 +15,16 @@ import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params, url }) => {
   const page = Math.max(Number(url.searchParams.get('page') ?? '1'), 1);
+  const emailPage = Math.max(Number(url.searchParams.get('emailPage') ?? '1'), 1);
   const detail = repo.getClassSessionDetail(params.id, {
     limit: 25,
     offset: (page - 1) * 25,
     search: url.searchParams.get('search') ?? ''
+  });
+  const scheduledCampaignsPage = repo.listCampaignsForClassSession(params.id, {
+    limit: 10,
+    offset: (emailPage - 1) * 10,
+    search: url.searchParams.get('emailSearch') ?? ''
   });
   return {
     ...detail,
@@ -27,7 +33,8 @@ export const load = ({ params, url }) => {
     locations: repo.listLocations(),
     templateOptions: loadTemplateOptions(),
     defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
-    scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
+    scheduledCampaigns: scheduledCampaignsPage.items,
+    scheduledCampaignsPage,
     checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
     settings: getSettings()
   };

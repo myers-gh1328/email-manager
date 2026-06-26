@@ -21,6 +21,9 @@
   let rosterSearch = $derived(data.rosterPage.search ?? '');
   let currentRosterPage = $derived(Math.floor(data.rosterPage.offset / data.rosterPage.limit) + 1);
   let totalRosterPages = $derived(Math.max(Math.ceil(data.rosterPage.total / data.rosterPage.limit), 1));
+  let classEmailSearch = $derived(data.scheduledCampaignsPage.search ?? '');
+  let currentClassEmailsPage = $derived(Math.floor(data.scheduledCampaignsPage.offset / data.scheduledCampaignsPage.limit) + 1);
+  let totalClassEmailsPages = $derived(Math.max(Math.ceil(data.scheduledCampaignsPage.total / data.scheduledCampaignsPage.limit), 1));
 
   $effect(() => {
     if (loadedSessionId !== data.session.id) {
@@ -51,6 +54,18 @@
     const params = new URLSearchParams();
     if (data.rosterPage.search) params.set('search', data.rosterPage.search);
     if (page > 1) params.set('page', String(page));
+    if (data.scheduledCampaignsPage.search) params.set('emailSearch', data.scheduledCampaignsPage.search);
+    if (currentClassEmailsPage > 1) params.set('emailPage', String(currentClassEmailsPage));
+    const query = params.toString();
+    return query ? `/classes/${data.session.id}?${query}` : `/classes/${data.session.id}`;
+  }
+
+  function classEmailsPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.rosterPage.search) params.set('search', data.rosterPage.search);
+    if (currentRosterPage > 1) params.set('page', String(currentRosterPage));
+    if (data.scheduledCampaignsPage.search) params.set('emailSearch', data.scheduledCampaignsPage.search);
+    if (page > 1) params.set('emailPage', String(page));
     const query = params.toString();
     return query ? `/classes/${data.session.id}?${query}` : `/classes/${data.session.id}`;
   }
@@ -100,6 +115,16 @@
           <h3>What will send for this class</h3>
         </div>
       </div>
+      <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
+        {#if data.rosterPage.search}<input name="search" type="hidden" value={data.rosterPage.search} />{/if}
+        {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
+        <label>
+          <span class="sr-only">Search scheduled emails</span>
+          <input name="emailSearch" value={classEmailSearch} placeholder="Search scheduled emails" />
+        </label>
+        <button class="secondary" type="submit">Search</button>
+      </form>
+      <p class="help-text">Showing {data.scheduledCampaigns.length} of {data.scheduledCampaignsPage.total} scheduled emails.</p>
       <div class="list">
         {#each data.scheduledCampaigns as campaign}
           <article class="row-card tall">
@@ -117,6 +142,19 @@
           <p class="empty">No emails are scheduled for this class yet.</p>
         {/each}
       </div>
+      {#if totalClassEmailsPages > 1}
+        <nav class="pagination" aria-label="Scheduled email pages">
+          <a class="button-link" aria-disabled={currentClassEmailsPage === 1} href={classEmailsPageHref(Math.max(currentClassEmailsPage - 1, 1))}>Previous</a>
+          <span>Page {currentClassEmailsPage} of {totalClassEmailsPages}</span>
+          <a
+            class="button-link"
+            aria-disabled={currentClassEmailsPage >= totalClassEmailsPages}
+            href={classEmailsPageHref(Math.min(currentClassEmailsPage + 1, totalClassEmailsPages))}
+          >
+            Next
+          </a>
+        </nav>
+      {/if}
     </section>
     <section class="spaced">
       <div class="section-heading compact">

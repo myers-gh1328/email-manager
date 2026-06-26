@@ -40,6 +40,7 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('schedulerStatus');
     expect(readFileSync('src/lib/server/class-default-campaigns.ts', 'utf8')).toContain('syncDefaultCampaignsForCourseType');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('scheduledCampaigns');
+    expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('scheduledCampaignsPage = repo.listCampaignsForClassSession');
     expect(readFileSync('src/routes/classes/+page.server.ts', 'utf8')).toContain('checklistItems: repo.listChecklistItems()');
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain(
       'checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map'
@@ -300,6 +301,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain('messageStatusLabel(communication.status)');
     expect(contacts).toContain('messageStatusLabel(communication.status)');
     expect(classDetail).toContain('scheduledEmailDeliverySummary(campaign)');
+    expect(classDetail).toContain('Search scheduled emails');
+    expect(classDetail).toContain('data.scheduledCampaignsPage.total');
+    expect(classDetail).toContain('classEmailsPageHref');
+    expect(classDetail).toContain('Page {currentClassEmailsPage} of {totalClassEmailsPages}');
     expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
     expect(history).not.toContain('{communication.status}</span>');
     expect(contacts).not.toContain('{communication.status}</span>');
