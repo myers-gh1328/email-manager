@@ -162,6 +162,40 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Already sent' }]);
   });
 
+  test('filters scheduled email list to upcoming ready messages', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Upcoming ready',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Past ready',
+      scheduledFor: '2026-07-30T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Upcoming draft',
+      scheduledFor: '2026-08-02T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ status: 'upcoming', nowIso: '2026-08-01T00:00:00.000Z' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('upcoming');
+    expect(page.items).toMatchObject([{ name: 'Upcoming ready' }]);
+  });
+
   test('records successful campaign delivery once per contact', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });

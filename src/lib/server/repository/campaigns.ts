@@ -48,7 +48,7 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim() ?? '';
-  const status = ['draft', 'ready', 'needs_review', 'sent'].includes(input.status ?? '') ? input.status ?? '' : '';
+  const status = ['draft', 'ready', 'upcoming', 'needs_review', 'sent'].includes(input.status ?? '') ? input.status ?? '' : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
@@ -66,6 +66,10 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   }
   if (status === 'ready') {
     where.push('c.approved = 1');
+  }
+  if (status === 'upcoming') {
+    where.push('c.approved = 1 and c.scheduled_for >= ?');
+    params.push(input.nowIso ?? now());
   }
   if (status === 'needs_review') {
     where.push(

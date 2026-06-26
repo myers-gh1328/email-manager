@@ -213,6 +213,7 @@ export interface CampaignPageInput {
   offset?: number;
   search?: string;
   status?: string;
+  nowIso?: string;
 }
 
 export interface CampaignPage {
