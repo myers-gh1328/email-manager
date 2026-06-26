@@ -35,6 +35,10 @@ describe('operator visibility contract', () => {
     expect(agentDevEnv).toContain('next scheduled send');
     expect(agentDevEnv).toContain('automatic course emails');
     expect(architecture).toContain('History must show imported replies under the outbound email they replied to.');
+    expect(architecture).toContain('Scheduled email detail must distinguish class time from send time and show recipient send status.');
+    expect(architecture).toContain('ready/draft state, source, template, and recipient/send counts');
+    expect(architecture).not.toContain('recipient delivery status');
+    expect(architecture).not.toContain('recipient/delivery counts');
     expect(architecture).not.toContain('acknowledgements');
     expect(architecture).not.toContain('acknowledgement');
     expect(maintainerGuide).toContain('`src/routes/scheduled-emails/` owns Scheduled Emails');

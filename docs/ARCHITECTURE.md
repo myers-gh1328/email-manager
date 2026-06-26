@@ -66,9 +66,9 @@ Required visibility:
 
 - Dashboard must show whether automatic scheduled sending is ready, blocked, or paused, including scheduler enabled state, SMTP completeness, email test mode, due scheduled-email count, and the next scheduled send.
 - Course email schedules define automatic class emails. Saving course emails must create, update, or remove unsent scheduled email records across existing classes of that course type, while preserving already-sent history.
-- Class detail must show both automatic course emails and concrete scheduled email records for that class. The instructor must be able to see what will send, when it will send, ready/draft state, source, template, and recipient/delivery counts.
+- Class detail must show both automatic course emails and concrete scheduled email records for that class. The instructor must be able to see what will send, when it will send, ready/draft state, source, template, and recipient/send counts.
 - Class detail must show per-student prep state using global prep tasks plus course-specific prep tasks.
-- Scheduled email detail must distinguish class time from send time and show recipient delivery status.
+- Scheduled email detail must distinguish class time from send time and show recipient send status.
 - History must provide a complete outbound email history across direct and scheduled email sends, not only contact-specific history.
 - History must show imported replies under the outbound email they replied to.
   It must not act like a general inbox reader.
