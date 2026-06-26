@@ -63,11 +63,11 @@
     <section class="panel-form spaced">
       <div class="section-heading compact">
         <div>
-          <p class="eyebrow">Course email defaults</p>
-          <h3>Automatic schedules from this class type</h3>
+          <p class="eyebrow">Course scheduled emails</p>
+          <h3>Emails added from course setup</h3>
         </div>
       </div>
-      <p class="body-copy">These defaults are managed on the course type. Saving course defaults schedules, updates, or removes unsent default emails across existing classes of that type.</p>
+      <p class="body-copy">These emails come from the course setup. Changing setup emails updates future unsent class emails while preserving emails already sent.</p>
       <div class="list">
         {#each data.defaultTemplates as defaultTemplate}
           <article class="row-card">
@@ -75,10 +75,10 @@
               <strong>{purposeLabel(defaultTemplate.purpose)}</strong>
               <p>{defaultTemplate.templateName} · {timingLabel(defaultTemplate.sendOffsetMinutes)}</p>
             </div>
-            <span class="pill">Default</span>
+            <span class="pill">From course setup</span>
           </article>
         {:else}
-          <p class="empty">No default emails are configured for this class type.</p>
+          <p class="empty">No setup emails are configured for this course.</p>
         {/each}
       </div>
     </section>

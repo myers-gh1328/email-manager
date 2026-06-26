@@ -105,6 +105,17 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).not.toContain('Checklist updated.');
   });
 
+  test('names inherited class emails without default or class-type jargon', () => {
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+
+    expect(classDetail).toContain('Course scheduled emails');
+    expect(classDetail).toContain('Emails added from course setup');
+    expect(classDetail).toContain('From course setup');
+    expect(classDetail).not.toContain('Course email defaults');
+    expect(classDetail).not.toContain('Automatic schedules from this class type');
+    expect(classDetail).not.toContain('<span class="pill">Default</span>');
+  });
+
   test('gives setup data a Settings App Data home', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
     expect(settings).toContain('<summary>App Data</summary>');
