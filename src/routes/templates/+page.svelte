@@ -10,8 +10,7 @@
 	  let templatesSearch = $derived(data.templatesPage.search ?? '');
 	  let currentTemplatesPage = $derived(Math.floor(data.templatesPage.offset / data.templatesPage.limit) + 1);
 	  let totalTemplatesPages = $derived(Math.max(Math.ceil(data.templatesPage.total / data.templatesPage.limit), 1));
-	  const variables = classTemplateTokens;
-	  const variableFields = tokenFields(variables);
+	  const variableFields = tokenFields(classTemplateTokens);
 
   function confirmDelete() {
     return confirm('Delete this template? This cannot be undone.');
@@ -101,12 +100,6 @@
         <input name="templateId" type="hidden" value={data.selectedTemplate.id} />
         <label>Name<input name="name" value={data.selectedTemplate.name} required /></label>
         <label>Subject<input name="subject" value={data.selectedTemplate.subject} required /></label>
-        <details class="token-help">
-          <summary>Template fields</summary>
-          <div class="token-row compact">
-            {#each variables as variable}<code>{variable}</code>{/each}
-          </div>
-        </details>
         <EmailBodyEditor name="body" rows={8} required value={data.selectedTemplate.body} fields={variableFields} />
         <label>AI instruction<textarea name="prompt" rows="3" placeholder="Make this shorter, warmer, and include the class start time."></textarea></label>
         <div class="button-row">
@@ -129,12 +122,6 @@
         {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Subject<input name="subject" placeholder={'Welcome to {{courseName}}, {{firstName}}'} required /></label>
-        <details class="token-help">
-          <summary>Template fields</summary>
-          <div class="token-row compact">
-            {#each variables as variable}<code>{variable}</code>{/each}
-          </div>
-        </details>
         <EmailBodyEditor name="body" rows={9} required placeholder={'Hi {{firstName}},'} fields={variableFields} />
         <label>AI instruction<textarea name="prompt" rows="3" placeholder="Draft a friendly welcome email for an upcoming class."></textarea></label>
         <div class="button-row">
@@ -167,12 +154,6 @@
           {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <label>Name<input name="name" value={form.draft.name} required /></label>
           <label>Subject<input name="subject" value={form.draft.subject} required /></label>
-          <details class="token-help">
-            <summary>Template fields</summary>
-            <div class="token-row compact">
-              {#each variables as variable}<code>{variable}</code>{/each}
-            </div>
-          </details>
           <EmailBodyEditor name="body" rows={9} required value={form.draft.body} fields={variableFields} />
           <div class="button-row">
             <button type="submit">{form.draft.templateId ? 'Update template' : 'Save template'}</button>

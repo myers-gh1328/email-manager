@@ -394,6 +394,9 @@ describe('operator visibility contract', () => {
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
+    expect(templates).toContain('fields={variableFields}');
+    expect(templates).not.toContain('<summary>Template fields</summary>');
+    expect(templates).not.toContain('class="token-help"');
     expect(templates.indexOf('<div class="list">')).toBeLessThan(templates.indexOf('<div class="form-stack task-stack">'));
     expect(templates).not.toContain('<section class="band two-column">');
     expect(templatesServer).toContain('page: Number(url.searchParams.get');
