@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 
 const architecture = readFileSync('docs/ARCHITECTURE.md', 'utf8');
 const maintainerGuide = readFileSync('docs/AI-MAINTAINER.md', 'utf8');
+const agentDevEnv = readFileSync('docs/AGENT-DEV-ENV.md', 'utf8');
 
 describe('operator visibility contract', () => {
   test('documents the send-state visibility requirements', () => {
@@ -28,7 +29,10 @@ describe('operator visibility contract', () => {
     ]) {
       expect(architecture).not.toContain(phrase);
       expect(maintainerGuide).not.toContain(phrase);
+      expect(agentDevEnv).not.toContain(phrase);
     }
+    expect(agentDevEnv).toContain('next scheduled send');
+    expect(agentDevEnv).toContain('automatic course emails');
   });
 
   test('keeps implementation hooks for documented visibility requirements', () => {

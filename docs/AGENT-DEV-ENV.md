@@ -18,8 +18,8 @@ agent-dev-login
 The seeded data includes:
 
 - Contacts with sendable and do-not-email examples.
-- Course types with and without default scheduled emails.
-- A future class with inherited course-type email schedules.
+- Course types with and without automatic course emails.
+- A future class with automatic course emails and concrete scheduled emails.
 - Templates using common class/contact variables.
 - A sample communication history row marked as test mode.
 - A test audit row.
@@ -29,11 +29,11 @@ The seeded data includes:
 
 When changing UI or route behavior, run the agent dev server and inspect the app with a browser automation tool before claiming the work is ready. Useful checkpoints:
 
-- `/` shows scheduler state, blockers, due count, next approved send, and the test-mode banner.
+- `/` shows scheduler state, blockers, due count, next scheduled send, and the test-mode banner.
 - `/classes` supports mobile navigation and does not push all edit forms into a right column.
-- A class detail page shows both course-type email defaults and concrete scheduled emails.
+- A class detail page shows both automatic course emails and concrete scheduled emails.
 - `/templates` keeps template tags contextual instead of dumping all tags at the top.
-- `/communications` shows global outbound email history, including test-mode sends.
+- `/communications` shows History with global outbound email records, including test-mode sends.
 - `/test-audit` is available from navigation while test mode is enabled.
 - `/settings` saves grouped settings independently.
 
