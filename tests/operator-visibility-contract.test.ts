@@ -611,9 +611,13 @@ describe('operator visibility contract', () => {
     expect(history).toContain('This contact');
     expect(history).toContain('This scheduled email');
     expect(history).toContain('Needs a reply');
+    expect(history).toContain("data.selectedStatus === 'failed' ? 'Failed emails' : 'Sent emails'");
+    expect(history).toContain("data.selectedType === 'scheduled' ? 'Scheduled emails' : 'Direct emails'");
     expect(history).not.toContain('Filtered to selected contact');
     expect(history).not.toContain('Filtered to selected scheduled email');
     expect(history).not.toContain('Filtered to emails needing replies');
+    expect(history).not.toContain('Filtered to {data.selectedStatus');
+    expect(history).not.toContain('Filtered to {data.selectedType');
     expect(history).toContain('newEmailHref');
     expect(history).toContain('href={newEmailHref}');
     expect(history).toContain("params.set('returnTo', historyReturnTo)");

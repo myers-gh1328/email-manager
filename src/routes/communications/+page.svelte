@@ -142,8 +142,8 @@
         {#if data.selectedContactId}<span class="pill">This contact</span>{/if}
         {#if data.selectedSourceId}<span class="pill">This scheduled email</span>{/if}
         {#if data.selectedReplyStatus}<span class="pill">Needs a reply</span>{/if}
-        {#if data.selectedStatus}<span class="pill">Filtered to {data.selectedStatus === 'failed' ? 'failed emails' : 'sent emails'}</span>{/if}
-        {#if data.selectedType}<span class="pill">Filtered to {data.selectedType === 'scheduled' ? 'scheduled emails' : 'direct emails'}</span>{/if}
+        {#if data.selectedStatus}<span class="pill">{data.selectedStatus === 'failed' ? 'Failed emails' : 'Sent emails'}</span>{/if}
+        {#if data.selectedType}<span class="pill">{data.selectedType === 'scheduled' ? 'Scheduled emails' : 'Direct emails'}</span>{/if}
         <a class="button-link" href={historyClearHref}>Clear filters</a>
       </div>
     {/if}
