@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
+  import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
   import SearchSelect from '$lib/SearchSelect.svelte';
   import EmailBodyEditor from '$lib/EmailBodyEditor.svelte';
   import { directEmailTokens, tokenFields } from '$lib/shared/template-fields';
@@ -13,18 +14,8 @@
   let subject = $derived(form?.subject ?? '');
   let body = $derived(form?.body ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
-  let recipientSearch = $state('');
-  let filteredContacts = $derived(
-    data.contacts.filter((contact) =>
-      `${contact.firstName} ${contact.lastName} ${contact.email}`.toLowerCase().includes(recipientSearch.toLowerCase())
-    )
-  );
   let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
   const variableFields = tokenFields(directEmailTokens);
-
-  function isSelected(contactId: string) {
-    return selectedContactIds.includes(contactId);
-  }
 
   function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
     const isAiSubmit = submitter instanceof HTMLButtonElement && submitter.formAction.includes('/aiDraftDirectEmail');
@@ -75,29 +66,7 @@
   {/if}
   <form method="POST" action="?/previewDirectEmail" class="panel-form" data-local-busy use:enhance={draftWithAi}>
     <h3>Compose email</h3>
-    <fieldset class="contact-picker">
-      <legend>Recipients</legend>
-      <label class="sr-only" for="recipient-search">Search recipients</label>
-      <input id="recipient-search" bind:value={recipientSearch} placeholder="Search recipients" />
-      {#each filteredContacts as contact}
-        <label class="check">
-          <input
-            name="contactIds"
-            type="checkbox"
-            value={contact.id}
-            checked={isSelected(contact.id)}
-            disabled={contact.doNotEmail}
-          />
-          <span>
-            {contact.firstName} {contact.lastName}
-            <small>{contact.email}</small>
-          </span>
-          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
-        </label>
-      {:else}
-        <p class="empty">{data.contacts.length ? 'No recipients match that search.' : 'Add contacts before sending direct email.'}</p>
-      {/each}
-    </fieldset>
+    <ContactMultiSelect contacts={data.contacts} {selectedContactIds} />
 
     <SearchSelect name="templateId" label="Template" options={templateOptions} value={selectedTemplateId} placeholder="Search templates" />
     <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>
