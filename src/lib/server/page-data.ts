@@ -58,8 +58,8 @@ export function schedulerStatus(
   return {
     ready: blockedReasons.length === 0,
     blockedReasons,
-    dueApprovedCount: scheduledEmailStatus.dueReadyCount,
-    nextApproved: scheduledEmailStatus.nextReady
+    dueReadyCount: scheduledEmailStatus.dueReadyCount,
+    nextReady: scheduledEmailStatus.nextReady
   };
 }
 

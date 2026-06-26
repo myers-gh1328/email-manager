@@ -33,6 +33,10 @@ describe('agent orientation tools', () => {
     if (!result.ok) return;
     expect(result.data.ready).toBe(false);
     expect(result.data.blockedReasons).toContain('Scheduled sending is disabled');
+    expect(result.data).toHaveProperty('dueReadyCount');
+    expect(result.data).toHaveProperty('nextReady');
+    expect(result.data).not.toHaveProperty('dueApprovedCount');
+    expect(result.data).not.toHaveProperty('nextApproved');
     expect(result.data).not.toHaveProperty('schedulerReadiness');
   });
 

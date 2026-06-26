@@ -52,10 +52,10 @@
       <p class="success">No setup or sending issues need attention.</p>
     {/if}
     <div class="status-row">
-      <span>{data.schedulerStatus.dueApprovedCount} ready to send now</span>
+      <span>{data.schedulerStatus.dueReadyCount} ready to send now</span>
       <span>{data.failedTodayCount} failed today</span>
-      {#if data.schedulerStatus.nextApproved}
-        <span>Next sends {formatDateTime(data.schedulerStatus.nextApproved.scheduledFor)}</span>
+      {#if data.schedulerStatus.nextReady}
+        <span>Next sends {formatDateTime(data.schedulerStatus.nextReady.scheduledFor)}</span>
       {:else}
         <span>No upcoming scheduled sends</span>
       {/if}
