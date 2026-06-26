@@ -42,7 +42,7 @@
   <title>Templates · Training Communications Studio</title>
 </svelte:head>
 
-<section class="band two-column">
+<section class="band">
   <div>
     <div class="section-heading compact">
       <div>

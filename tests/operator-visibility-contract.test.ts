@@ -104,6 +104,7 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('contactsPageHref');
     expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');
     expect(contacts.indexOf('<div class="list">')).toBeLessThan(contacts.indexOf('<div class="form-stack task-stack">'));
+    expect(contacts).not.toContain('<section class="band two-column">');
     expect(contactsServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('contactsPage = repo.listContactsPage');
   });
@@ -135,6 +136,7 @@ describe('operator visibility contract', () => {
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
     expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
+    expect(classes).not.toContain('<section class="band two-column">');
     expect(classesServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
@@ -362,6 +364,7 @@ describe('operator visibility contract', () => {
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
     expect(templates.indexOf('<div class="list">')).toBeLessThan(templates.indexOf('<div class="form-stack task-stack">'));
+    expect(templates).not.toContain('<section class="band two-column">');
     expect(templatesServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('templatesPage = repo.listTemplatesPage');
     expect(repository).toContain('limit ? offset ?');
