@@ -309,6 +309,7 @@ export interface CommunicationHistoryPageInput {
   offset?: number;
   search?: string;
   contactId?: string;
+  sourceId?: string;
 }
 
 export interface CommunicationHistoryPage {
@@ -318,6 +319,7 @@ export interface CommunicationHistoryPage {
   offset: number;
   search: string;
   contactId: string;
+  sourceId: string;
 }
 
 export interface EmailTestAuditInput {

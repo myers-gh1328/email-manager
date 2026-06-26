@@ -400,7 +400,8 @@ export function claimNextEligibleDelivery(
 export function markDeliverySent(db: DatabaseSync, deliveryId: string, providerMessage: string) {
   db.prepare(
     `update campaign_deliveries
-     set status = 'sent', sent_at = ?, provider_message = ?, error_message = null
+     set status = 'sent', sent_at = ?, provider_message = ?, error_message = null,
+       next_attempt_at = null, claim_expires_at = null, failure_kind = '', failure_summary = ''
      where id = ? and status != 'sent'`
   ).run(now(), providerMessage, deliveryId);
 }

@@ -12,6 +12,7 @@
     const params = new URLSearchParams();
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
+    if (data.selectedSourceId) params.set('sourceId', data.selectedSourceId);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
     return query ? `/communications?${query}` : '/communications';
@@ -49,6 +50,7 @@
     </div>
     <form class="inline-filters" method="GET" action="/communications">
       {#if data.selectedContactId}<input type="hidden" name="contactId" value={data.selectedContactId} />{/if}
+      {#if data.selectedSourceId}<input type="hidden" name="sourceId" value={data.selectedSourceId} />{/if}
       <label>
         <span class="sr-only">Search history</span>
         <input name="search" value={historySearch} placeholder="Search by name, email, or subject" />

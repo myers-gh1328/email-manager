@@ -188,12 +188,17 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim() ?? '';
   const contactId = input.contactId?.trim() ?? '';
+  const sourceId = input.sourceId?.trim() ?? '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
   if (contactId) {
     where.push('cm.contact_id = ?');
     params.push(contactId);
+  }
+  if (sourceId) {
+    where.push('cm.source_id = ?');
+    params.push(sourceId);
   }
   if (search) {
     const pattern = `%${search.toLowerCase()}%`;
@@ -232,7 +237,8 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
     limit,
     offset,
     search,
-    contactId
+    contactId,
+    sourceId
   };
 }
 

@@ -148,6 +148,52 @@ describe('repository communications', () => {
     ]);
   });
 
+  test('filters communication history by scheduled email source', () => {
+    const repo = createTestRepository();
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const jo = repo.createContact({ firstName: 'Jo', lastName: 'Rivera', email: 'jo@example.com' });
+
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: 'campaign-123',
+      subject: 'Open Water reminder',
+      body: 'Maya body.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: jo.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: 'campaign-456',
+      subject: 'Rescue reminder',
+      body: 'Jo body.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Direct followup',
+      body: 'Direct body.',
+      status: 'accepted'
+    });
+
+    const page = repo.listCommunicationsPage({ sourceId: 'campaign-123' });
+
+    expect(page.total).toBe(1);
+    expect(page.sourceId).toBe('campaign-123');
+    expect(page.items).toMatchObject([
+      {
+        contactId: maya.id,
+        source: 'campaign',
+        sourceId: 'campaign-123',
+        subject: 'Open Water reminder'
+      }
+    ]);
+  });
+
   test('records redirected test email audits separately from student history', () => {
     const repo = createTestRepository();
 

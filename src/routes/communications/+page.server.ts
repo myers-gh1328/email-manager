@@ -5,6 +5,7 @@ import { loadCommunicationsData } from '$lib/server/page-data';
 export const load = ({ url }) =>
   loadCommunicationsData({
     contactId: url.searchParams.get('contactId') || undefined,
+    sourceId: url.searchParams.get('sourceId') || undefined,
     search: url.searchParams.get('search') || undefined,
     page: Number(url.searchParams.get('page') || '1')
   });

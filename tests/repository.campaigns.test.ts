@@ -259,6 +259,49 @@ describe('repository campaigns and deliveries', () => {
     expect(repo.listDeliveries(campaign.id)[0].status).toBe('sent');
   });
 
+  test('clears retry failure metadata when a requeued delivery is marked sent', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Retry cleanup',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'pending',
+         error_message = 'Temporary failure',
+         failure_kind = 'transient',
+         failure_summary = 'Temporary failure',
+         next_attempt_at = '2026-08-01T14:00:00.000Z',
+         claim_expires_at = '2026-08-01T13:15:00.000Z'
+       where id = ?`
+    ).run(delivery.id);
+
+    repo.markDeliverySent(delivery.id, 'accepted-after-retry');
+
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'sent',
+        providerMessage: 'accepted-after-retry',
+        errorMessage: undefined,
+        failureKind: undefined,
+        failureSummary: undefined,
+        nextAttemptAt: undefined,
+        claimExpiresAt: undefined
+      }
+    ]);
+  });
+
   test('returns existing pending deliveries when a campaign was planned earlier', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });

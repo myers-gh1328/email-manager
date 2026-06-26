@@ -220,6 +220,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<dt>Template</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
+    expect(scheduledEmailDetail).toContain('View in History');
+    expect(scheduledEmailDetail).toContain('/communications?sourceId=');
     expect(scheduledEmailDetail).toContain('Ready to send');
     expect(scheduledEmails).toContain('scheduledEmailStatusLabel(campaign.approved)');
     expect(scheduledEmails).toContain('scheduledEmailDeliverySummary(campaign)');
@@ -336,6 +338,9 @@ describe('operator visibility contract', () => {
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
 
     expect(history).toContain('replyHref');
+    expect(history).toContain('data.selectedSourceId');
+    expect(history).toContain('params.set(\'sourceId\', data.selectedSourceId)');
+    expect(history).toContain('name="sourceId"');
     expect(history).toContain('Reply');
     expect(history).toContain('Search sent, failed, and replied-to emails.');
     expect(history).not.toContain('compose workflow');

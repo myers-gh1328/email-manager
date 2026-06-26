@@ -193,11 +193,12 @@ export function loadCampaignsData(input: { search?: string; page?: number; statu
   };
 }
 
-export function loadCommunicationsData(input: { contactId?: string; search?: string; page?: number } = {}) {
+export function loadCommunicationsData(input: { contactId?: string; sourceId?: string; search?: string; page?: number } = {}) {
   const limit = 25;
   const page = Math.max(input.page ?? 1, 1);
   const communicationPage = repo.listCommunicationsPage({
     contactId: input.contactId,
+    sourceId: input.sourceId,
     search: input.search,
     limit,
     offset: (page - 1) * limit
@@ -208,6 +209,7 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
     communicationPage,
     templateOptions: loadTemplateOptions(),
     selectedContactId: input.contactId ?? '',
+    selectedSourceId: input.sourceId ?? '',
     settings: getSettings()
   };
 }
