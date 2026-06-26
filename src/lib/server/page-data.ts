@@ -149,10 +149,8 @@ export function loadClassesData(input: { search?: string; page?: number } = {}) 
     offset: (page - 1) * limit
   });
   return {
-    contactOptions: loadContactOptions(),
     courseTypes: repo.listCourseTypes(),
     locations: repo.listLocations(),
-    templateOptions: loadTemplateOptions(),
     classSessions: classSessionsPage.items,
     classSessionsPage
   };

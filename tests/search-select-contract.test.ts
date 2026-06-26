@@ -113,6 +113,13 @@ describe('SearchSelect contract', () => {
     expect(templateSearchRoute).toContain('repo.listTemplatesPage');
   });
 
+  test('does not preload unused picker options for the class list page', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+
+    expect(pageData).not.toContain('contactOptions: loadContactOptions(),\n    courseTypes: repo.listCourseTypes()');
+    expect(pageData).not.toContain('templateOptions: loadTemplateOptions(),\n    classSessions: classSessionsPage.items');
+  });
+
   test('uses the shared search select for discovered AI models in settings', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
 
