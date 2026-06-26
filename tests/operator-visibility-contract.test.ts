@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 const architecture = readFileSync('docs/ARCHITECTURE.md', 'utf8');
 const maintainerGuide = readFileSync('docs/AI-MAINTAINER.md', 'utf8');
 const agentDevEnv = readFileSync('docs/AGENT-DEV-ENV.md', 'utf8');
+const agentInstructions = readFileSync('AGENTS.md', 'utf8');
 
 describe('operator visibility contract', () => {
   test('documents the send-state visibility requirements', () => {
@@ -46,9 +47,14 @@ describe('operator visibility contract', () => {
     expect(maintainerGuide).not.toContain('detail, delivery status, and retry');
     expect(maintainerGuide).toContain('`src/routes/history/` owns History');
     expect(agentDevEnv).toContain('`/history` shows History');
+    expect(agentInstructions).toContain('- `/scheduled-emails`');
+    expect(agentInstructions).toContain('- `/history`');
+    expect(agentInstructions).toContain('- `/new-email`');
     expect(maintainerGuide).not.toContain('`src/routes/campaigns/` owns Scheduled Emails');
     expect(maintainerGuide).not.toContain('`src/routes/communications/` owns History');
     expect(agentDevEnv).not.toContain('`/communications` shows History');
+    expect(agentInstructions).not.toContain('- `/campaigns`');
+    expect(agentInstructions).not.toContain('- `/communications`');
   });
 
   test('keeps implementation hooks for documented visibility requirements', () => {
