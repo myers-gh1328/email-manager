@@ -427,6 +427,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).not.toContain("data.campaign.approved ? 'Ready to send' : 'Draft'");
     expect(classDetail).not.toContain("campaign.approved ? 'Ready to send' : 'Draft'");
     expect(scheduledEmailDetail).not.toContain('name="approved"');
+    expect(scheduledEmailDetail).not.toContain('name="scheduleMode" type="hidden" value="draft"');
     expect(scheduledEmailDetail).toContain('<h3>Edit schedule</h3>');
     expect(scheduledEmailDetail).toContain('<h3>Email content</h3>');
     expect(scheduledEmailDetail).not.toContain('<h3>Template snapshot</h3>');

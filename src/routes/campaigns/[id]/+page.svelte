@@ -139,7 +139,6 @@
       {#if data.campaign.readyToSend}
         <label class="check"><input name="scheduleMode" type="checkbox" value="ready" checked /> Ready to send</label>
       {:else}
-        <input name="scheduleMode" type="hidden" value="draft" />
         <p class="body-copy">Emails needing preview must be previewed with the current roster before they can be marked ready.</p>
       {/if}
       <div class="button-row">
