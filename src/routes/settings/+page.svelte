@@ -194,19 +194,19 @@
     </details>
     {/if}
 
-    {#if sectionMatches('App Data', ['course types locations prep tasks setup checklist class data'])}
+    {#if sectionMatches('Courses, Locations, and Prep Tasks', ['course types locations prep tasks setup checklist class data app data'])}
     <details class="settings-section settings-panel wide" open={sectionOpen('app-data')}>
-      <summary>App Data</summary>
+      <summary>Courses, Locations, and Prep Tasks</summary>
       <div class="panel-form">
         <div>
-          <p class="eyebrow">App data</p>
+          <p class="eyebrow">Class setup</p>
           <h3>Course types, locations, and class prep</h3>
           <p class="help-text">Manage the lists used when creating classes. Scheduled email setup stays with the selected class workflow.</p>
         </div>
         <form class="inline-filters" method="GET" action="/settings">
           <input type="hidden" name="section" value="app-data" />
           <label>
-            Search app data
+            Search class setup
             <input name="appDataSearch" value={appDataSearch} placeholder="Course, location, or prep task" />
           </label>
           <button type="submit">Search</button>

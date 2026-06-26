@@ -210,16 +210,18 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).not.toContain('default email');
   });
 
-  test('gives setup data a Settings App Data home', () => {
+  test('gives setup data a clear Settings home', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
     const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
     const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
-    expect(settings).toContain('<summary>App Data</summary>');
-    expect(settings).toContain('<p class="eyebrow">App data</p>');
+    expect(settings).toContain('<summary>Courses, Locations, and Prep Tasks</summary>');
+    expect(settings).toContain('<p class="eyebrow">Class setup</p>');
     expect(settings).toContain('Course types');
     expect(settings).toContain('Locations');
     expect(settings).toContain('Prep tasks');
-    expect(settings).toContain('Search app data');
+    expect(settings).toContain('Search class setup');
+    expect(settings).not.toContain('<summary>App Data</summary>');
+    expect(settings).not.toContain('<p class="eyebrow">App data</p>');
     expect(settings).toContain('appDataPageHref');
     expect(settings).toContain('Page {currentAppDataPage} of {totalAppDataPages}');
     expect(settings).not.toContain('Reusable setup');
