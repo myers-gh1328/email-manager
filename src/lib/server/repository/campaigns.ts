@@ -48,7 +48,7 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
   const offset = Math.max(input.offset ?? 0, 0);
   const search = input.search?.trim() ?? '';
-  const status = ['draft', 'ready', 'needs_review'].includes(input.status ?? '') ? input.status ?? '' : '';
+  const status = ['draft', 'ready', 'needs_review', 'sent'].includes(input.status ?? '') ? input.status ?? '' : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
@@ -70,6 +70,11 @@ export function listCampaignsPage(db: DatabaseSync, input: CampaignPageInput = {
   if (status === 'needs_review') {
     where.push(
       "exists (select 1 from campaign_deliveries d where d.campaign_id = c.id and d.status in ('failed', 'retry_scheduled', 'needs_attention'))"
+    );
+  }
+  if (status === 'sent') {
+    where.push(
+      "exists (select 1 from campaign_deliveries d where d.campaign_id = c.id and d.status = 'sent') and not exists (select 1 from campaign_deliveries d where d.campaign_id = c.id and d.status != 'sent')"
     );
   }
 

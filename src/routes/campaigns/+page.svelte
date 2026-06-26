@@ -53,6 +53,7 @@
           <option value="">All statuses</option>
           <option value="ready">Ready to send</option>
           <option value="needs_review">Needs review</option>
+          <option value="sent">Sent</option>
           <option value="draft">Draft</option>
         </select>
       </label>
