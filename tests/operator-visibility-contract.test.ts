@@ -249,6 +249,11 @@ describe('operator visibility contract', () => {
     expect(settings).not.toContain('<summary>App Data</summary>');
     expect(settings).not.toContain('<p class="eyebrow">App data</p>');
     expect(settings).toContain('appDataPageHref');
+    expect(settings).toContain('appDataClearHref');
+    expect(settings).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(settings).toContain('{#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}');
+    expect(settings).toContain('href={appDataClearHref}');
+    expect(settings).not.toContain('href="/settings?section=app-data">Clear</a>');
     expect(settings).toContain('Page {currentAppDataPage} of {totalAppDataPages}');
     expect(settings).not.toContain('Reusable setup');
     expect(settings).not.toContain('Class prep defaults');

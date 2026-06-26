@@ -23,6 +23,7 @@
   let appDataTotal = $derived(Math.max(data.courseTypesPage.total, data.locationsPage.total, data.checklistItemsPage.total));
   let currentAppDataPage = $derived(Math.floor(data.courseTypesPage.offset / data.courseTypesPage.limit) + 1);
   let totalAppDataPages = $derived(Math.max(Math.ceil(appDataTotal / data.courseTypesPage.limit), 1));
+  let appDataClearHref = $derived(data.returnTo ? `/settings?section=app-data&returnTo=${encodeURIComponent(data.returnTo)}` : '/settings?section=app-data');
 
   $effect(() => {
     if (!initialized) {
@@ -93,6 +94,7 @@
   function appDataPageHref(page: number) {
     const params = new URLSearchParams();
     params.set('section', 'app-data');
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.courseTypesPage.search) params.set('appDataSearch', data.courseTypesPage.search);
     if (page > 1) params.set('appDataPage', String(page));
     return `/settings?${params.toString()}`;
@@ -205,12 +207,13 @@
         </div>
         <form class="inline-filters" method="GET" action="/settings">
           <input type="hidden" name="section" value="app-data" />
+          {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <label>
             Search class setup
             <input name="appDataSearch" value={appDataSearch} placeholder="Course, location, or prep task" />
           </label>
           <button type="submit">Search</button>
-          {#if data.courseTypesPage.search}<a class="button-link" href="/settings?section=app-data">Clear</a>{/if}
+          {#if data.courseTypesPage.search}<a class="button-link" href={appDataClearHref}>Clear</a>{/if}
         </form>
         <p class="help-text">
           Showing {data.courseTypes.length} course type{data.courseTypes.length === 1 ? '' : 's'},
