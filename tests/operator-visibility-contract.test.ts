@@ -415,5 +415,6 @@ describe('operator visibility contract', () => {
     expect(pageData).toContain('prefillBody');
     expect(newEmail).toContain('data.prefillSubject');
     expect(newEmail).toContain('data.prefillBody');
+    expect(newEmail).not.toContain('<section class="band two-column">');
   });
 });
