@@ -283,6 +283,12 @@ describe('operator visibility contract', () => {
     expect(history).toContain('replyHref');
     expect(history).toContain('Reply');
     expect(history).not.toContain('No reply yet');
+    expect(history).not.toContain('Acknowledged');
+    expect(history).not.toContain('<span class="pill good">Reviewed</span>');
+    expect(history).not.toContain('new</span>');
+    expect(history).toContain('Student replied');
+    expect(history).toContain('Needs reply');
+    expect(history).toContain('Reply reviewed');
     expect(history).toContain('/new-email?');
     expect(newEmailServer).toContain("url.searchParams.get('subject')");
     expect(newEmailServer).toContain("url.searchParams.get('body')");

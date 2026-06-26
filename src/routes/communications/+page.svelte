@@ -85,7 +85,7 @@
                       <p>{reply.snippet || reply.textBody}</p>
                     </div>
                     {#if reply.reviewedAt}
-                      <span class="pill good">Reviewed</span>
+                      <span class="pill good">Reply reviewed</span>
                     {:else}
                       <div class="button-row compact">
                         <a class="button-link" href={replyHref(communication, reply)}>Reply</a>
@@ -103,8 +103,8 @@
           <div class="status-stack">
             <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span>
             {#if communication.replyCount}
-              <span class="pill good">Acknowledged</span>
-              {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} new</span>{/if}
+              <span class="pill good">Student replied</span>
+              {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} Needs reply</span>{/if}
             {/if}
           </div>
         </article>
