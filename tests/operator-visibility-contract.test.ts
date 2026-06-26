@@ -79,6 +79,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('ready scheduled email');
     expect(dashboard).toContain('Next scheduled send');
     expect(dashboard).toContain('Scheduled Emails');
+    expect(dashboard).toContain('<h2>Recent scheduled emails</h2>');
+    expect(dashboard).not.toContain('<h2>Recent schedules</h2>');
     expect(dashboard).toContain('Fix failed emails');
     expect(dashboard).toContain('need attention before retrying');
     expect(dashboard).not.toContain('Review failed emails');

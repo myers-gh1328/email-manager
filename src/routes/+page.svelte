@@ -76,7 +76,7 @@
   <div class="section-heading compact">
     <div>
       <p class="eyebrow">Scheduled Emails</p>
-      <h2>Recent schedules</h2>
+      <h2>Recent scheduled emails</h2>
     </div>
     <a class="button-link" href="/campaigns">Manage scheduled emails</a>
   </div>
