@@ -287,6 +287,8 @@ describe('operator visibility contract', () => {
 
     expect(classDetail).toContain('Automatic class emails');
     expect(classDetail).toContain('Emails added from course');
+    expect(classDetail).toContain('Scheduled emails for this class');
+    expect(classDetail).not.toContain('What will send for this class');
     expect(classDetail).toContain('From course');
     expect(classDetail).toContain('Added for this class');
     expect(classDetail).not.toContain('Course email defaults');

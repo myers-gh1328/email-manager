@@ -120,7 +120,7 @@
       <div class="section-heading compact">
         <div>
           <p class="eyebrow">Scheduled emails</p>
-          <h3>What will send for this class</h3>
+          <h3>Scheduled emails for this class</h3>
         </div>
       </div>
       <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
