@@ -32,13 +32,24 @@
       </div>
       <a class="button-link" href="/campaigns">Back</a>
     </div>
-    <div class="status-row">
-      <span class:good={data.campaign.approved}>{data.campaign.approved ? 'Ready to send' : 'Draft'}</span>
-      <span>{data.campaign.courseName}</span>
-      <span>{formatClassSchedule(data.campaign)}</span>
-      <span>{data.campaign.templateName}</span>
-      <span>{formatDateTime(data.campaign.scheduledFor)}</span>
-    </div>
+    <dl class="detail-facts">
+      <div>
+        <dt>Status</dt>
+        <dd><span class:good={data.campaign.approved} class="pill">{data.campaign.approved ? 'Ready to send' : 'Draft'}</span></dd>
+      </div>
+      <div>
+        <dt>Class</dt>
+        <dd>{data.campaign.courseName} · {formatClassSchedule(data.campaign)}</dd>
+      </div>
+      <div>
+        <dt>Template</dt>
+        <dd>{data.campaign.templateName}</dd>
+      </div>
+      <div>
+        <dt>Send time</dt>
+        <dd>{formatDateTime(data.campaign.scheduledFor)}</dd>
+      </div>
+    </dl>
     {#if form?.message}<p class={form.error || form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
 
     <div class="preview-list">

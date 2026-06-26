@@ -543,6 +543,38 @@ p {
   margin: 10px 0 0;
 }
 
+.detail-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.detail-facts > div {
+  min-width: 0;
+  border: 1px solid #d9e5e1;
+  border-color: var(--border-soft);
+  border-radius: 8px;
+  background: #f8fbfa;
+  background: var(--surface-muted);
+  padding: 10px 12px;
+}
+
+.detail-facts dt {
+  margin-bottom: 4px;
+  color: #5b6b66;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.detail-facts dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 750;
+}
+
 .token-help {
   border: 1px solid #d9e5e1;
   border-color: var(--border-soft);
