@@ -78,7 +78,7 @@
       <p class="eyebrow">Scheduled Emails</p>
       <h2>Recent scheduled emails</h2>
     </div>
-    <a class="button-link" href="/scheduled-emails">Manage scheduled emails</a>
+    <a class="button-link" href="/scheduled-emails">View scheduled emails</a>
   </div>
   <div class="list">
     {#each data.recentScheduledEmails as campaign}
