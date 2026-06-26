@@ -41,7 +41,7 @@ export function getSchedulerReadiness() {
             classSessionId: status.nextReady.classSessionId,
             templateId: status.nextReady.templateId,
             scheduledFor: status.nextReady.scheduledFor,
-            ready: status.nextReady.approved
+            ready: status.nextReady.readyToSend
           }
         : null,
       schedulerEnabled: dashboard.settings.schedulerEnabled,

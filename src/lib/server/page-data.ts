@@ -59,7 +59,7 @@ export function schedulerStatus(
     ready: blockedReasons.length === 0,
     blockedReasons,
     dueReadyCount: scheduledEmailStatus.dueReadyCount,
-    nextReady: scheduledEmailStatus.nextReady
+    nextReady: scheduledEmailStatus.nextReady ? withReadyToSend(scheduledEmailStatus.nextReady) : undefined
   };
 }
 
@@ -216,15 +216,23 @@ export function loadCampaignsData(input: { search?: string; page?: number; statu
     classSessionOptions: loadClassSessionOptions(),
     templateOptions: loadTemplateOptions(),
     campaigns: campaignsPage.items.map(withReadyToSend),
-    campaignsPage,
+    campaignsPage: withVisibleScheduledEmailsPage(campaignsPage),
     settings: getSettings()
   };
 }
 
-export function withReadyToSend<T extends { approved: boolean }>(campaign: T) {
+function withVisibleScheduledEmailsPage<T extends { items: Array<{ approved: boolean }> }>(campaignsPage: T) {
   return {
-    ...campaign,
-    readyToSend: campaign.approved
+    ...campaignsPage,
+    items: campaignsPage.items.map(withReadyToSend)
+  };
+}
+
+export function withReadyToSend<T extends { approved: boolean }>(campaign: T) {
+  const { approved, ...visibleCampaign } = campaign;
+  return {
+    ...visibleCampaign,
+    readyToSend: approved
   };
 }
 
