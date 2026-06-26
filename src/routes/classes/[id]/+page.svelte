@@ -56,6 +56,7 @@
 
   function rosterPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.rosterPage.search) params.set('search', data.rosterPage.search);
     if (page > 1) params.set('page', String(page));
     if (data.scheduledCampaignsPage.search) params.set('emailSearch', data.scheduledCampaignsPage.search);
@@ -66,6 +67,7 @@
 
   function classEmailsPageHref(page: number) {
     const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.rosterPage.search) params.set('search', data.rosterPage.search);
     if (currentRosterPage > 1) params.set('page', String(currentRosterPage));
     if (data.scheduledCampaignsPage.search) params.set('emailSearch', data.scheduledCampaignsPage.search);
@@ -120,6 +122,7 @@
         </div>
       </div>
       <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
         {#if data.rosterPage.search}<input name="search" type="hidden" value={data.rosterPage.search} />{/if}
         {#if currentRosterPage > 1}<input name="page" type="hidden" value={currentRosterPage} />{/if}
         <label>
@@ -168,6 +171,7 @@
         </div>
       </div>
       <form class="inline-filters" method="GET" action={`/classes/${data.session.id}`}>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
         {#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}
         {#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}
         <label>

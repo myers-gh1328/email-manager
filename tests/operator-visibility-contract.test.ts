@@ -191,6 +191,8 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('Search students');
     expect(classDetail).toContain('data.rosterPage.total');
     expect(classDetail).toContain('rosterPageHref');
+    expect(classDetail).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
+    expect(classDetail).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(classDetail).toContain('{#if data.scheduledCampaignsPage.search}<input name="emailSearch" type="hidden" value={data.scheduledCampaignsPage.search} />{/if}');
     expect(classDetail).toContain('{#if currentClassEmailsPage > 1}<input name="emailPage" type="hidden" value={currentClassEmailsPage} />{/if}');
     expect(classDetail).toContain('Prep items');
