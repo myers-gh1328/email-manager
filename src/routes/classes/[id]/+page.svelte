@@ -312,7 +312,7 @@
     {#if form?.previews}
       <section class="panel-form">
         <h3>Scheduled email preview</h3>
-        <p class="body-copy">Will create {form.previews.filter((preview) => !preview.skipped).length} scheduled emails, one to each student. Students will not see each other.</p>
+        <p class="body-copy">Will create one scheduled email for this class. Each student gets their own message.</p>
         <div class="list">
           {#each form.previews as preview}
             <article class="row-card tall">
@@ -338,7 +338,7 @@
           <input name="sendOffsetMinutes" type="hidden" value={form.sendOffsetMinutes ?? ''} />
           <input name="previewToken" type="hidden" value={form.previewToken} />
           <label>Send at<input name="scheduledFor" type="datetime-local" value={form.suggestedScheduledFor ?? ''} required /></label>
-          <button type="submit">Create scheduled emails</button>
+          <button type="submit">Create scheduled email</button>
         </form>
       </section>
     {/if}

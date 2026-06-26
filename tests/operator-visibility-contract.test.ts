@@ -301,8 +301,10 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('Skipped because: {preview.reason}');
     expect(classDetail).not.toContain('Missing: {preview.missing.join');
     expect(classDetail).not.toContain('Skipped: {preview.reason}');
-    expect(classDetail).toContain('Will create {form.previews.filter((preview) => !preview.skipped).length} scheduled emails, one to each student.');
-    expect(classDetail).toContain('<button type="submit">Create scheduled emails</button>');
+    expect(classDetail).toContain('Will create one scheduled email for this class. Each student gets their own message.');
+    expect(classDetail).toContain('<button type="submit">Create scheduled email</button>');
+    expect(classDetail).not.toContain('Will create {form.previews.filter((preview) => !preview.skipped).length} scheduled emails, one to each student.');
+    expect(classDetail).not.toContain('<button type="submit">Create scheduled emails</button>');
     expect(classDetail).not.toContain('<h3>Email this class</h3>');
     expect(classDetail).not.toContain('<h3>Student email preview</h3>');
     expect(classDetail).not.toContain('Will schedule {form.previews.filter((preview) => !preview.skipped).length} private emails');
