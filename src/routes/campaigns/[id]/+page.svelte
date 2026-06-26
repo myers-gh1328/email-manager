@@ -21,7 +21,7 @@
   }
 
   function confirmDelete() {
-    return confirm('Delete this scheduled email? Draft and unsent delivery rows will be removed.');
+    return confirm('Delete this scheduled email? Unpreviewed and unsent delivery rows will be removed.');
   }
 
   function recipientPageHref(page: number) {
@@ -140,7 +140,7 @@
         <label class="check"><input name="scheduleMode" type="checkbox" value="ready" checked /> Ready to send</label>
       {:else}
         <input name="scheduleMode" type="hidden" value="draft" />
-        <p class="body-copy">Draft emails need a student preview before they can be marked ready.</p>
+        <p class="body-copy">Emails needing preview must be previewed with the current roster before they can be marked ready.</p>
       {/if}
       <div class="button-row">
         <button type="submit">Update scheduled email</button>

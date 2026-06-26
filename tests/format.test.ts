@@ -32,7 +32,7 @@ describe('shared formatting helpers', () => {
 
   test('formats scheduled email readiness without approval wording', () => {
     expect(scheduledEmailStatusLabel(true)).toBe('Ready to send');
-    expect(scheduledEmailStatusLabel(false)).toBe('Draft');
+    expect(scheduledEmailStatusLabel(false)).toBe('Needs preview');
   });
 
   test('summarizes scheduled email delivery counts in operator language', () => {

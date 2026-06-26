@@ -22,7 +22,7 @@
     { value: 'ready', label: 'Ready to send' },
     { value: 'needs_attention', label: 'Needs attention' },
     { value: 'sent', label: 'Sent' },
-    { value: 'draft', label: 'Draft' }
+    { value: 'needs_preview', label: 'Needs preview' }
   ];
 
   function formatDateTime(value: string) {

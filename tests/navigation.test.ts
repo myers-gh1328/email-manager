@@ -33,11 +33,13 @@ describe('navigation visibility', () => {
     expect(scheduledEmailsPage).not.toContain('name="approved"');
     expect(scheduledEmailsPage).not.toContain('Schedule after preview');
     expect(scheduledEmailsPage).toContain('name="scheduleMode" type="hidden" value="ready"');
-    expect(scheduledEmailsPage).toContain('name="scheduleMode" type="hidden" value="draft"');
+    expect(scheduledEmailsPage).not.toContain('name="scheduleMode" type="hidden" value="draft"');
+    expect(scheduledEmailsPage).toContain("value: 'needs_preview', label: 'Needs preview'");
 
     expect(historyPage).toContain('<title>History · Training Communications Studio</title>');
     expect(historyPage).toContain('<p class="eyebrow">History</p>');
-    expect(historyPage).toContain('href="/new-email"');
+    expect(historyPage).toContain('newEmailHref');
+    expect(historyPage).toContain('href={newEmailHref}');
     expect(historyPage).not.toContain('>Communications<');
     expect(historyPage).not.toContain('Scheduled campaign');
     expect(historyPage).not.toContain('Compose email');

@@ -408,11 +408,12 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<h3>Template snapshot</h3>');
     expect(scheduledEmailDetail).toContain('Delete scheduled email');
     expect(scheduledEmailDetail).not.toContain('Delete draft');
+    expect(scheduledEmailDetail).not.toContain('Draft emails need a student preview before they can be marked ready.');
+    expect(scheduledEmailDetail).toContain('Emails needing preview must be previewed with the current roster before they can be marked ready.');
     expect(scheduledEmailDetail).not.toContain('<h3>Lifecycle</h3>');
     expect(scheduledEmailDetail).not.toContain('<section class="band two-column">');
     expect(scheduledEmailDetail).not.toContain('<summary>Template snapshot</summary>');
     expect(scheduledEmailDetail).not.toContain('preview-backed scheduling flow');
-    expect(scheduledEmailDetail).toContain('Draft emails need a student preview before they can be marked ready.');
     expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");
     expect(scheduledEmailsServer).not.toContain("form.get('approved') === 'on'");
     expect(scheduledEmails).toContain('Search scheduled emails');
@@ -424,6 +425,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('Upcoming');
     expect(scheduledEmails).toContain('Sent');
     expect(scheduledEmails).toContain('Needs attention');
+    expect(scheduledEmails).toContain("value: 'needs_preview', label: 'Needs preview'");
+    expect(scheduledEmails).not.toContain("value: 'draft', label: 'Draft'");
     expect(scheduledEmails).not.toContain("label: 'Needs review'");
     expect(scheduledEmails).toContain("value: 'needs_attention', label: 'Needs attention'");
     expect(scheduledEmails).not.toContain("value: 'needs_review'");
