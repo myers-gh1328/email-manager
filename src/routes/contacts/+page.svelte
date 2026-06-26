@@ -9,6 +9,9 @@
   let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
   let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
   let contactsListReturnTo = $derived(contactsPageHref(currentContactsPage));
+  let contactDetailReturnTo = $derived(
+    data.contactDetail ? `/contacts?contactId=${data.contactDetail.contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}` : '/contacts'
+  );
   let contactHistoryHref = $derived(data.contactDetail ? `/communications?contactId=${data.contactDetail.contact.id}` : '/communications');
 
   function showImageImportBusy() {
@@ -182,7 +185,7 @@
             {#each data.contactDetail.classHistory as item}
               <article class="row-card">
                 <div>
-                  <a href={`/classes/${item.classSessionId}`}><strong>{item.courseName}</strong></a>
+                  <a href={`/classes/${item.classSessionId}?returnTo=${encodeURIComponent(contactDetailReturnTo)}`}><strong>{item.courseName}</strong></a>
                   <p>{formatClassSchedule(item)} · {item.location}</p>
                 </div>
               </article>
@@ -198,7 +201,7 @@
               <h3>Recent emails</h3>
               <p class="help-text">Showing the 3 most recent messages for this person.</p>
             </div>
-            <a class="button-link" href={contactHistoryHref}>View all in History</a>
+            <a class="button-link" href={`${contactHistoryHref}&returnTo=${encodeURIComponent(contactDetailReturnTo)}`}>View all in History</a>
           </div>
           <div class="list">
             {#each data.contactDetail.communications as communication}
