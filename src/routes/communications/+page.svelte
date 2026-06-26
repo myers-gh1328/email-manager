@@ -104,7 +104,7 @@
   <section class="panel-form spaced">
     <div class="section-heading compact">
       <div>
-        <h3>Email records</h3>
+        <h3>Email activity</h3>
         <p class="help-text">Search sent, failed, and replied-to emails.</p>
       </div>
     </div>

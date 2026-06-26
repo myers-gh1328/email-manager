@@ -683,7 +683,8 @@ describe('operator visibility contract', () => {
     expect(historyDetailServer).toContain('Reply marked handled.');
     expect(historyServer).not.toContain('Reply marked reviewed.');
     expect(historyDetailServer).not.toContain('Reply marked reviewed.');
-    expect(history).toContain('<h3>Email records</h3>');
+    expect(history).toContain('<h3>Email activity</h3>');
+    expect(history).not.toContain('<h3>Email records</h3>');
     expect(history).toContain('<dl class="history-facts">');
     expect(history).toContain('<dt>Delivery</dt>');
     expect(history).toContain('<dt>Replies</dt>');
