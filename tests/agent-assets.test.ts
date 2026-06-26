@@ -81,10 +81,14 @@ describe('agent-facing repository assets', () => {
     const mcpServer = read('src/mcp/server.ts');
     expect(mcpServer).toContain('scheduled emails ready to send count');
     expect(mcpServer).toContain('next scheduled email ready to send');
+    expect(mcpServer).toContain("title: 'Prepare Due Scheduled Emails'");
+    expect(mcpServer).toContain("title: 'Send Due Scheduled Emails'");
     expect(mcpServer).toContain('currently due scheduled emails');
     expect(mcpServer).toContain('Run the shared send-due scheduled-email path');
     expect(mcpServer).not.toContain('due approved count');
     expect(mcpServer).not.toContain('next approved send');
+    expect(mcpServer).not.toContain("title: 'Prepare Send Due Campaigns'");
+    expect(mcpServer).not.toContain("title: 'Commit Send Due Campaigns'");
     expect(mcpServer).not.toContain('approved campaign sends');
     expect(mcpServer).not.toContain('send-due campaign path');
   });

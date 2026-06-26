@@ -231,7 +231,7 @@ export function createMcpServer() {
   server.registerTool(
     'prepare_send_due_campaigns',
     {
-      title: 'Prepare Send Due Campaigns',
+      title: 'Prepare Due Scheduled Emails',
       description: 'Create an approval packet for currently due scheduled emails.',
       inputSchema: {}
     },
@@ -241,7 +241,7 @@ export function createMcpServer() {
   server.registerTool(
     'commit_send_due_campaigns',
     {
-      title: 'Commit Send Due Campaigns',
+      title: 'Send Due Scheduled Emails',
       description: 'Run the shared send-due scheduled-email path after exact human approval confirmation.',
       inputSchema: approvalCommitInputSchema
     },
