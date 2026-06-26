@@ -64,11 +64,22 @@ describe('direct email workflow', () => {
     });
 
     expect(result.sent).toBe(2);
+    const sourceId = directEmailOperationId({
+      contactIds: [maya.id, jo.id],
+      subject: 'Hi {{firstName}}',
+      body: 'Hello {{fullName}}.',
+      previewToken: directEmailPreviewToken({
+        contactIds: [maya.id, jo.id],
+        subject: 'Hi {{firstName}}',
+        body: 'Hello {{fullName}}.'
+      })
+    });
     expect(send).toHaveBeenNthCalledWith(1, 'maya@example.com', 'Hi Maya', 'Hello Maya Patel.');
     expect(send).toHaveBeenNthCalledWith(2, 'jo@example.com', 'Hi Jo', 'Hello Jo Kim.');
     expect(repo.listContactCommunications(maya.id)[0]).toMatchObject({
       contactId: maya.id,
       source: 'direct',
+      sourceId,
       status: 'accepted',
       subject: 'Hi Maya',
       body: 'Hello Maya Patel.',
@@ -77,10 +88,12 @@ describe('direct email workflow', () => {
     expect(repo.listContactCommunications(jo.id)[0]).toMatchObject({
       contactId: jo.id,
       source: 'direct',
+      sourceId,
       status: 'accepted',
       subject: 'Hi Jo',
       body: 'Hello Jo Kim.'
     });
+    expect(repo.listCommunicationsPage({ sourceId }).total).toBe(2);
   });
 
   test('records test-mode direct email attempts in contact history', async () => {

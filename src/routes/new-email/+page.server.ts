@@ -1,6 +1,6 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
-import { directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '$lib/server/direct-email';
+import { directEmailOperationId, directEmailPreviewToken, previewDirectEmail, sendDirectEmail } from '$lib/server/direct-email';
 import { errorText, formText, required, text } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
 import { sendOutboundEmail } from '$lib/server/mailer';
@@ -42,26 +42,21 @@ export const actions = {
 
     const content = directEmailContent(form);
     const settings = getSettings();
+    const previewToken = text(form, 'previewToken');
+    const sourceId = directEmailOperationId({ contactIds, subject: content.subject, body: content.body, previewToken });
     try {
-      const result = await sendDirectEmail(repo, (to, subject, text) => sendOutboundEmail({ to, subject, text }), {
+      await sendDirectEmail(repo, (to, subject, text) => sendOutboundEmail({ to, subject, text }), {
         contactIds,
         subject: content.subject,
         body: content.body,
         instructorName: settings.instructorName,
-        previewToken: text(form, 'previewToken'),
+        previewToken,
         settings,
         surface: 'direct_email'
       });
-      return {
-        message: directEmailResultMessage(result),
-        previews: result.previews,
-        previewToken: directEmailPreviewToken({ contactIds, subject: content.subject, body: content.body }),
-        selectedContactIds: contactIds,
-        selectedTemplateId: content.templateId,
-        subject: content.subject,
-        body: content.body
-      };
+      throw redirect(303, `/communications?sourceId=${encodeURIComponent(sourceId)}`);
     } catch (error) {
+      if (isRedirect(error)) throw error;
       return fail(400, {
         error: true,
         message: errorText(error),
@@ -124,8 +119,6 @@ function directEmailContent(form: FormData) {
   };
 }
 
-function directEmailResultMessage(result: { sent: number; failed: number }) {
-  const plural = result.sent === 1 ? '' : 's';
-  const failed = result.failed ? `; ${result.failed} failed` : '';
-  return `Accepted ${result.sent} email${plural} by the mail server${failed}.`;
+function isRedirect(error: unknown) {
+  return typeof error === 'object' && error !== null && 'status' in error && 'location' in error;
 }

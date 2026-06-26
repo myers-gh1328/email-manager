@@ -47,8 +47,6 @@
       <a class="button-link" href="/communications">Back to History</a>
     </div>
 
-    {#if form?.message && form?.previews}<p class="success spaced">{form.message}</p>{/if}
-
     {#if form?.previews}
       <div class="preview-list">
         <h3>Preview</h3>
