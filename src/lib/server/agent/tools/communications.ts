@@ -151,8 +151,8 @@ function requireAgentPermission(settings: AppSettings, permission: 'prepareEmail
     return agentError(
       'agent_permission_denied',
       permission === 'prepareEmail'
-        ? 'Agents are not allowed to prepare emails for approval.'
-        : 'Agents are not allowed to send approved emails.',
+        ? 'Agents are not allowed to prepare emails for confirmation.'
+        : 'Agents are not allowed to send emails after confirmation.',
       { permission },
       { labels: settings.vocabulary }
     );

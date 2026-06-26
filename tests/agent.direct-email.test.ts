@@ -31,6 +31,8 @@ describe('agent direct email tools', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('agent_permission_denied');
+    expect(result.error.message).toBe('Agents are not allowed to prepare emails for confirmation.');
+    expect(result.error.message).not.toContain('approval');
     expect(result.error.details).toEqual({ permission: 'prepareEmail' });
   });
 
@@ -59,7 +61,11 @@ describe('agent direct email tools', () => {
       agentSettings({ sendEmail: false })
     );
     expect(denied.ok).toBe(false);
-    if (!denied.ok) expect(denied.error.code).toBe('agent_permission_denied');
+    if (!denied.ok) {
+      expect(denied.error.code).toBe('agent_permission_denied');
+      expect(denied.error.message).toBe('Agents are not allowed to send emails after confirmation.');
+      expect(denied.error.message).not.toContain('approved emails');
+    }
   });
 
   it('preserves do-not-email and missing-variable protections during prepare', () => {

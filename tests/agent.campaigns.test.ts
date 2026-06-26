@@ -34,6 +34,8 @@ describe('agent campaign send-due tools', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('agent_permission_denied');
+    expect(result.error.message).toBe('Agents are not allowed to prepare emails for confirmation.');
+    expect(result.error.message).not.toContain('approval');
     expect(result.error.details).toEqual({ permission: 'prepareEmail' });
   });
 
@@ -114,7 +116,11 @@ describe('agent campaign send-due tools', () => {
     expect(wrong.ok).toBe(false);
     if (!wrong.ok) expect(wrong.error.code).toBe('approval_required');
     expect(denied.ok).toBe(false);
-    if (!denied.ok) expect(denied.error.code).toBe('agent_permission_denied');
+    if (!denied.ok) {
+      expect(denied.error.code).toBe('agent_permission_denied');
+      expect(denied.error.message).toBe('Agents are not allowed to send emails after confirmation.');
+      expect(denied.error.message).not.toContain('approved emails');
+    }
   });
 
   it('fails closed when due campaign IDs change after prepare', async () => {
