@@ -282,6 +282,8 @@ describe('operator visibility contract', () => {
 
     expect(history).toContain('replyHref');
     expect(history).toContain('Reply');
+    expect(history).toContain('without opening a new email');
+    expect(history).not.toContain('compose workflow');
     expect(history).not.toContain('No reply yet');
     expect(history).not.toContain('Acknowledged');
     expect(history).not.toContain('<span class="pill good">Reviewed</span>');

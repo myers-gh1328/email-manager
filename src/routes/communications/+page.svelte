@@ -44,7 +44,7 @@
     <div class="section-heading compact">
       <div>
         <h3>Every recorded email</h3>
-        <p class="help-text">Search sent, failed, and replied-to emails without loading the compose workflow.</p>
+        <p class="help-text">Search sent, failed, and replied-to emails without opening a new email.</p>
       </div>
     </div>
     <form class="inline-filters" method="GET" action="/communications">
