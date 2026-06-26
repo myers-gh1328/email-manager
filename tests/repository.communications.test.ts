@@ -236,6 +236,57 @@ describe('repository communications', () => {
     });
   });
 
+  test('filters communication history to emails needing a reply', () => {
+    const repo = createTestRepository();
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const jo = repo.createContact({ firstName: 'Jo', lastName: 'Rivera', email: 'jo@example.com' });
+    const needsReply = repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Needs answer',
+      body: 'Please reply.',
+      status: 'accepted'
+    });
+    const handledReply = repo.recordCommunication({
+      contactId: jo.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Already handled',
+      body: 'Thanks.',
+      status: 'accepted'
+    });
+    repo.recordCommunicationReply({
+      communicationId: needsReply.id,
+      providerKey: 'inbox:needs-reply',
+      fromEmail: 'maya@example.com',
+      textBody: 'Question for you.',
+      receivedAt: '2026-06-22T12:00:00.000Z'
+    });
+    const reply = repo.recordCommunicationReply({
+      communicationId: handledReply.id,
+      providerKey: 'inbox:handled-reply',
+      fromEmail: 'jo@example.com',
+      textBody: 'All good.',
+      receivedAt: '2026-06-22T12:01:00.000Z'
+    });
+    repo.markCommunicationReplyReviewed(reply.id);
+
+    const page = repo.listCommunicationsPage({ replyStatus: 'needs_reply' });
+
+    expect(page.replyStatus).toBe('needs_reply');
+    expect(page.total).toBe(1);
+    expect(page.items).toMatchObject([
+      {
+        id: needsReply.id,
+        contactName: 'Maya Patel',
+        subject: 'Needs answer',
+        replyCount: 1,
+        unreviewedReplyCount: 1
+      }
+    ]);
+  });
+
   test('filters communication history by scheduled email source', () => {
     const repo = createTestRepository();
     const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

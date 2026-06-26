@@ -369,6 +369,7 @@ export interface CommunicationHistoryPageInput {
   search?: string;
   contactId?: string;
   sourceId?: string;
+  replyStatus?: string;
 }
 
 export interface CommunicationHistoryPage {
@@ -379,6 +380,7 @@ export interface CommunicationHistoryPage {
   search: string;
   contactId: string;
   sourceId: string;
+  replyStatus: string;
 }
 
 export interface EmailTestAuditInput {

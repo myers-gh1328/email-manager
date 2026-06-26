@@ -410,10 +410,15 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('replyHref');
     expect(history).toContain('data.selectedSourceId');
     expect(history).toContain('params.set(\'sourceId\', data.selectedSourceId)');
+    expect(history).toContain('data.selectedReplyStatus');
+    expect(history).toContain("params.set('replyStatus', data.selectedReplyStatus)");
     expect(history).toContain('name="sourceId"');
     expect(history).toContain('Active filters');
     expect(history).toContain('Filtered to selected contact');
     expect(history).toContain('Filtered to selected scheduled email');
+    expect(history).toContain('Filtered to emails needing replies');
+    expect(history).toContain('aria-label="Filter email history"');
+    expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('Clear filters');
     expect(history).toContain('href={`/communications/${communication.id}`}');
     expect(history).not.toContain('<div class="reply-list">');
@@ -433,6 +438,7 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('?/markReplyHandled');
     expect(historyDetailServer).toContain('markReplyHandled');
     expect(historyServer).toContain('markReplyHandled');
+    expect(historyServer).toContain("replyStatus: url.searchParams.get('replyStatus') || undefined");
     expect(historyDetail).not.toContain('Reply reviewed');
     expect(historyDetail).not.toContain('Mark reviewed');
     expect(historyDetail).not.toContain('mark replies reviewed');
@@ -458,6 +464,7 @@ describe('operator visibility contract', () => {
     expect(newEmailServer).toContain("throw redirect(303, `/communications?sourceId=${encodeURIComponent(sourceId)}`)");
     expect(pageData).toContain('prefillSubject');
     expect(pageData).toContain('prefillBody');
+    expect(pageData).toContain('selectedReplyStatus');
     expect(newEmail).toContain('data.prefillSubject');
     expect(newEmail).toContain('data.prefillBody');
     expect(newEmail).not.toContain('<section class="band two-column">');
