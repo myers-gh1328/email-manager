@@ -47,7 +47,8 @@ describe('navigation visibility', () => {
 
     expect(newEmailPage).toContain('<title>New Email · Training Communications Studio</title>');
     expect(newEmailPage).toContain('<p class="eyebrow">New Email</p>');
-    expect(newEmailPage).toContain('Compose one-off email');
+    expect(newEmailPage).toContain('<h2>Write a new email</h2>');
+    expect(newEmailPage).not.toContain('one-off');
 
     expect(testSendsPage).toContain('<title>Test Sends · Training Communications Studio</title>');
     expect(testSendsPage).not.toContain('Test audit');

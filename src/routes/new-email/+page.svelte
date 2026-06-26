@@ -53,7 +53,7 @@
     <div class="section-heading compact">
       <div>
         <p class="eyebrow">New Email</p>
-        <h2>Compose one-off email</h2>
+        <h2>Write a new email</h2>
       </div>
       <a class="button-link" href={newEmailReturnTo || '/communications'}>Back to History</a>
     </div>
