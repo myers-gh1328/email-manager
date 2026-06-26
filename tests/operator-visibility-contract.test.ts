@@ -169,7 +169,9 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('Ready to send');
     expect(scheduledEmailDetail).toContain('<h3>Edit schedule</h3>');
+    expect(scheduledEmailDetail).toContain('<h3>Template snapshot</h3>');
     expect(scheduledEmailDetail).not.toContain('<h3>Lifecycle</h3>');
+    expect(scheduledEmailDetail).not.toContain('<summary>Template snapshot</summary>');
     expect(scheduledEmailDetail).not.toContain('preview-backed scheduling flow');
     expect(scheduledEmailDetail).toContain('Draft emails need a student preview before they can be marked ready.');
     expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");

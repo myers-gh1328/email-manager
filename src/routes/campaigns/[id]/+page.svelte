@@ -85,12 +85,10 @@
         <button class="danger" type="submit" formaction="?/deleteCampaign" onclick={confirmDelete}>Delete draft</button>
       </div>
     </form>
-    <details class="action-panel">
-      <summary>Template snapshot</summary>
-      <section class="panel-form">
-        <p><strong>{data.template.subject}</strong></p>
-        <pre>{data.template.body}</pre>
-      </section>
-    </details>
+    <section class="panel-form">
+      <h3>Template snapshot</h3>
+      <p><strong>{data.template.subject}</strong></p>
+      <pre>{data.template.body}</pre>
+    </section>
   </div>
 </section>
