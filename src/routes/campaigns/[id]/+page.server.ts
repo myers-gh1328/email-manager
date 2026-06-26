@@ -13,11 +13,11 @@ export const actions = {
   updateCampaign: async ({ params, request }) => {
     const form = await request.formData();
     const current = repo.getCampaign(params.id);
-    const approved = form.get('approved') === 'on';
-    if (approved && !current.approved) {
+    const readyToSend = form.get('scheduleMode') === 'ready';
+    if (readyToSend && !current.approved) {
       return fail(400, { error: true, message: 'Preview this scheduled email before marking it ready to send.' });
     }
-    if (approved) {
+    if (readyToSend) {
       const previews = buildCampaignEmailPreviews(repo, current.classSessionId, current.templateId, getSettings().instructorName);
       if (hasMissingVariables(previews)) {
         return fail(400, { error: true, message: 'Resolve missing template variables before marking this scheduled email ready to send.' });
@@ -26,9 +26,9 @@ export const actions = {
     repo.updateCampaign(params.id, {
       name: required(form, 'name'),
       scheduledFor: required(form, 'scheduledFor'),
-      approved
+      approved: readyToSend
     });
-    if (approved) repo.ensurePendingDeliveries(params.id);
+    if (readyToSend) repo.ensurePendingDeliveries(params.id);
     return { message: 'Scheduled email updated.' };
   },
   deleteCampaign: async ({ params }) => {

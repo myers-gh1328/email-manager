@@ -87,8 +87,9 @@
       <label>Name<input name="name" value={data.campaign.name} required /></label>
       <label>Send at<input name="scheduledFor" type="datetime-local" value={data.scheduledForInput} required /></label>
       {#if data.campaign.approved}
-        <label class="check"><input name="approved" type="checkbox" checked /> Ready to send</label>
+        <label class="check"><input name="scheduleMode" type="checkbox" value="ready" checked /> Ready to send</label>
       {:else}
+        <input name="scheduleMode" type="hidden" value="draft" />
         <p class="body-copy">Draft emails need a student preview before they can be marked ready.</p>
       {/if}
       <div class="button-row">

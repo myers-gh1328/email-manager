@@ -200,6 +200,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('Ready to send');
+    expect(scheduledEmailDetail).not.toContain('name="approved"');
     expect(scheduledEmailDetail).toContain('<h3>Edit schedule</h3>');
     expect(scheduledEmailDetail).toContain('<h3>Template snapshot</h3>');
     expect(scheduledEmailDetail).not.toContain('<h3>Lifecycle</h3>');
@@ -215,6 +216,8 @@ describe('operator visibility contract', () => {
     expect(pageData).toContain('campaignsPage = repo.listCampaignsPage');
     expect(scheduledEmailDetailServer).not.toContain('before approving');
     expect(scheduledEmailDetailServer).not.toContain('approving this campaign');
+    expect(scheduledEmailDetailServer).not.toContain("form.get('approved') === 'on'");
+    expect(scheduledEmailDetailServer).toContain("form.get('scheduleMode') === 'ready'");
     expect(scheduledEmailDetailServer).not.toContain('Campaign updated.');
     expect(scheduledEmailDetailServer).toContain('Scheduled email updated.');
     expect(scheduledEmailsServer).not.toContain('Campaign schedule created.');
