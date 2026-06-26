@@ -147,7 +147,14 @@ export function getNextReadyScheduledEmail(db: DatabaseSync, nowIso: string) {
   return row ? mapCampaign(row) : undefined;
 }
 
-export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string) {
+export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string): ReturnType<typeof mapCampaign>[];
+export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string, input: Omit<CampaignPageInput, 'status' | 'nowIso'>): CampaignPage;
+export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: string, input?: Omit<CampaignPageInput, 'status' | 'nowIso'>) {
+  if (input) return listCampaignsForClassSessionPage(db, classSessionId, input);
+  return listCampaignsForClassSessionRows(db, classSessionId);
+}
+
+function listCampaignsForClassSessionRows(db: DatabaseSync, classSessionId: string) {
   return db
     .prepare(
       `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
@@ -170,6 +177,61 @@ export function listCampaignsForClassSession(db: DatabaseSync, classSessionId: s
         recipientCount: counts.pending + counts.sent + counts.failed
       };
     });
+}
+
+function listCampaignsForClassSessionPage(db: DatabaseSync, classSessionId: string, input: Omit<CampaignPageInput, 'status' | 'nowIso'>): CampaignPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = ['c.class_session_id = ?'];
+  const params: Array<string | number> = [classSessionId];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(c.name) like ? or lower(t.name) like ?)');
+    params.push(pattern, pattern);
+  }
+
+  const fromSql = `
+    from campaigns c
+    join templates t on t.id = c.template_id
+    join class_sessions cs on cs.id = c.class_session_id
+    join course_types ct on ct.id = cs.course_type_id
+    left join (
+      select campaign_id,
+        count(*) as recipient_count,
+        sum(case when status = 'pending' then 1 else 0 end) as pending_count,
+        sum(case when status = 'sent' then 1 else 0 end) as sent_count,
+        sum(case when status in ('failed', 'retry_scheduled', 'needs_attention') then 1 else 0 end) as failed_count
+      from campaign_deliveries
+      group by campaign_id
+    ) dc on dc.campaign_id = c.id
+  `;
+  const whereSql = `where ${where.join(' and ')}`;
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time,
+         coalesce(dc.recipient_count, 0) as recipient_count,
+         coalesce(dc.pending_count, 0) as pending_count,
+         coalesce(dc.sent_count, 0) as sent_count,
+         coalesce(dc.failed_count, 0) as failed_count
+       ${fromSql}
+       ${whereSql}
+       order by c.scheduled_for asc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapCampaign(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search,
+    status: ''
+  };
 }
 
 export function getCampaign(db: DatabaseSync, id: string) {

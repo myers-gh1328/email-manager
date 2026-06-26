@@ -113,7 +113,9 @@ import type {
   AgentApprovalInput,
   AgentAuditEventInput,
   CampaignInput,
+  CampaignPage,
   CampaignPageInput,
+  CampaignRecord,
   ChecklistItemInput,
   ClassSessionInput,
   ClassSessionPageInput,
@@ -418,8 +420,10 @@ export class AppRepository {
     return getNextReadyScheduledEmail(this.db, nowIso);
   }
 
-  listCampaignsForClassSession(classSessionId: string) {
-    return listCampaignsForClassSession(this.db, classSessionId);
+  listCampaignsForClassSession(classSessionId: string): CampaignRecord[];
+  listCampaignsForClassSession(classSessionId: string, input: Omit<CampaignPageInput, 'status' | 'nowIso'>): CampaignPage;
+  listCampaignsForClassSession(classSessionId: string, input?: Omit<CampaignPageInput, 'status' | 'nowIso'>) {
+    return input ? listCampaignsForClassSession(this.db, classSessionId, input) : listCampaignsForClassSession(this.db, classSessionId);
   }
 
   getCampaign(id: string) {
