@@ -695,7 +695,8 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('new</span>');
     expect(history).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unhandledReplyCount })');
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
-    expect(historyDetail).toContain('Reply handled');
+    expect(historyDetail).toContain('<span class="pill good">Handled</span>');
+    expect(historyDetail).not.toContain('Reply handled');
     expect(historyDetail).toContain('Mark handled');
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
     expect(historyDetail).toContain('<p class="eyebrow">Email detail</p>');

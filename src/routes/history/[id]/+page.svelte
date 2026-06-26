@@ -93,7 +93,7 @@
             <p>{reply.snippet || reply.textBody}</p>
           </div>
           {#if reply.handledAt}
-            <span class="pill good">Reply handled</span>
+            <span class="pill good">Handled</span>
           {:else}
             <div class="button-row compact">
               <a class="button-link" href={replyHref(reply)}>Reply</a>
