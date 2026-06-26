@@ -185,7 +185,7 @@
     </form>
     <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
       <h3>Add student</h3>
-      <ContactMultiSelect contacts={data.contacts} name="contactId" legend="Student" mode="single" />
+      <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" />
       <button type="submit">Enroll</button>
     </form>
     <details class="action-panel" open={form?.panel === 'email'}>

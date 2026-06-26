@@ -12,21 +12,52 @@
     selectedContactIds = [],
     name = 'contactIds',
     legend = 'Recipients',
-    mode = 'multi'
+    mode = 'multi',
+    searchHref = '/contacts/search'
   }: {
     contacts: ContactOption[];
     selectedContactIds?: string[];
     name?: string;
     legend?: string;
     mode?: 'multi' | 'single';
+    searchHref?: string;
   } = $props();
 
   let search = $state('');
-  let filteredContacts = $derived(
-    contacts.filter((contact) =>
-      `${contact.firstName} ${contact.lastName} ${contact.email}`.toLowerCase().includes(search.trim().toLowerCase())
-    )
-  );
+  let remoteContacts = $state<ContactOption[]>([]);
+  let loading = $state(false);
+  let searchError = $state('');
+  let filteredContacts = $derived(search.trim() ? remoteContacts : contacts);
+
+  $effect(() => {
+    if (!search.trim()) {
+      remoteContacts = [];
+      searchError = '';
+      loading = false;
+      return;
+    }
+
+    const controller = new AbortController();
+    loading = true;
+    const timeout = window.setTimeout(async () => {
+      searchError = '';
+      try {
+        const response = await fetch(`${searchHref}?q=${encodeURIComponent(search.trim())}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('Contact search failed.');
+        const payload = (await response.json()) as { contacts?: ContactOption[] };
+        remoteContacts = payload.contacts ?? [];
+      } catch (error) {
+        if (!controller.signal.aborted) searchError = error instanceof Error ? error.message : 'Contact search failed.';
+      } finally {
+        if (!controller.signal.aborted) loading = false;
+      }
+    }, 200);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  });
 
   function isSelected(contactId: string) {
     return selectedContactIds.includes(contactId);
@@ -44,6 +75,8 @@
       {/each}
     </div>
   {/if}
+  {#if loading}<p class="help-text">Searching recipients...</p>{/if}
+  {#if searchError}<p class="error">{searchError}</p>{/if}
   {#each filteredContacts as contact}
     <label class="check">
       <input

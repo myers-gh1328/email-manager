@@ -54,4 +54,23 @@ describe('SearchSelect contract', () => {
     expect(picker).toContain("mode = 'multi'");
     expect(picker).toContain("type={mode === 'single' ? 'radio' : 'checkbox'}");
   });
+
+  test('does not load every contact into shared recipient pickers', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
+    const picker = readFileSync('src/lib/ContactMultiSelect.svelte', 'utf8');
+    const contactSearchRoute = readFileSync('src/routes/contacts/search/+server.ts', 'utf8');
+
+    expect(pageData).not.toContain('contacts: repo.listContacts()');
+    expect(classDetailServer).not.toContain('contacts: repo.listContacts()');
+    expect(pageData).toContain('function loadContactOptions');
+    expect(pageData).toContain('repo.listContactsPage({ limit: 25 }).items');
+    expect(pageData).toContain('contactOptions: loadContactOptions()');
+    expect(classDetailServer).toContain("import { loadContactOptions } from '$lib/server/page-data'");
+    expect(classDetailServer).toContain('contactOptions: loadContactOptions()');
+    expect(picker).toContain("searchHref = '/contacts/search'");
+    expect(picker).toContain('fetch(');
+    expect(contactSearchRoute).toContain('repo.listContactsPage');
+    expect(contactSearchRoute).toContain('limit: 25');
+  });
 });

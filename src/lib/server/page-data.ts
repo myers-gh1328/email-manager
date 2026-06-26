@@ -109,6 +109,18 @@ export function loadContactsData(input: { contactId?: string; search?: string; p
   };
 }
 
+export function loadContactOptions(selectedContactIds: string[] = []) {
+  const options = repo.listContactsPage({ limit: 25 }).items;
+  const byId = new Map(options.map((contact) => [contact.id, contact]));
+  for (const contactId of selectedContactIds.filter(Boolean)) {
+    if (!byId.has(contactId)) {
+      const contact = repo.getContact(contactId);
+      byId.set(contact.id, contact);
+    }
+  }
+  return [...byId.values()];
+}
+
 export function loadClassesData(input: { search?: string; page?: number } = {}) {
   const limit = 25;
   const page = Math.max(input.page ?? 1, 1);
@@ -118,7 +130,7 @@ export function loadClassesData(input: { search?: string; page?: number } = {}) 
     offset: (page - 1) * limit
   });
   return {
-    contacts: repo.listContacts(),
+    contactOptions: loadContactOptions(),
     courseTypes: repo.listCourseTypes(),
     locations: repo.listLocations(),
     templates: repo.listTemplates(),
@@ -151,7 +163,7 @@ export function loadCampaignsData(input: { search?: string; page?: number } = {}
     offset: (page - 1) * limit
   });
   return {
-    contacts: repo.listContacts(),
+    contactOptions: loadContactOptions(),
     classSessions: repo.listClassSessions(),
     locations: repo.listLocations(),
     templates: repo.listTemplates(),
@@ -171,7 +183,7 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
     offset: (page - 1) * limit
   });
   return {
-    contacts: repo.listContacts(),
+    contactOptions: loadContactOptions(),
     communications: communicationPage.items,
     communicationPage,
     templates: repo.listTemplates(),
@@ -182,7 +194,7 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
 
 export function loadNewEmailData(input: { contactId?: string; subject?: string; body?: string } = {}) {
   return {
-    contacts: repo.listContacts(),
+    contactOptions: loadContactOptions(input.contactId ? [input.contactId] : []),
     templates: repo.listTemplates(),
     selectedContactId: input.contactId ?? '',
     prefillSubject: input.subject ?? '',
