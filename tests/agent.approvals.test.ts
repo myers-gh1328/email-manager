@@ -20,7 +20,8 @@ describe('agent approval service', () => {
     const prepared = prepareEmailApproval(repo);
 
     expect(prepared.approvalId).toMatch(/^appr_/);
-    expect(prepared.confirmationText).toBe(`APPROVE SEND ${prepared.approvalId}`);
+    expect(prepared.confirmationText).toBe(`CONFIRM SEND ${prepared.approvalId}`);
+    expect(prepared.confirmationText).not.toContain('APPROVE');
     expect(repo.getAgentApproval(prepared.approvalId)).toMatchObject({
       confirmationText: prepared.confirmationText,
       status: 'pending'
@@ -48,7 +49,8 @@ describe('agent approval service', () => {
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
 
-    expect(prepared.confirmationText).toBe(`APPROVE ${prepared.approvalId}`);
+    expect(prepared.confirmationText).toBe(`CONFIRM ${prepared.approvalId}`);
+    expect(prepared.confirmationText).not.toContain('APPROVE');
   });
 
   it('requires exact confirmation text', async () => {

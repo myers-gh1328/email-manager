@@ -201,10 +201,10 @@ describe('agent direct email tools', () => {
       _registeredTools: Record<string, { handler: (input: { approvalId: string; confirmationText: string }) => Promise<{ content: Array<{ text: string }> }> }>;
     };
 
-    const direct = await server._registeredTools.commit_direct_email.handler({ approvalId: 'appr_1', confirmationText: 'APPROVE SEND appr_1' });
+    const direct = await server._registeredTools.commit_direct_email.handler({ approvalId: 'appr_1', confirmationText: 'CONFIRM SEND appr_1' });
     const campaigns = await server._registeredTools.commit_send_due_campaigns.handler({
       approvalId: 'appr_2',
-      confirmationText: 'APPROVE SEND appr_2'
+      confirmationText: 'CONFIRM SEND appr_2'
     });
 
     expect(JSON.parse(direct.content[0].text)).toMatchObject({ ok: true, data: { sent: 1 } });

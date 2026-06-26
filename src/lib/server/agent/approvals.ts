@@ -12,7 +12,7 @@ export interface PrepareAgentApprovalInput {
 }
 
 function confirmationTextFor(risk: AgentRisk, approvalId: string) {
-  return `${risk === 'sends_email' ? 'APPROVE SEND' : 'APPROVE'} ${approvalId}`;
+  return `${risk === 'sends_email' ? 'CONFIRM SEND' : 'CONFIRM'} ${approvalId}`;
 }
 
 function safeFailureJson() {
