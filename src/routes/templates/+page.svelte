@@ -64,6 +64,33 @@
       {#if data.templatesPage.search}<a class="button-link" href="/templates">Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.templates.length} of {data.templatesPage.total} templates.</p>
+    <div class="list">
+      {#each data.templates as template}
+        <article class="row-card tall">
+          <div>
+            <strong>{template.name}</strong>
+            <p class="template-subject">{template.subject}</p>
+            <p class="muted-preview">{template.body}</p>
+          </div>
+          <a class="button-link" href={`/templates?templateId=${template.id}`}>Edit</a>
+        </article>
+      {:else}
+        <p class="empty">No templates yet.</p>
+      {/each}
+    </div>
+    {#if totalTemplatesPages > 1}
+      <nav class="pagination" aria-label="Template pages">
+        <a class="button-link" aria-disabled={currentTemplatesPage === 1} href={templatesPageHref(Math.max(currentTemplatesPage - 1, 1))}>Previous</a>
+        <span>Page {currentTemplatesPage} of {totalTemplatesPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentTemplatesPage >= totalTemplatesPages}
+          href={templatesPageHref(Math.min(currentTemplatesPage + 1, totalTemplatesPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
     <div class="form-stack task-stack">
     {#if data.selectedTemplate}
       {#if drafting}
@@ -156,32 +183,5 @@
       </div>
     {/if}
     </div>
-    <div class="list">
-      {#each data.templates as template}
-        <article class="row-card tall">
-          <div>
-            <strong>{template.name}</strong>
-            <p class="template-subject">{template.subject}</p>
-            <p class="muted-preview">{template.body}</p>
-          </div>
-          <a class="button-link" href={`/templates?templateId=${template.id}`}>Edit</a>
-        </article>
-      {:else}
-        <p class="empty">No templates yet.</p>
-      {/each}
-    </div>
-    {#if totalTemplatesPages > 1}
-      <nav class="pagination" aria-label="Template pages">
-        <a class="button-link" aria-disabled={currentTemplatesPage === 1} href={templatesPageHref(Math.max(currentTemplatesPage - 1, 1))}>Previous</a>
-        <span>Page {currentTemplatesPage} of {totalTemplatesPages}</span>
-        <a
-          class="button-link"
-          aria-disabled={currentTemplatesPage >= totalTemplatesPages}
-          href={templatesPageHref(Math.min(currentTemplatesPage + 1, totalTemplatesPages))}
-        >
-          Next
-        </a>
-      </nav>
-    {/if}
   </div>
 </section>

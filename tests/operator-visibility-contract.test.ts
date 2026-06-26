@@ -358,6 +358,7 @@ describe('operator visibility contract', () => {
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
+    expect(templates.indexOf('<div class="list">')).toBeLessThan(templates.indexOf('<div class="form-stack task-stack">'));
     expect(templatesServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('templatesPage = repo.listTemplatesPage');
     expect(repository).toContain('limit ? offset ?');
