@@ -1,5 +1,5 @@
 	<script lang="ts">
-	  import { formatDateTime } from '$lib/shared/format';
+	  import { formatDateTime, scheduledEmailStatusLabel } from '$lib/shared/format';
 
 	  let { data } = $props();
 	</script>
@@ -69,7 +69,7 @@
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
         </div>
-        <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Scheduled' : 'Draft'}</span>
+        <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
       </a>
     {:else}
       <p class="empty">No class emails scheduled.</p>

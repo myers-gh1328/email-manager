@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import SearchSelect from '$lib/SearchSelect.svelte';
+  import { scheduledEmailStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let classOptions = $derived(data.classSessionOptions);
@@ -55,7 +56,7 @@
             <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
             <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
           </div>
-          <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Scheduled' : 'Draft'}</span>
+          <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
         </article>
       {:else}
         <p class="empty">No class emails scheduled.</p>

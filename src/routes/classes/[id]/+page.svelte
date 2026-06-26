@@ -3,7 +3,7 @@
 	  import BusyOverlay from '$lib/BusyOverlay.svelte';
 	  import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
 	  import SearchSelect from '$lib/SearchSelect.svelte';
-	  import { formatClassSchedule, formatDateTime, purposeLabel, scheduledEmailDeliverySummary, timingLabel } from '$lib/shared/format';
+	  import { formatClassSchedule, formatDateTime, purposeLabel, scheduledEmailDeliverySummary, scheduledEmailStatusLabel, timingLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let importingImage = $state(false);
@@ -100,7 +100,7 @@
                 · {scheduledEmailDeliverySummary(campaign)}
               </p>
             </div>
-            <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Ready to send' : 'Draft'}</span>
+            <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
           </article>
         {:else}
           <p class="empty">No emails are scheduled for this class yet.</p>

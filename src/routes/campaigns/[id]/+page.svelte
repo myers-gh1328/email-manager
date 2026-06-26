@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { deliveryStatusLabel } from '$lib/shared/format';
+  import { deliveryStatusLabel, scheduledEmailStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   const retryableStatuses = ['failed', 'retry_scheduled', 'needs_attention'];
@@ -37,7 +37,7 @@
     <dl class="detail-facts">
       <div>
         <dt>Status</dt>
-        <dd><span class:good={data.campaign.approved} class="pill">{data.campaign.approved ? 'Ready to send' : 'Draft'}</span></dd>
+        <dd><span class:good={data.campaign.approved} class="pill">{scheduledEmailStatusLabel(data.campaign.approved)}</span></dd>
       </div>
       <div>
         <dt>Class</dt>

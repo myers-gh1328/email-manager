@@ -74,6 +74,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('email issue');
     expect(dashboard).toContain('data.recentScheduledEmails');
     expect(dashboard).toContain('href={`/campaigns/${campaign.id}`}');
+    expect(dashboard).toContain('scheduledEmailStatusLabel(campaign.approved)');
+    expect(dashboard).not.toContain("campaign.approved ? 'Scheduled' : 'Draft'");
     expect(pageData).toContain('recentScheduledEmails');
     expect(pageData).toContain('countReadyScheduledEmailsDue');
     expect(pageData).toContain('getNextReadyScheduledEmail');
@@ -219,6 +221,12 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('Ready to send');
+    expect(scheduledEmails).toContain('scheduledEmailStatusLabel(campaign.approved)');
+    expect(scheduledEmailDetail).toContain('scheduledEmailStatusLabel(data.campaign.approved)');
+    expect(classDetail).toContain('scheduledEmailStatusLabel(campaign.approved)');
+    expect(scheduledEmails).not.toContain("campaign.approved ? 'Scheduled' : 'Draft'");
+    expect(scheduledEmailDetail).not.toContain("data.campaign.approved ? 'Ready to send' : 'Draft'");
+    expect(classDetail).not.toContain("campaign.approved ? 'Ready to send' : 'Draft'");
     expect(scheduledEmailDetail).not.toContain('name="approved"');
     expect(scheduledEmailDetail).toContain('<h3>Edit schedule</h3>');
     expect(scheduledEmailDetail).toContain('<h3>Template snapshot</h3>');

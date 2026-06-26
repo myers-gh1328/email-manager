@@ -46,6 +46,10 @@ export function messageStatusLabel(status: string) {
   return labels[status] ?? status;
 }
 
+export function scheduledEmailStatusLabel(readyToSend: boolean) {
+  return readyToSend ? 'Ready to send' : 'Draft';
+}
+
 export function scheduledEmailDeliverySummary(counts: {
   recipientCount: number;
   pendingCount?: number;

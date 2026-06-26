@@ -4,6 +4,7 @@ import {
   formatClassSchedule,
   messageStatusLabel,
   scheduledEmailDeliverySummary,
+  scheduledEmailStatusLabel,
   purposeLabel,
   timingLabel
 } from '../src/lib/shared/format';
@@ -26,6 +27,11 @@ describe('shared formatting helpers', () => {
     expect(deliveryStatusLabel('not planned')).toBe('Not prepared');
     expect(messageStatusLabel('accepted')).toBe('Accepted by mail server');
     expect(messageStatusLabel('sent')).toBe('Sent');
+  });
+
+  test('formats scheduled email readiness without approval wording', () => {
+    expect(scheduledEmailStatusLabel(true)).toBe('Ready to send');
+    expect(scheduledEmailStatusLabel(false)).toBe('Draft');
   });
 
   test('summarizes scheduled email delivery counts in operator language', () => {
