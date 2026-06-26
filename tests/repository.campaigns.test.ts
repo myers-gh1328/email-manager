@@ -332,6 +332,44 @@ describe('repository campaigns and deliveries', () => {
     ]);
   });
 
+  test('backfills old failed deliveries with attention wording', () => {
+    const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-')), 'app.sqlite');
+    const repo = new AppRepository(dbPath);
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Retry cleanup',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'failed',
+         attempt_count = 0,
+         failure_kind = '',
+         failure_summary = ''
+       where id = ?`
+    ).run(delivery.id);
+
+    const migratedRepo = new AppRepository(dbPath);
+
+    expect(migratedRepo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'needs_attention',
+        failureKind: 'unknown',
+        failureSummary: 'Previous failed delivery needs attention before retrying.'
+      }
+    ]);
+  });
+
   test('returns existing pending deliveries when a campaign was planned earlier', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });

@@ -405,7 +405,7 @@ function backfillCampaignRetryState(db: DatabaseSync) {
     `update campaign_deliveries
      set attempt_count = case when attempt_count = 0 then 1 else attempt_count end,
        failure_kind = case when failure_kind = '' then 'unknown' else failure_kind end,
-       failure_summary = case when failure_summary = '' then 'Previous failed delivery requires review.' else failure_summary end,
+       failure_summary = case when failure_summary = '' then 'Previous failed delivery needs attention before retrying.' else failure_summary end,
        status = 'needs_attention',
        next_attempt_at = null,
        claim_expires_at = null

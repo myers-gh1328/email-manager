@@ -259,7 +259,10 @@ describe('direct email workflow', () => {
     const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
     db.prepare("update send_operations set expires_at = '2000-01-01T00:00:00.000Z' where status = 'sending'").run();
 
-    await expect(sendDirectEmail(repo, send, input)).rejects.toThrow('interrupted before it finished');
+    await expect(sendDirectEmail(repo, send, input)).rejects.toThrow(
+      'This send was interrupted before it finished. It needs attention before sending again.'
+    );
+    await expect(sendDirectEmail(repo, send, input)).rejects.not.toThrow('Review');
     expect(send).not.toHaveBeenCalled();
   });
 
