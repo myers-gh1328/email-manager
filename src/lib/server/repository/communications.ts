@@ -195,6 +195,8 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
   const contactId = input.contactId?.trim() ?? '';
   const sourceId = input.sourceId?.trim() ?? '';
   const replyStatus = input.replyStatus === 'needs_reply' ? input.replyStatus : '';
+  const requestedStatus = input.status?.trim() ?? '';
+  const status = ['sent', 'failed'].includes(requestedStatus) ? requestedStatus : '';
   const where: string[] = [];
   const params: Array<string | number> = [];
 
@@ -208,6 +210,12 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
   }
   if (replyStatus === 'needs_reply') {
     where.push("exists (select 1 from communication_replies cr where cr.communication_id = cm.id and cr.reviewed_at = '')");
+  }
+  if (status === 'sent') {
+    where.push("cm.status in ('accepted', 'sent')");
+  }
+  if (status === 'failed') {
+    where.push("cm.status = 'failed'");
   }
   if (search) {
     const pattern = `%${search.toLowerCase()}%`;
@@ -267,7 +275,8 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
     search,
     contactId,
     sourceId,
-    replyStatus
+    replyStatus,
+    status
   };
 }
 

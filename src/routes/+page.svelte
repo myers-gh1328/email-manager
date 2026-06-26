@@ -52,7 +52,7 @@
           </a>
         {/each}
         {#if data.failedTodayCount}
-          <a class="row-card" href="/communications?search=failed">
+          <a class="row-card" href="/communications?status=failed">
             <strong>Fix failed emails</strong>
             <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'} need attention before retrying.</p>
           </a>

@@ -372,6 +372,7 @@ export interface CommunicationHistoryPageInput {
   contactId?: string;
   sourceId?: string;
   replyStatus?: string;
+  status?: string;
 }
 
 export interface CommunicationHistoryPage {
@@ -383,6 +384,7 @@ export interface CommunicationHistoryPage {
   contactId: string;
   sourceId: string;
   replyStatus: string;
+  status: string;
 }
 
 export interface EmailTestAuditInput {

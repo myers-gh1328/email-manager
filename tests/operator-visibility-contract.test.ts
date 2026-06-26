@@ -82,6 +82,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('<h2>Recent scheduled emails</h2>');
     expect(dashboard).not.toContain('<h2>Recent schedules</h2>');
     expect(dashboard).toContain('Fix failed emails');
+    expect(dashboard).toContain('href="/communications?status=failed"');
+    expect(dashboard).not.toContain('href="/communications?search=failed"');
     expect(dashboard).toContain('need attention before retrying');
     expect(dashboard).not.toContain('Review failed emails');
     expect(dashboard).not.toContain('need review before retrying');
@@ -591,6 +593,10 @@ describe('operator visibility contract', () => {
     expect(history).toContain('params.set(\'sourceId\', data.selectedSourceId)');
     expect(history).toContain('data.selectedReplyStatus');
     expect(history).toContain("params.set('replyStatus', data.selectedReplyStatus)");
+    expect(history).toContain('data.selectedStatus');
+    expect(history).toContain("params.set('status', data.selectedStatus)");
+    expect(history).toContain("value: 'sent', label: 'Sent'");
+    expect(history).toContain("value: 'failed', label: 'Failed'");
     expect(history).toContain('name="sourceId"');
     expect(history).toContain('Active filters');
     expect(history).toContain('Filtered to selected contact');
@@ -602,6 +608,7 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('href="/new-email">New Email');
     expect(history).toContain('aria-label="Filter email history"');
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
+    expect(history).toContain('aria-label="Filter email delivery status"');
     expect(history).toContain('Clear filters');
     expect(history).toContain('historyReturnTo');
     expect(history).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
@@ -647,6 +654,7 @@ describe('operator visibility contract', () => {
     expect(historyServer).toContain('localReturnTo');
     expect(historyServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyServer).toContain("replyStatus: url.searchParams.get('replyStatus') || undefined");
+    expect(historyServer).toContain("status: url.searchParams.get('status') || undefined");
     expect(historyDetail).not.toContain('Reply reviewed');
     expect(historyDetail).not.toContain('Mark reviewed');
     expect(historyDetail).not.toContain('mark replies reviewed');

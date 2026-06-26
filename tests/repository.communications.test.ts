@@ -365,6 +365,48 @@ describe('repository communications', () => {
     ]);
   });
 
+  test('filters communication history by delivery status', () => {
+    const repo = createTestRepository();
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const lee = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'direct',
+      originalRecipient: 'maya@example.com',
+      effectiveRecipient: 'maya@example.com',
+      subject: 'Accepted update',
+      body: 'Accepted.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: lee.id,
+      channel: 'email',
+      source: 'direct',
+      originalRecipient: 'lee@example.com',
+      effectiveRecipient: 'lee@example.com',
+      subject: 'Failed update',
+      body: 'Failed.',
+      status: 'failed',
+      errorMessage: 'SMTP rejected'
+    });
+
+    const failed = repo.listCommunicationsPage({ status: 'failed' });
+    const sent = repo.listCommunicationsPage({ status: 'sent' });
+
+    expect(failed).toMatchObject({
+      status: 'failed',
+      total: 1,
+      items: [{ subject: 'Failed update', status: 'failed' }]
+    });
+    expect(sent).toMatchObject({
+      status: 'sent',
+      total: 1,
+      items: [{ subject: 'Accepted update', status: 'accepted' }]
+    });
+  });
+
   test('records redirected test email audits separately from student history', () => {
     const repo = createTestRepository();
 
