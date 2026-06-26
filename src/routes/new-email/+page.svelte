@@ -55,7 +55,7 @@
         <p class="eyebrow">New Email</p>
         <h2>Write a new email</h2>
       </div>
-      <a class="button-link" href={newEmailReturnTo || '/communications'}>Back to History</a>
+      <a class="button-link" href={newEmailReturnTo || '/history'}>Back to History</a>
     </div>
 
     {#if form?.previews}

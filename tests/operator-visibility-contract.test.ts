@@ -86,8 +86,8 @@ describe('operator visibility contract', () => {
     expect(dashboard).not.toContain('<h2>Recent schedules</h2>');
     expect(dashboard).toContain('Failed emails');
     expect(dashboard).not.toContain('Failed email history');
-    expect(dashboard).toContain('href="/communications?status=failed"');
-    expect(dashboard).not.toContain('href="/communications?search=failed"');
+    expect(dashboard).toContain('href="/history?status=failed"');
+    expect(dashboard).not.toContain('href="/history?search=failed"');
     expect(dashboard).not.toContain('Fix failed emails');
     expect(dashboard).not.toContain('need attention before retrying');
     expect(dashboard).not.toContain('need review before retrying');
@@ -131,11 +131,11 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('contactDetailReturnTo');
     expect(contacts).toContain('href={`/classes/${item.classSessionId}?returnTo=${encodeURIComponent(contactDetailReturnTo)}`}');
     expect(contacts).toContain('View all in History');
-    expect(contacts).toContain('/communications?contactId=');
+    expect(contacts).toContain('/history?contactId=');
     expect(contacts).toContain('href={`${contactHistoryHref}&returnTo=${encodeURIComponent(contactDetailReturnTo)}`}');
     expect(contacts).toContain('contactHistoryHref');
     expect(contacts).toContain('returnTo=${encodeURIComponent(contactHistoryHref)}');
-    expect(contacts).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}');
+    expect(contacts).toContain('href={`/history/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}');
     expect(contacts).toContain('data.actionMessage');
     expect(contacts).toContain('{#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}');
     expect(contacts).toContain('{#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}');
@@ -398,7 +398,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('href={`/templates?templateId=${data.campaign.templateId}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('View in History');
-    expect(scheduledEmailDetail).toContain('href={`/communications?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
+    expect(scheduledEmailDetail).toContain('href={`/history?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmails).toContain('scheduledEmailReturnTo');
     expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
     expect(scheduledEmails).toContain('href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
@@ -540,7 +540,7 @@ describe('operator visibility contract', () => {
 
   test('formats technical delivery statuses before showing them to instructors', () => {
     const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
-    const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const history = readFileSync('src/routes/history/+page.svelte', 'utf8');
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
     const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
@@ -622,11 +622,11 @@ describe('operator visibility contract', () => {
   });
 
   test('lets instructors reply to imported email replies from History', () => {
-    const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const history = readFileSync('src/routes/history/+page.svelte', 'utf8');
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
-    const historyDetail = readFileSync('src/routes/communications/[id]/+page.svelte', 'utf8');
-    const historyServer = readFileSync('src/routes/communications/+page.server.ts', 'utf8');
-    const historyDetailServer = readFileSync('src/routes/communications/[id]/+page.server.ts', 'utf8');
+    const historyDetail = readFileSync('src/routes/history/[id]/+page.svelte', 'utf8');
+    const historyServer = readFileSync('src/routes/history/+page.server.ts', 'utf8');
+    const historyDetailServer = readFileSync('src/routes/history/[id]/+page.server.ts', 'utf8');
     const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const newEmailServer = readFileSync('src/routes/new-email/+page.server.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
@@ -676,7 +676,7 @@ describe('operator visibility contract', () => {
     expect(history).toContain('{#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}');
     expect(history).toContain('href={historyClearHref}');
     expect(history).toContain('returnTo=${encodeURIComponent(historyReturnTo)}');
-    expect(history).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}');
+    expect(history).toContain('href={`/history/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}');
     expect(history).not.toContain('<div class="reply-list">');
     expect(history).not.toContain('{reply.snippet || reply.textBody}');
     expect(history).toContain('Reply');
@@ -700,7 +700,7 @@ describe('operator visibility contract', () => {
     expect(historyDetail).not.toContain('History detail');
     expect(historyDetail).toContain("communication.className || 'View class'");
     expect(historyDetail).not.toContain("communication.className || 'Class detail'");
-    expect(historyDetail).toContain('href={data.returnTo || \'/communications\'}');
+    expect(historyDetail).toContain('href={data.returnTo || \'/history\'}');
     expect(historyDetail).toContain('data.actionMessage');
     expect(historyDetail).toContain('communication.classSessionId');
     expect(historyDetail).toContain('detailReturnTo');
@@ -758,12 +758,12 @@ describe('operator visibility contract', () => {
     expect(newEmail).toContain("params.set('subject', subject)");
     expect(newEmail).toContain("params.set('body', body)");
     expect(newEmail).toContain("params.set('returnTo', newEmailReturnTo)");
-    expect(newEmail).toContain('href={newEmailReturnTo || \'/communications\'}');
+    expect(newEmail).toContain('href={newEmailReturnTo || \'/history\'}');
     expect(newEmail).toContain('name="returnTo"');
     expect(newEmailServer).toContain('directEmailOperationId');
     expect(newEmailServer).toContain("params.set('sourceId', sourceId)");
     expect(newEmailServer).toContain("params.set('returnTo', returnTo)");
-    expect(newEmailServer).toContain('throw redirect(303, `/communications?${params.toString()}`)');
+    expect(newEmailServer).toContain('throw redirect(303, `/history?${params.toString()}`)');
     expect(pageData).toContain('prefillSubject');
     expect(pageData).toContain('prefillBody');
     expect(pageData).toContain('selectedReplyStatus');

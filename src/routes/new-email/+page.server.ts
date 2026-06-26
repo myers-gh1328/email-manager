@@ -61,7 +61,7 @@ export const actions = {
       const params = new URLSearchParams();
       params.set('sourceId', sourceId);
       if (returnTo) params.set('returnTo', returnTo);
-      throw redirect(303, `/communications?${params.toString()}`);
+      throw redirect(303, `/history?${params.toString()}`);
     } catch (error) {
       if (isRedirect(error)) throw error;
       return fail(400, {

@@ -13,7 +13,7 @@
   let contactDetailReturnTo = $derived(
     data.contactDetail ? `/contacts?contactId=${data.contactDetail.contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}` : '/contacts'
   );
-  let contactHistoryHref = $derived(data.contactDetail ? `/communications?contactId=${data.contactDetail.contact.id}` : '/communications');
+  let contactHistoryHref = $derived(data.contactDetail ? `/history?contactId=${data.contactDetail.contact.id}` : '/history');
 
   function showImageImportBusy() {
     importingImage = true;
@@ -221,7 +221,7 @@
             {#each data.contactDetail.communications as communication}
               <article class="row-card tall">
                 <div>
-                  <a href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}><strong>{communication.subject}</strong></a>
+                  <a href={`/history/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}><strong>{communication.subject}</strong></a>
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>

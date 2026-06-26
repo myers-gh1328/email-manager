@@ -25,7 +25,7 @@
   ];
   let historyReturnTo = $derived(historyPageHref(currentHistoryPage));
   let newEmailHref = $derived(composeNewEmailHref());
-  let historyClearHref = $derived(data.returnTo ? `/communications?returnTo=${encodeURIComponent(data.returnTo)}` : '/communications');
+  let historyClearHref = $derived(data.returnTo ? `/history?returnTo=${encodeURIComponent(data.returnTo)}` : '/history');
 
   function historyPageHref(page: number) {
     const params = new URLSearchParams();
@@ -38,7 +38,7 @@
     if (data.selectedType) params.set('type', data.selectedType);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();
-    return query ? `/communications?${query}` : '/communications';
+    return query ? `/history?${query}` : '/history';
   }
 
   function replyFilterHref(replyStatus: string) {
@@ -51,7 +51,7 @@
     if (data.selectedType) params.set('type', data.selectedType);
     if (replyStatus) params.set('replyStatus', replyStatus);
     const query = params.toString();
-    return query ? `/communications?${query}` : '/communications';
+    return query ? `/history?${query}` : '/history';
   }
 
   function statusFilterHref(status: string) {
@@ -64,7 +64,7 @@
     if (data.selectedType) params.set('type', data.selectedType);
     if (status) params.set('status', status);
     const query = params.toString();
-    return query ? `/communications?${query}` : '/communications';
+    return query ? `/history?${query}` : '/history';
   }
 
   function typeFilterHref(type: string) {
@@ -77,7 +77,7 @@
     if (data.selectedStatus) params.set('status', data.selectedStatus);
     if (type) params.set('type', type);
     const query = params.toString();
-    return query ? `/communications?${query}` : '/communications';
+    return query ? `/history?${query}` : '/history';
   }
 
   function composeNewEmailHref() {
@@ -108,7 +108,7 @@
         <p class="help-text">Search sent, failed, and replied-to emails.</p>
       </div>
     </div>
-    <form class="inline-filters" method="GET" action="/communications">
+    <form class="inline-filters" method="GET" action="/history">
       {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
       {#if data.selectedContactId}<input type="hidden" name="contactId" value={data.selectedContactId} />{/if}
       {#if data.selectedSourceId}<input type="hidden" name="sourceId" value={data.selectedSourceId} />{/if}
@@ -165,7 +165,7 @@
       {#each data.communications as communication}
         <article class="row-card tall">
           <div>
-            <a href={`/communications/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}><strong>{communication.subject}</strong></a>
+            <a href={`/history/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}><strong>{communication.subject}</strong></a>
             <p>
               {communication.contactName} · {communication.effectiveRecipient || communication.contactEmail}
               · {formatDateTime(communication.sentAt || communication.createdAt)}

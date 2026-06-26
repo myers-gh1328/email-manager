@@ -13,12 +13,13 @@ describe('navigation visibility', () => {
     expect(labels).not.toContain('Campaigns');
     expect(labels).not.toContain('Communications');
     expect(labels).not.toContain('Test audit');
+    expect(items.find((item) => item.label === 'History')?.href).toBe('/history');
   });
 
   test('uses plain operator language on email workflow pages', () => {
     const layout = readFileSync('src/routes/+layout.svelte', 'utf8');
     const scheduledEmailsPage = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
-    const historyPage = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const historyPage = readFileSync('src/routes/history/+page.svelte', 'utf8');
     const newEmailPage = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const testSendsPage = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
 

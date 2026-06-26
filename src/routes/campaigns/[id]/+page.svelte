@@ -45,7 +45,7 @@
         <h2>{data.campaign.name}</h2>
       </div>
       <div class="button-row compact">
-        <a class="button-link" href={`/communications?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>View in History</a>
+        <a class="button-link" href={`/history?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>View in History</a>
         <a class="button-link" href={data.returnTo || '/campaigns'}>Back</a>
       </div>
     </div>

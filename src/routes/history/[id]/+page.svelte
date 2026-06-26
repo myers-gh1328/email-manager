@@ -4,7 +4,7 @@
 
   let { data } = $props();
   let communication = $derived(data.communication);
-  let detailReturnTo = $derived(`/communications/${communication.id}${data.returnTo ? `?returnTo=${encodeURIComponent(data.returnTo)}` : ''}`);
+  let detailReturnTo = $derived(`/history/${communication.id}${data.returnTo ? `?returnTo=${encodeURIComponent(data.returnTo)}` : ''}`);
 
   function replyHref(reply: { snippet: string; textBody: string }) {
     const params = new URLSearchParams();
@@ -27,7 +27,7 @@
       <p class="eyebrow">Email detail</p>
       <h2>{communication.subject}</h2>
     </div>
-    <a class="button-link" href={data.returnTo || '/communications'}>Back to History</a>
+    <a class="button-link" href={data.returnTo || '/history'}>Back to History</a>
   </div>
 
   {#if data.actionMessage}<p class="success spaced">{data.actionMessage}</p>{/if}
