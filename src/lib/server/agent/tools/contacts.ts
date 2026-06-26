@@ -59,15 +59,9 @@ function requireEditAccess(settings: AppSettings = getSettings()) {
 export function searchContactsTool(repo: AppRepository, input: { query?: string; limit?: number }, settingsOverride?: AppSettings) {
   const { settings, denied } = requireReadAccess(settingsOverride);
   if (denied) return denied;
-  const query = (input.query ?? '').trim().toLowerCase();
+  const query = (input.query ?? '').trim();
   const limit = clampLimit(input.limit);
-  const contacts = repo
-    .listContacts()
-    .filter((contact) => {
-      if (!query) return true;
-      return [contact.firstName, contact.lastName, contact.email, contact.phone, contact.notes].join(' ').toLowerCase().includes(query);
-    })
-    .slice(0, limit);
+  const contacts = repo.listContactsPage({ search: query, limit }).items;
   return agentOk({ contacts }, { labels: settings.vocabulary, nextActions: ['create_contact', 'update_contact'] });
 }
 
