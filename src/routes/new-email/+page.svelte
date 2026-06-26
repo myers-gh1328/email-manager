@@ -11,8 +11,8 @@
 
   let selectedContactIds = $derived(form?.selectedContactIds ?? (data.selectedContactId ? [data.selectedContactId] : []));
   let selectedTemplateId = $derived(form?.selectedTemplateId ?? '');
-  let subject = $derived(form?.subject ?? '');
-  let body = $derived(form?.body ?? '');
+  let subject = $derived(form?.subject ?? data.prefillSubject ?? '');
+  let body = $derived(form?.body ?? data.prefillBody ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
   let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
   const variableFields = tokenFields(directEmailTokens);

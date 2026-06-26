@@ -16,6 +16,15 @@
     const query = params.toString();
     return query ? `/communications?${query}` : '/communications';
   }
+
+  function replyHref(communication: { contactId: string; subject: string }, reply: { snippet: string; textBody: string }) {
+    const params = new URLSearchParams();
+    params.set('contactId', communication.contactId);
+    params.set('subject', communication.subject.toLowerCase().startsWith('re:') ? communication.subject : `Re: ${communication.subject}`);
+    const quoted = reply.snippet || reply.textBody;
+    if (quoted) params.set('body', `\n\nOn their reply:\n${quoted}`);
+    return `/new-email?${params.toString()}`;
+  }
 </script>
 
 <svelte:head>
@@ -78,10 +87,13 @@
                     {#if reply.reviewedAt}
                       <span class="pill good">Reviewed</span>
                     {:else}
-                      <form method="POST" action="?/markReplyReviewed" use:enhance>
-                        <input name="replyId" type="hidden" value={reply.id} />
-                        <button class="secondary" type="submit">Mark reviewed</button>
-                      </form>
+                      <div class="button-row compact">
+                        <a class="button-link" href={replyHref(communication, reply)}>Reply</a>
+                        <form method="POST" action="?/markReplyReviewed" use:enhance>
+                          <input name="replyId" type="hidden" value={reply.id} />
+                          <button class="secondary" type="submit">Mark reviewed</button>
+                        </form>
+                      </div>
                     {/if}
                   </article>
                 {/each}

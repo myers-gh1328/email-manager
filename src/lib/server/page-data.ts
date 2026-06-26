@@ -150,11 +150,13 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
   };
 }
 
-export function loadNewEmailData(contactId?: string) {
+export function loadNewEmailData(input: { contactId?: string; subject?: string; body?: string } = {}) {
   return {
     contacts: repo.listContacts(),
     templates: repo.listTemplates(),
-    selectedContactId: contactId ?? '',
+    selectedContactId: input.contactId ?? '',
+    prefillSubject: input.subject ?? '',
+    prefillBody: input.body ?? '',
     settings: getSettings()
   };
 }

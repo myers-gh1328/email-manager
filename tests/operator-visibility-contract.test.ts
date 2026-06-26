@@ -128,4 +128,21 @@ describe('operator visibility contract', () => {
     expect(testSends).toContain('Page {currentTestAuditPage} of {totalTestAuditPages}');
     expect(repository).toContain('limit ? offset ?');
   });
+
+  test('lets instructors reply to imported email replies from History', () => {
+    const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
+    const newEmailServer = readFileSync('src/routes/new-email/+page.server.ts', 'utf8');
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+
+    expect(history).toContain('replyHref');
+    expect(history).toContain('Reply');
+    expect(history).toContain('/new-email?');
+    expect(newEmailServer).toContain("url.searchParams.get('subject')");
+    expect(newEmailServer).toContain("url.searchParams.get('body')");
+    expect(pageData).toContain('prefillSubject');
+    expect(pageData).toContain('prefillBody');
+    expect(newEmail).toContain('data.prefillSubject');
+    expect(newEmail).toContain('data.prefillBody');
+  });
 });
