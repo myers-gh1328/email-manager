@@ -28,10 +28,21 @@
   } = $props();
 
   let search = $state('');
+  let selectedIds = $state<string[]>([]);
+  let initializedSelection = $state(false);
   let remoteContacts = $state<ContactOption[]>([]);
   let loading = $state(false);
   let searchError = $state('');
   let filteredContacts = $derived(search.trim() ? remoteContacts : contacts);
+  let knownContacts = $derived([...contacts, ...remoteContacts].reduce((byId, contact) => byId.set(contact.id, contact), new Map<string, ContactOption>()));
+  let selectedContacts = $derived(selectedIds.map((contactId) => knownContacts.get(contactId)).filter((contact): contact is ContactOption => Boolean(contact)));
+
+  $effect(() => {
+    if (!initializedSelection) {
+      selectedIds = [...selectedContactIds];
+      initializedSelection = true;
+    }
+  });
 
   $effect(() => {
     if (!search.trim()) {
@@ -64,11 +75,24 @@
   });
 
   function isSelected(contactId: string) {
-    return selectedContactIds.includes(contactId);
+    return selectedIds.includes(contactId);
+  }
+
+  function toggleContact(contactId: string, checked: boolean) {
+    if (mode === 'single') {
+      selectedIds = checked ? [contactId] : [];
+      return;
+    }
+    selectedIds = checked
+      ? [...new Set([...selectedIds, contactId])]
+      : selectedIds.filter((selectedId) => selectedId !== contactId);
   }
 </script>
 
 <fieldset class="contact-picker">
+  {#each selectedIds as contactId}
+    <input type="hidden" {name} value={contactId} />
+  {/each}
   <div class="field-header">
     <legend>{legend}</legend>
     {#if addHref && addLabel}<a class="button-link" href={addHref}>{addLabel}</a>{/if}
@@ -77,7 +101,7 @@
   <input id={`${name}-search`} bind:value={search} placeholder="Search recipients" />
   {#if mode === 'multi'}
     <div class="selected-chip-row" aria-label="Selected recipients">
-      {#each contacts.filter((contact) => isSelected(contact.id)) as contact}
+      {#each selectedContacts as contact}
         <span class="pill">{contact.firstName} {contact.lastName}</span>
       {/each}
     </div>
@@ -87,11 +111,11 @@
   {#each filteredContacts as contact}
     <label class="check">
       <input
-        {name}
         type={mode === 'single' ? 'radio' : 'checkbox'}
         value={contact.id}
         checked={isSelected(contact.id)}
         disabled={contact.doNotEmail}
+        onchange={(event) => toggleContact(contact.id, event.currentTarget.checked)}
       />
       <span>
         {contact.firstName} {contact.lastName}

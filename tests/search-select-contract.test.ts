@@ -43,6 +43,9 @@ describe('SearchSelect contract', () => {
     expect(picker).toContain('Search recipients');
     expect(picker).toContain("name = 'contactIds'");
     expect(picker).toContain('selectedContactIds');
+    expect(picker).toContain('selectedIds');
+    expect(picker).toContain('<input type="hidden" {name} value={contactId} />');
+    expect(picker).toContain('toggleContact');
     expect(picker).toContain('addHref');
     expect(picker).toContain('addLabel');
     expect(newEmail).toContain('addLabel="Add contact"');
