@@ -4,6 +4,8 @@ import { rowString } from './mappers';
 import type {
   ChecklistItem,
   ChecklistItemInput,
+  ChecklistItemPage,
+  ChecklistItemPageInput,
   ChecklistItemScope,
   CourseTypeChecklistItemInput,
   EnrollmentChecklistCompletionInput,
@@ -30,6 +32,40 @@ export function deleteChecklistItem(db: DatabaseSync, id: string) {
 
 export function listChecklistItems(db: DatabaseSync): ChecklistItem[] {
   return db.prepare('select * from checklist_items order by sort_order, created_at, label').all().map(mapGlobalChecklistItem);
+}
+
+export function listChecklistItemsPage(db: DatabaseSync, input: ChecklistItemPageInput = {}): ChecklistItemPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('lower(label) like ?');
+    params.push(pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from checklist_items ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from checklist_items
+       ${whereSql}
+       order by sort_order, created_at, label
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapGlobalChecklistItem(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function createCourseTypeChecklistItem(db: DatabaseSync, input: CourseTypeChecklistItemInput) {

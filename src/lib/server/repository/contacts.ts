@@ -10,9 +10,13 @@ import type {
   ContactPage,
   ContactPageInput,
   CourseTypeInput,
+  CourseTypePage,
+  CourseTypePageInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
   LocationInput,
+  LocationPage,
+  LocationPageInput,
   Row
 } from './types';
 
@@ -140,6 +144,40 @@ export function listCourseTypes(db: DatabaseSync) {
     .map(mapCourseType);
 }
 
+export function listCourseTypesPage(db: DatabaseSync, input: CourseTypePageInput = {}): CourseTypePage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(name) like ? or lower(description) like ?)');
+    params.push(pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from course_types ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from course_types
+       ${whereSql}
+       order by name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapCourseType(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
+}
+
 export function getCourseType(db: DatabaseSync, id: string) {
   const row = db.prepare('select * from course_types where id = ?').get(id) as Row | undefined;
   if (!row) throw new Error(`Course type not found: ${id}`);
@@ -192,6 +230,45 @@ export function updateLocation(db: DatabaseSync, id: string, input: LocationInpu
 
 export function listLocations(db: DatabaseSync) {
   return db.prepare('select * from locations order by name').all().map(mapLocation);
+}
+
+export function listLocationsPage(db: DatabaseSync, input: LocationPageInput = {}): LocationPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(name) like ?
+        or lower(address) like ?
+        or lower(phone) like ?
+        or lower(website) like ?)`
+    );
+    params.push(pattern, pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from locations ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from locations
+       ${whereSql}
+       order by name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapLocation(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function getLocation(db: DatabaseSync, id: string) {

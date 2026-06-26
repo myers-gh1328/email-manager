@@ -36,6 +36,26 @@ export interface CourseTypeInput {
   description?: string;
 }
 
+export interface CourseTypeRecord {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface CourseTypePageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface CourseTypePage {
+  items: CourseTypeRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface ClassSessionInput {
   courseTypeId: string;
   locationId?: string;
@@ -102,6 +122,31 @@ export interface LocationInput {
   notes?: string;
 }
 
+export interface LocationRecord {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  website: string;
+  parkingNotes: string;
+  meetingInstructions: string;
+  notes: string;
+}
+
+export interface LocationPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface LocationPage {
+  items: LocationRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface TemplateInput {
   name: string;
   subject: string;
@@ -156,6 +201,20 @@ export interface ChecklistItem {
   courseTypeId?: string;
   sortOrder: number;
   createdAt: string;
+}
+
+export interface ChecklistItemPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ChecklistItemPage {
+  items: ChecklistItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
 }
 
 export interface EnrollmentChecklistCompletionInput {

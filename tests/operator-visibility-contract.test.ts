@@ -190,12 +190,21 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('Course types');
     expect(settings).toContain('Locations');
     expect(settings).toContain('Prep tasks');
+    expect(settings).toContain('Search app data');
+    expect(settings).toContain('appDataPageHref');
+    expect(settings).toContain('Page {currentAppDataPage} of {totalAppDataPages}');
     expect(settings).not.toContain('Reusable setup');
     expect(settings).not.toContain('Class prep defaults');
     expect(settings).not.toContain('No class prep defaults yet.');
     expect(settings).toContain('?/createCourse');
     expect(settings).toContain('?/createLocation');
     expect(settings).toContain('?/createChecklistItem');
+    expect(settingsServer).toContain("appDataSearch: url.searchParams.get('appDataSearch') ?? ''");
+    expect(settings).toContain('name="section" value="app-data"');
+    expect(settingsServer).toContain("appDataPage: Number(url.searchParams.get('appDataPage') ?? '1')");
+    expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('courseTypesPage = repo.listCourseTypesPage');
+    expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('locationsPage = repo.listLocationsPage');
+    expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('checklistItemsPage = repo.listChecklistItemsPage');
     for (const source of [settingsServer, classesServer]) {
       expect(source).toContain('Prep task added.');
       expect(source).toContain('Prep task updated.');

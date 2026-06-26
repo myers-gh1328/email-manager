@@ -33,7 +33,10 @@ import {
 } from '$lib/server/settings';
 
 export const load = ({ url }) => {
-  const data = loadSettingsData();
+  const data = loadSettingsData({
+    appDataSearch: url.searchParams.get('appDataSearch') ?? '',
+    appDataPage: Number(url.searchParams.get('appDataPage') ?? '1')
+  });
   return {
     ...data,
     message: url.searchParams.get('message') ?? '',

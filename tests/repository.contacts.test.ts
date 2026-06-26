@@ -255,6 +255,32 @@ describe('repository contacts and classes', () => {
     expect(repo.listCourseTypes()).toMatchObject([{ id: course.id, name: 'Open Water Diver' }]);
   });
 
+  test('lists app setup data with pagination and search', () => {
+    const repo = createTestRepository();
+    repo.createCourseType({ name: 'Open Water', description: 'Entry-level' });
+    repo.createCourseType({ name: 'Rescue Diver', description: 'Rescue course' });
+    repo.createLocation({ name: 'Blue Quarry', address: '123 Quarry Road' });
+    repo.createLocation({ name: 'Training Pool', address: '456 Pool Lane' });
+    repo.createChecklistItem({ label: 'Medical form complete' });
+    repo.createChecklistItem({ label: 'Academics complete' });
+
+    expect(repo.listCourseTypesPage({ limit: 1, offset: 0, search: 'rescue' })).toMatchObject({
+      total: 1,
+      limit: 1,
+      offset: 0,
+      search: 'rescue',
+      items: [{ name: 'Rescue Diver' }]
+    });
+    expect(repo.listLocationsPage({ limit: 1, offset: 0, search: 'pool' })).toMatchObject({
+      total: 1,
+      items: [{ name: 'Training Pool' }]
+    });
+    expect(repo.listChecklistItemsPage({ limit: 1, offset: 0, search: 'medical' })).toMatchObject({
+      total: 1,
+      items: [{ label: 'Medical form complete' }]
+    });
+  });
+
   test('stores managed locations for classes', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Open Water' });

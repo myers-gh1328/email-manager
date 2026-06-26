@@ -21,8 +21,10 @@ import {
   listContacts,
   listContactsPage,
   listCourseTypes,
+  listCourseTypesPage,
   listEnrollments,
   listLocations,
+  listLocationsPage,
   updateClassSession,
   updateContact,
   updateCourseType,
@@ -73,6 +75,7 @@ import {
   deleteCourseTypeChecklistItem,
   listChecklistForClassSession,
   listChecklistItems,
+  listChecklistItemsPage,
   listCourseTypeChecklistItems,
   listEnrollmentChecklistState,
   setEnrollmentChecklistCompletion,
@@ -117,6 +120,7 @@ import type {
   CampaignPageInput,
   CampaignRecord,
   ChecklistItemInput,
+  ChecklistItemPageInput,
   ClassSessionInput,
   ClassSessionPageInput,
   ContactPageInput,
@@ -125,6 +129,7 @@ import type {
   CommunicationReplyInput,
   ContactInput,
   CourseTypeInput,
+  CourseTypePageInput,
   CourseTypeChecklistItemInput,
   CourseTypeDefaultTemplateInput,
   DuplicateClassSessionMatch,
@@ -137,6 +142,7 @@ import type {
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  LocationPageInput,
   TemplatePageInput,
   TemplateInput
 } from './types';
@@ -154,6 +160,8 @@ export type {
   CampaignPageInput,
   CampaignRecord,
   ChecklistItem,
+  ChecklistItemPage,
+  ChecklistItemPageInput,
   ChecklistItemInput,
   ChecklistItemScope,
   ClassSessionInput,
@@ -174,6 +182,9 @@ export type {
   ContactInput,
   CourseTypeChecklistItemInput,
   CourseTypeInput,
+  CourseTypePage,
+  CourseTypePageInput,
+  CourseTypeRecord,
   CourseTypeDefaultTemplateInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
@@ -188,6 +199,9 @@ export type {
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  LocationPage,
+  LocationPageInput,
+  LocationRecord,
   TemplatePage,
   TemplatePageInput,
   TemplateRecord,
@@ -240,6 +254,10 @@ export class AppRepository {
     return listCourseTypes(this.db);
   }
 
+  listCourseTypesPage(input?: CourseTypePageInput) {
+    return listCourseTypesPage(this.db, input);
+  }
+
   getCourseType(id: string) {
     return getCourseType(this.db, id);
   }
@@ -280,6 +298,10 @@ export class AppRepository {
     return listChecklistItems(this.db);
   }
 
+  listChecklistItemsPage(input?: ChecklistItemPageInput) {
+    return listChecklistItemsPage(this.db, input);
+  }
+
   createCourseTypeChecklistItem(input: CourseTypeChecklistItemInput) {
     return createCourseTypeChecklistItem(this.db, input);
   }
@@ -314,6 +336,10 @@ export class AppRepository {
 
   listLocations() {
     return listLocations(this.db);
+  }
+
+  listLocationsPage(input?: LocationPageInput) {
+    return listLocationsPage(this.db, input);
   }
 
   getLocation(id: string) {

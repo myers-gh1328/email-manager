@@ -219,13 +219,27 @@ export function loadNewEmailData(input: { contactId?: string; subject?: string; 
   };
 }
 
-export function loadSettingsData() {
+export function loadSettingsData(input: { appDataSearch?: string; appDataPage?: number } = {}) {
   const settings = getSettings();
+  const limit = 10;
+  const appDataPage = Math.max(input.appDataPage ?? 1, 1);
+  const appDataSearch = input.appDataSearch ?? '';
+  const appDataPageInput = {
+    search: appDataSearch,
+    limit,
+    offset: (appDataPage - 1) * limit
+  };
+  const courseTypesPage = repo.listCourseTypesPage(appDataPageInput);
+  const locationsPage = repo.listLocationsPage(appDataPageInput);
+  const checklistItemsPage = repo.listChecklistItemsPage(appDataPageInput);
   return {
     settings,
-    courseTypes: repo.listCourseTypes(),
-    locations: repo.listLocations(),
-    checklistItems: repo.listChecklistItems(),
+    courseTypes: courseTypesPage.items,
+    locations: locationsPage.items,
+    checklistItems: checklistItemsPage.items,
+    courseTypesPage,
+    locationsPage,
+    checklistItemsPage,
     remoteStatus: remoteAccessStatus(settings)
   };
 }
