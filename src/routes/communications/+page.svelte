@@ -121,20 +121,31 @@
       </label>
       <button class="secondary" type="submit">Search</button>
     </form>
-    <div class="segmented-control" aria-label="Filter email type">
-      {#each typeFilters as filter}
-        <a class:active={historyType === filter.value} href={typeFilterHref(filter.value)}>{filter.label}</a>
-      {/each}
-    </div>
-    <div class="segmented-control" aria-label="Filter email delivery status">
-      {#each statusFilters as filter}
-        <a class:active={historyStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
-      {/each}
-    </div>
-    <div class="segmented-control" aria-label="Filter email history">
-      {#each replyFilters as filter}
-        <a class:active={historyReplyStatus === filter.value} href={replyFilterHref(filter.value)}>{filter.label}</a>
-      {/each}
+    <div class="filter-groups">
+      <div class="filter-group">
+        <span class="filter-label">Type</span>
+        <div class="segmented-control" aria-label="Filter email type">
+          {#each typeFilters as filter}
+            <a class:active={historyType === filter.value} href={typeFilterHref(filter.value)}>{filter.label}</a>
+          {/each}
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Delivery</span>
+        <div class="segmented-control" aria-label="Filter email delivery status">
+          {#each statusFilters as filter}
+            <a class:active={historyStatus === filter.value} href={statusFilterHref(filter.value)}>{filter.label}</a>
+          {/each}
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Replies</span>
+        <div class="segmented-control" aria-label="Filter email history">
+          {#each replyFilters as filter}
+            <a class:active={historyReplyStatus === filter.value} href={replyFilterHref(filter.value)}>{filter.label}</a>
+          {/each}
+        </div>
+      </div>
     </div>
     {#if data.selectedContactId || data.selectedSourceId || data.selectedReplyStatus || data.selectedStatus || data.selectedType}
       <div class="active-filters" aria-label="Active filters">
@@ -233,6 +244,27 @@
     flex-wrap: wrap;
     gap: 8px;
     margin: 12px 0;
+  }
+
+  .filter-groups {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .filter-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .filter-label {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-width: 64px;
+    text-transform: uppercase;
   }
 
   @media (max-width: 720px) {
