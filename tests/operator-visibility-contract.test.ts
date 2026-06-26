@@ -264,6 +264,8 @@ describe('operator visibility contract', () => {
 
     expect(classDetail).toContain('<h3>Email this class</h3>');
     expect(classDetail).toContain('Preview student emails');
+    expect(classDetail).toContain('<h3>Student email preview</h3>');
+    expect(classDetail).not.toContain('<h3>Preview</h3>');
     expect(classDetail).not.toContain('<summary>Email this class</summary>');
     expect(classDetail).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(classDetail).toContain('{#if rosterSearch}<input name="search" type="hidden" value={rosterSearch} />{/if}');
@@ -443,6 +445,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Create scheduled email');
     expect(scheduledEmails).toContain('<h3>Preview scheduled email</h3>');
+    expect(scheduledEmails).toContain('<h3>Scheduled email preview</h3>');
+    expect(scheduledEmails).not.toContain('<h3>Preview</h3>');
     expect(scheduledEmails).not.toContain('Preview class email');
     expect(scheduledEmails).not.toContain('Schedule class email');
     expect(scheduledEmails).not.toContain('action=schedule');

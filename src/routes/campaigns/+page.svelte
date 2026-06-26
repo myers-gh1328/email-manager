@@ -109,7 +109,7 @@
     {/if}
     {#if form?.previews}
       <div class="preview-list">
-        <h3>Preview</h3>
+        <h3>Scheduled email preview</h3>
         {#each form.previews as preview}
           <article>
             <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>

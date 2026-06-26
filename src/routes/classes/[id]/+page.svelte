@@ -311,7 +311,7 @@
     </form>
     {#if form?.previews}
       <section class="panel-form">
-        <h3>Preview</h3>
+        <h3>Student email preview</h3>
         <p class="body-copy">Will schedule {form.previews.filter((preview) => !preview.skipped).length} private emails, one to each student. Students will not see each other.</p>
         <div class="list">
           {#each form.previews as preview}
