@@ -140,7 +140,7 @@
                 · {scheduledEmailDeliverySummary(campaign)}
               </p>
             </div>
-            <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
+            <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>
           </article>
         {:else}
           <p class="empty">No emails are scheduled for this class yet.</p>

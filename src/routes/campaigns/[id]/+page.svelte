@@ -51,7 +51,7 @@
     <dl class="detail-facts">
       <div>
         <dt>Status</dt>
-        <dd><span class:good={data.campaign.approved} class="pill">{scheduledEmailStatusLabel(data.campaign.approved)}</span></dd>
+        <dd><span class:good={data.campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(data.campaign.readyToSend)}</span></dd>
       </div>
       <div>
         <dt>Class</dt>
@@ -127,7 +127,7 @@
       <h3>Edit schedule</h3>
       <label>Name<input name="name" value={data.campaign.name} required /></label>
       <label>Send at<input name="scheduledFor" type="datetime-local" value={data.scheduledForInput} required /></label>
-      {#if data.campaign.approved}
+      {#if data.campaign.readyToSend}
         <label class="check"><input name="scheduleMode" type="checkbox" value="ready" checked /> Ready to send</label>
       {:else}
         <input name="scheduleMode" type="hidden" value="draft" />

@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { errorText, formText, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
+import { withReadyToSend } from '$lib/server/page-data';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params, url }) => {
@@ -11,7 +12,7 @@ export const load = ({ params, url }) => {
     offset: (page - 1) * 25,
     search: url.searchParams.get('search') ?? ''
   });
-  return { ...detail, scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor) };
+  return { ...detail, campaign: withReadyToSend(detail.campaign), scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor) };
 };
 
 export const actions = {

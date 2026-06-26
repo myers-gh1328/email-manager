@@ -5,10 +5,7 @@ import { getSettings } from './settings';
 export function loadDashboardData() {
   const settings = getSettings();
   const nowIso = new Date().toISOString();
-  const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items.map((campaign) => ({
-    ...campaign,
-    readyToSend: campaign.approved
-  }));
+  const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items.map(withReadyToSend);
   const retryWindow = localTodayWindow();
   return {
     stats: repo.stats(),
@@ -218,9 +215,16 @@ export function loadCampaignsData(input: { search?: string; page?: number; statu
   return {
     classSessionOptions: loadClassSessionOptions(),
     templateOptions: loadTemplateOptions(),
-    campaigns: campaignsPage.items,
+    campaigns: campaignsPage.items.map(withReadyToSend),
     campaignsPage,
     settings: getSettings()
+  };
+}
+
+export function withReadyToSend<T extends { approved: boolean }>(campaign: T) {
+  return {
+    ...campaign,
+    readyToSend: campaign.approved
   };
 }
 
