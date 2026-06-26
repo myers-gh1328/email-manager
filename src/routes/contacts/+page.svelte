@@ -131,6 +131,9 @@
       {#if data.action === 'import'}
         <form method="POST" action="?/importCsv" class="panel-form" enctype="multipart/form-data" use:enhance>
           <h3>Import contacts</h3>
+          {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+          {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+          {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
           <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
           <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
           <div class="button-row">
@@ -144,6 +147,9 @@
           {#if importingImage}<BusyOverlay message="Importing screenshot..." />{/if}
           <form method="POST" action="?action=image&/importImage" class="panel-form" enctype="multipart/form-data" data-local-busy use:enhance={showImageImportBusy}>
             <h3>Import screenshot</h3>
+            {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+            {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+            {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
             <label>Image file<input name="imageFile" type="file" accept="image/*" required /></label>
             <div class="button-row">
               <button type="submit" disabled={importingImage}>Upload image</button>

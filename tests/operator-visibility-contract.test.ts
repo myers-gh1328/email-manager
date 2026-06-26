@@ -140,6 +140,8 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
     expect(contacts).toContain('href={`/contacts?action=image&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
     expect(contacts).toContain('href={`/contacts?contactId=${contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}`}');
+    expect(contacts).toContain('<input name="csvFile" type="file"');
+    expect(contacts).toContain('<input name="imageFile" type="file"');
     expect(contacts).toContain("href={data.returnTo || '/contacts'}");
     expect(contacts).not.toContain('href="/contacts">Cancel');
     expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');
@@ -149,6 +151,10 @@ describe('operator visibility contract', () => {
     expect(contactsServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
     expect(contactsServer).toContain('contactActionReturn');
     expect(contactsServer).toContain('throw redirect(303, contactActionReturn(form,');
+    expect(contactsServer).toContain("throw redirect(303, contactActionReturn(form, 'Choose a CSV file to import.'))");
+    expect(contactsServer).toContain('throw redirect(303, contactActionReturn(form, `Imported contacts:');
+    expect(contactsServer).toContain("throw redirect(303, contactActionReturn(form, 'Choose an image to import.'))");
+    expect(contactsServer).toContain('throw redirect(303, contactActionReturn(form, `Imported screenshot contacts:');
     expect(pageData).toContain('contactsPage = repo.listContactsPage');
   });
 

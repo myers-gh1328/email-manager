@@ -39,26 +39,22 @@ export const actions = {
   importCsv: async ({ request }) => {
     const form = await request.formData();
     const file = form.get('csvFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose a CSV file to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, contactActionReturn(form, 'Choose a CSV file to import.'));
     const result = importContactRows(repo, parseRosterCsv(await file.text()));
-    return {
-      message: `Imported contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`
-    };
+    throw redirect(303, contactActionReturn(form, `Imported contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`));
   },
   importImage: async ({ request }) => {
+    const form = await request.formData();
     const settings = getSettings();
     if (!settings.aiEnabled || !settings.aiVisionEnabled) {
-      return { message: 'Enable AI assistance and mark it as a vision model before importing screenshots.' };
+      throw redirect(303, contactActionReturn(form, 'Enable AI assistance and mark it as a vision model before importing screenshots.'));
     }
-    const form = await request.formData();
     const file = form.get('imageFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose an image to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, contactActionReturn(form, 'Choose an image to import.'));
     const dataUrl = `data:${file.type || 'image/png'};base64,${Buffer.from(await file.arrayBuffer()).toString('base64')}`;
     try {
       const result = importContactRows(repo, await extractRosterFromImage(dataUrl));
-      return {
-        message: `Imported screenshot contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`
-      };
+      throw redirect(303, contactActionReturn(form, `Imported screenshot contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`));
     } catch (error) {
       return fail(400, { error: true, message: errorText(error) });
     }
