@@ -667,6 +667,7 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unhandledReplyCount })');
     expect(history).not.toContain('communication.unreviewedReplyCount');
     expect(contacts).not.toContain('communication.unreviewedReplyCount');
+    expect(readFileSync('src/lib/server/repository/types.ts', 'utf8')).not.toContain('unreviewedReplyCount');
     expect(history).not.toContain('compose workflow');
     expect(history).not.toContain('No reply yet');
     expect(history).not.toContain('Acknowledged');

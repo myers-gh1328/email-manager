@@ -362,7 +362,6 @@ export interface CommunicationHistoryItem {
   replies: CommunicationReply[];
   replyCount: number;
   unhandledReplyCount: number;
-  unreviewedReplyCount: number;
   acknowledgedAt?: string;
 }
 

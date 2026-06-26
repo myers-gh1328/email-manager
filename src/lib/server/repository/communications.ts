@@ -44,7 +44,6 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     replies,
     replyCount: Number(row.reply_count ?? replies.length),
     unhandledReplyCount,
-    unreviewedReplyCount: unhandledReplyCount,
     acknowledgedAt
   };
 }
