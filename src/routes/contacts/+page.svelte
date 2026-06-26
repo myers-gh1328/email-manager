@@ -64,7 +64,9 @@
         <h2>Students and email recipients</h2>
       </div>
     </div>
-    {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}
+      <p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>
+    {/if}
     <div class="action-row">
       <a class:active={data.action === 'add'} class="button-link" href={`/contacts?action=add&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Add contact</a>
       <a class:active={data.action === 'import'} class="button-link" href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import contacts</a>
@@ -167,6 +169,9 @@
         </div>
 
         <form method="POST" action="?/updateContact" class="panel-form" use:enhance>
+          {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+          {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+          {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
           <input name="contactId" type="hidden" value={data.contactDetail.contact.id} />
           <div class="split">
             <label>First name<input name="firstName" value={data.contactDetail.contact.firstName} required /></label>

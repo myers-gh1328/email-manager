@@ -121,6 +121,9 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('contactHistoryHref');
     expect(contacts).toContain('returnTo=${encodeURIComponent(contactHistoryHref)}');
     expect(contacts).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}');
+    expect(contacts).toContain('data.actionMessage');
+    expect(contacts).toContain('{#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}');
+    expect(contacts).toContain('{#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}');
     expect(contacts).toContain("communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'");
     expect(contacts).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })');
     expect(contacts).not.toContain('communication.unreviewedReplyCount} new');
@@ -143,6 +146,9 @@ describe('operator visibility contract', () => {
     expect(contacts.indexOf('<div class="list">')).toBeLessThan(contacts.indexOf('<div class="form-stack task-stack">'));
     expect(contacts).not.toContain('<section class="band two-column">');
     expect(contactsServer).toContain('page: Number(url.searchParams.get');
+    expect(contactsServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(contactsServer).toContain('contactActionReturn');
+    expect(contactsServer).toContain('throw redirect(303, contactActionReturn(form,');
     expect(pageData).toContain('contactsPage = repo.listContactsPage');
   });
 

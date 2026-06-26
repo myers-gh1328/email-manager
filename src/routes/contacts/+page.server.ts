@@ -15,7 +15,8 @@ export const load = ({ url }) => ({
     page: Number(url.searchParams.get('page') ?? '1')
   }),
   action: url.searchParams.get('action') ?? '',
-  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
+  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+  actionMessage: url.searchParams.get('message') ?? ''
 });
 
 export const actions = {
@@ -76,14 +77,27 @@ export const actions = {
     } catch (error) {
       return fail(400, { error: true, message: contactActionError(error) });
     }
-    return { message: 'Contact updated.' };
+    throw redirect(303, contactActionReturn(form, 'Contact updated.', required(form, 'contactId')));
   },
   deleteContact: async ({ request }) => {
     const form = await request.formData();
     repo.deleteContact(required(form, 'contactId'));
-    throw redirect(303, '/contacts');
+    throw redirect(303, contactActionReturn(form, 'Contact deleted.'));
   }
 };
+
+function contactActionReturn(form: FormData, message: string, contactId = '') {
+  const params = new URLSearchParams();
+  const returnTo = localReturnTo(text(form, 'returnTo'));
+  const search = text(form, 'search');
+  const page = Math.max(Number(text(form, 'page') || '1'), 1);
+  if (contactId) params.set('contactId', contactId);
+  if (returnTo) params.set('returnTo', returnTo);
+  if (search) params.set('search', search);
+  if (page > 1) params.set('page', String(page));
+  params.set('message', message);
+  return `/contacts?${params.toString()}`;
+}
 
 function contactActionError(error: unknown) {
   const message = errorText(error);
