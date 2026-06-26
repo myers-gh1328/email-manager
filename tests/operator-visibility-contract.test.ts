@@ -584,6 +584,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).not.toContain('manual_send_due');
     expect(scheduledEmailDetail).toContain('retryableRecipientCount');
     expect(scheduledEmailDetail).toContain('{#if retryableRecipientCount}');
+    expect(scheduledEmailDetail).toContain('Queue selected for retry');
+    expect(scheduledEmailDetail).not.toContain('Retry selected');
     expect(scheduledEmailDetail).toContain('No recipients need retrying.');
     expect(scheduledEmailDetail).not.toContain('No failed recipients to retry.');
   });

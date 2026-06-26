@@ -107,7 +107,7 @@
           <p class="empty">No recipients enrolled.</p>
         {/each}
         {#if retryableRecipientCount}
-          <button class="secondary" type="submit">Retry selected</button>
+          <button class="secondary" type="submit">Queue selected for retry</button>
         {:else if data.recipients.length}
           <p class="help-text">No recipients need retrying.</p>
         {/if}
