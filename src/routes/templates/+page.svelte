@@ -10,6 +10,7 @@
 	  let templatesSearch = $derived(data.templatesPage.search ?? '');
 	  let currentTemplatesPage = $derived(Math.floor(data.templatesPage.offset / data.templatesPage.limit) + 1);
 	  let totalTemplatesPages = $derived(Math.max(Math.ceil(data.templatesPage.total / data.templatesPage.limit), 1));
+	  let templateListReturnTo = $derived(templatesPageHref(currentTemplatesPage));
 	  const variableFields = tokenFields(classTemplateTokens);
 
   function confirmDelete() {
@@ -71,7 +72,7 @@
             <p class="template-subject">{template.subject}</p>
             <p class="muted-preview">{template.body}</p>
           </div>
-          <a class="button-link" href={`/templates?templateId=${template.id}`}>Edit</a>
+          <a class="button-link" href={`/templates?templateId=${template.id}&returnTo=${encodeURIComponent(templateListReturnTo)}`}>Edit</a>
         </article>
       {:else}
         <p class="empty">No templates yet.</p>
@@ -108,7 +109,7 @@
             {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
             Reprompt AI
           </button>
-          <a class="button-link" href="/templates">Cancel</a>
+          <a class="button-link" href={data.returnTo || '/templates'}>Cancel</a>
           <button class="danger" type="submit" formaction="?/deleteTemplate" onclick={confirmDelete}>Delete</button>
         </div>
       </form>
@@ -130,7 +131,7 @@
             {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
             Draft with AI
           </button>
-          <a class="button-link" href="/templates">Cancel</a>
+          <a class="button-link" href={data.returnTo || '/templates'}>Cancel</a>
         </div>
       </form>
     {/if}

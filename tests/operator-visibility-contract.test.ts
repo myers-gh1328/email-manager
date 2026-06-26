@@ -405,6 +405,9 @@ describe('operator visibility contract', () => {
     expect(templates).not.toContain('Review AI draft');
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
+    expect(templates).toContain('templateListReturnTo');
+    expect(templates).toContain('href={`/templates?templateId=${template.id}&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
+    expect(templates).toContain("href={data.returnTo || '/templates'}");
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
     expect(templates).toContain('fields={variableFields}');
     expect(templates).not.toContain('<summary>Template fields</summary>');
