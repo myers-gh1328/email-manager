@@ -27,7 +27,7 @@ For narrow work, read the owning route and the server helper it calls. Avoid sca
 
 - `src/routes/+layout.svelte` owns the authenticated shell, navigation, busy overlay trigger, and test-mode banner.
 - `src/routes/+layout.server.ts` provides authenticated layout settings.
-- `src/routes/+page.*` is the dashboard and manual send-due control.
+- `src/routes/+page.*` is the dashboard for overview, scheduler readiness, and attention items.
 - `src/routes/contacts/` owns reusable student records, roster import entry points, and contact history display.
 - `src/routes/classes/` owns course types, locations, dated sessions, enrollments, automatic course emails, and class email scheduling.
 - `src/routes/templates/` owns reusable templates and AI draft review.

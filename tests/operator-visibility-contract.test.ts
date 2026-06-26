@@ -25,7 +25,8 @@ describe('operator visibility contract', () => {
       'Approve and schedule the campaign',
       'Campaign detail must',
       'Communications must',
-      'approve campaigns'
+      'approve campaigns',
+      'manual send-due control'
     ]) {
       expect(architecture).not.toContain(phrase);
       expect(maintainerGuide).not.toContain(phrase);
