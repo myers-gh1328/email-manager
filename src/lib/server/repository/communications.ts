@@ -27,6 +27,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     channel: text(row.channel) as CommunicationHistoryItem['channel'],
     source: text(row.source) as CommunicationHistoryItem['source'],
     sourceId: row.source_id ? text(row.source_id) : undefined,
+    classSessionId: row.class_session_id ? text(row.class_session_id) : undefined,
+    className: row.class_name ? text(row.class_name) : undefined,
     originalRecipient: text(row.original_recipient),
     effectiveRecipient: text(row.effective_recipient),
     testMode: Boolean(row.test_mode),
@@ -172,9 +174,13 @@ export function listCommunications(db: DatabaseSync) {
     db,
     db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        order by cm.created_at desc, cm.rowid desc`
     )
     .all()
@@ -231,9 +237,13 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
          coalesce(replies.reply_count, 0) as reply_count,
          coalesce(replies.unreviewed_reply_count, 0) as unreviewed_reply_count,
          replies.first_reply_at,
+         cs.id as class_session_id, ct.name as class_name,
          c.first_name, c.last_name, c.email
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        left join (
          select communication_id,
            count(*) as reply_count,
@@ -266,9 +276,13 @@ export function listContactCommunications(db: DatabaseSync, contactId: string) {
     db,
     db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        where cm.contact_id = ?
        order by cm.created_at desc, cm.rowid desc`
     )
@@ -282,9 +296,13 @@ export function listRecentContactCommunications(db: DatabaseSync, contactId: str
     db,
     db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        where cm.contact_id = ?
        order by cm.created_at desc, cm.rowid desc
        limit ?`
@@ -347,9 +365,13 @@ function getCommunicationReply(db: DatabaseSync, id: string) {
 function listCommunicationById(db: DatabaseSync, id: string) {
   const row = db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        where cm.id = ?`
     )
     .get(id) as Row | undefined;

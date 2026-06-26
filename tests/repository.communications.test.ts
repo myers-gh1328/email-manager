@@ -157,6 +157,38 @@ describe('repository communications', () => {
     });
   });
 
+  test('loads scheduled class context for campaign communication detail', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Pool reminder',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const communication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: campaign.id,
+      subject: 'Pool reminder',
+      body: 'Full rendered email body.',
+      status: 'accepted'
+    });
+
+    expect(repo.getCommunication(communication.id)).toMatchObject({
+      id: communication.id,
+      source: 'campaign',
+      sourceId: campaign.id,
+      classSessionId: session.id,
+      className: 'Open Water'
+    });
+  });
+
   test('lists communication history with pagination and search for summary pages', () => {
     const repo = createTestRepository();
     const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

@@ -56,6 +56,12 @@
           {/if}
         </dd>
       </div>
+      {#if communication.classSessionId}
+        <div>
+          <dt>Class</dt>
+          <dd><a href={`/classes/${communication.classSessionId}`}>{communication.className || 'Class detail'}</a></dd>
+        </div>
+      {/if}
     </dl>
     {#if communication.originalRecipient && communication.effectiveRecipient && communication.originalRecipient !== communication.effectiveRecipient}
       <p class="help-text">Intended for {communication.originalRecipient}; delivered to {communication.effectiveRecipient} because test mode changed the recipient.</p>

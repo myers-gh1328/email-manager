@@ -346,6 +346,8 @@ export interface CommunicationHistoryItem {
   channel: 'email';
   source: 'direct' | 'campaign';
   sourceId?: string;
+  classSessionId?: string;
+  className?: string;
   originalRecipient: string;
   effectiveRecipient: string;
   testMode: boolean;
