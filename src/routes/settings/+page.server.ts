@@ -121,17 +121,17 @@ export const actions = {
   createChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.createChecklistItem({ label: required(form, 'label') });
-    return { message: 'Class prep default added.' };
+    return { message: 'Prep task added.' };
   },
   updateChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.updateChecklistItem(required(form, 'itemId'), { label: required(form, 'label') });
-    return { message: 'Class prep default updated.' };
+    return { message: 'Prep task updated.' };
   },
   deleteChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.deleteChecklistItem(required(form, 'itemId'));
-    return { message: 'Class prep default deleted.' };
+    return { message: 'Prep task deleted.' };
   },
   saveExternalSignOnProvider: async ({ request }) => {
     const form = await request.formData();

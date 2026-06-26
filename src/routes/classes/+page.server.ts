@@ -60,17 +60,17 @@ export const actions = {
   createChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.createChecklistItem({ label: required(form, 'label') });
-    return { message: 'Checklist item added.' };
+    return { message: 'Prep task added.' };
   },
   updateChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.updateChecklistItem(required(form, 'itemId'), { label: required(form, 'label') });
-    return { message: 'Checklist item updated.' };
+    return { message: 'Prep task updated.' };
   },
   deleteChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.deleteChecklistItem(required(form, 'itemId'));
-    return { message: 'Checklist item deleted.' };
+    return { message: 'Prep task deleted.' };
   },
   createCourseTypeChecklistItem: async ({ request }) => {
     const form = await request.formData();

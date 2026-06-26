@@ -127,6 +127,8 @@ describe('operator visibility contract', () => {
 
   test('gives setup data a Settings App Data home', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+    const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
+    const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
     expect(settings).toContain('<summary>App Data</summary>');
     expect(settings).toContain('Course types');
     expect(settings).toContain('Locations');
@@ -134,6 +136,14 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('?/createCourse');
     expect(settings).toContain('?/createLocation');
     expect(settings).toContain('?/createChecklistItem');
+    for (const source of [settingsServer, classesServer]) {
+      expect(source).toContain('Prep task added.');
+      expect(source).toContain('Prep task updated.');
+      expect(source).toContain('Prep task deleted.');
+      expect(source).not.toContain('Checklist item added.');
+      expect(source).not.toContain('Checklist item updated.');
+      expect(source).not.toContain('Checklist item deleted.');
+    }
   });
 
   test('uses plain scheduled-email language instead of approval campaign copy', () => {
