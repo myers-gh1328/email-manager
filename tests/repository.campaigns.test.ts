@@ -163,7 +163,7 @@ describe('repository campaigns and deliveries', () => {
     expect(page.items).toMatchObject([{ name: 'Needs preview', approved: false }]);
   });
 
-  test('filters scheduled email list to messages needing review', () => {
+  test('filters scheduled email list to messages needing attention', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Rescue Diver' });
     const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
@@ -190,10 +190,10 @@ describe('repository campaigns and deliveries', () => {
     repo.markDeliveryFailed(failedDelivery.id, 'Temporary failure');
     for (const delivery of repo.ensurePendingDeliveries(allGood.id)) repo.markDeliverySent(delivery.id, 'accepted');
 
-    const page = repo.listCampaignsPage({ status: 'needs_review' });
+    const page = repo.listCampaignsPage({ status: 'needs_attention' });
 
     expect(page.total).toBe(1);
-    expect(page.status).toBe('needs_review');
+    expect(page.status).toBe('needs_attention');
     expect(page.items).toMatchObject([{ name: 'Review failures' }]);
   });
 

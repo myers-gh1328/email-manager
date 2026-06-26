@@ -425,6 +425,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('Sent');
     expect(scheduledEmails).toContain('Needs attention');
     expect(scheduledEmails).not.toContain("label: 'Needs review'");
+    expect(scheduledEmails).toContain("value: 'needs_attention', label: 'Needs attention'");
+    expect(scheduledEmails).not.toContain("value: 'needs_review'");
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Create scheduled email');
