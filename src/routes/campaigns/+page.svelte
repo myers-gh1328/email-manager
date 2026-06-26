@@ -61,7 +61,7 @@
         <h2>Schedule class emails</h2>
       </div>
     </div>
-    {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}<p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>{/if}
     <div class="action-row">
       <a class:active={data.action === 'preview'} class="button-link" href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Preview class email</a>
       <a class:active={data.action === 'schedule'} class="button-link" href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Schedule class email</a>
@@ -128,6 +128,9 @@
         <input name="previewToken" type="hidden" value={form.previewToken} />
         <input name="scheduleMode" type="hidden" value="ready" />
         {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}
+        {#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}
+        {#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
         <button type="submit">Create schedule</button>
@@ -190,6 +193,10 @@
         />
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
         <input name="scheduleMode" type="hidden" value="draft" />
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}
+        {#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}
+        {#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}
         <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>
         <div class="button-row">
           <button type="submit">Create draft schedule</button>

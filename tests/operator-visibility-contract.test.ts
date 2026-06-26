@@ -390,6 +390,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain("if (data.returnTo) params.set('returnTo', data.returnTo)");
     expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
+    expect(scheduledEmails).toContain('data.actionMessage');
+    expect(scheduledEmails).toContain('{#if campaignsSearch}<input name="search" type="hidden" value={campaignsSearch} />{/if}');
+    expect(scheduledEmails).toContain('{#if campaignsStatus}<input name="status" type="hidden" value={campaignsStatus} />{/if}');
+    expect(scheduledEmails).toContain('{#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}');
     expect(scheduledEmails).toContain('Page {currentCampaignsPage} of {totalCampaignsPages}');
     expect(scheduledEmails.indexOf('<div class="list">')).toBeLessThan(scheduledEmails.indexOf('<div class="form-stack">'));
     expect(scheduledEmails).not.toContain('<section class="band two-column">');
@@ -408,6 +412,9 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain("status: url.searchParams.get('status') ?? ''");
     expect(scheduledEmailsServer).toContain('localReturnTo');
     expect(scheduledEmailsServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
+    expect(scheduledEmailsServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(scheduledEmailsServer).toContain('campaignActionReturn');
+    expect(scheduledEmailsServer).toContain('throw redirect(303, campaignActionReturn(form,');
     expect(pageData).toContain('campaignsPage = repo.listCampaignsPage');
     expect(scheduledEmailDetailServer).not.toContain('before approving');
     expect(scheduledEmailDetailServer).not.toContain('approving this campaign');

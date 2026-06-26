@@ -1,6 +1,6 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
-import { text, required } from '$lib/server/form-utils';
+import { formText, text, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, campaignEmailPreviewToken, hasMissingVariables } from '$lib/server/campaign-email';
 import { loadCampaignsData } from '$lib/server/page-data';
 import { localReturnTo } from '$lib/server/return-to';
@@ -13,7 +13,8 @@ export const load = ({ url }) => ({
     page: Number(url.searchParams.get('page') ?? '1')
   }),
   action: url.searchParams.get('action') ?? '',
-  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
+  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+  actionMessage: url.searchParams.get('message') ?? ''
 });
 
 export const actions = {
@@ -39,7 +40,7 @@ export const actions = {
       approved: scheduleMode === 'ready'
     });
     repo.ensurePendingDeliveries(campaign.id);
-    return { message: 'Scheduled email created.' };
+    throw redirect(303, campaignActionReturn(form, 'Scheduled email created.'));
   },
   previewCampaign: async ({ request }) => {
     const form = await request.formData();
@@ -68,4 +69,18 @@ function campaignPreviewToken(classSessionId: string, templateId: string) {
 
 function textToken(form: FormData, key: string) {
   return text(form, key);
+}
+
+function campaignActionReturn(form: FormData, message: string) {
+  const params = new URLSearchParams();
+  const search = formText(form.get('search'));
+  const status = formText(form.get('status'));
+  const page = Math.max(Number(formText(form.get('page')) || '1'), 1);
+  const returnTo = localReturnTo(formText(form.get('returnTo')));
+  if (search) params.set('search', search);
+  if (status) params.set('status', status);
+  if (page > 1) params.set('page', String(page));
+  if (returnTo) params.set('returnTo', returnTo);
+  params.set('message', message);
+  return `/campaigns?${params.toString()}`;
 }
