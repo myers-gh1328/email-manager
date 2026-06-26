@@ -57,4 +57,17 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('/communications?contactId=');
     expect(contacts).not.toContain('Email activity');
   });
+
+  test('keeps Classes focused on selecting scheduled classes, not setup data', () => {
+    const classes = readFileSync('src/routes/classes/+page.svelte', 'utf8');
+    expect(classes).toContain('<h2>Scheduled classes</h2>');
+    expect(classes).toContain('Open class');
+    expect(classes).toContain('href={`/classes/${session.id}`}');
+    expect(classes).not.toContain('Course types and scheduled classes');
+    expect(classes).not.toContain('Class management views');
+    expect(classes).not.toContain('Checklist defaults');
+    expect(classes).not.toContain('Add course type');
+    expect(classes).not.toContain('Add location');
+    expect(classes).not.toContain('Enroll student');
+  });
 });
