@@ -60,7 +60,7 @@
 
     {#if form?.previews}
       <div class="preview-list">
-        <h3>Preview</h3>
+        <h3>Email preview</h3>
         {#each form.previews as preview}
           <article>
             <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
@@ -100,7 +100,7 @@
     {#if form?.message && !form?.previews}<p class={form.error ? 'error' : 'success'}>{form.message}</p>{/if}
 
     <div class="button-row">
-      <button type="submit">Preview</button>
+      <button type="submit">Preview email</button>
       <button class="secondary" type="submit" formaction="?/aiDraftDirectEmail" formnovalidate disabled={!data.settings?.aiEnabled || drafting}>
         {#if drafting}<span class="button-spinner" aria-hidden="true"></span>{/if}
         Draft with AI
