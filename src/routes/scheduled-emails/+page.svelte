@@ -132,7 +132,7 @@
         {#if currentCampaignsPage > 1}<input name="page" type="hidden" value={currentCampaignsPage} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
-        <button type="submit">Create schedule</button>
+        <button type="submit">Create scheduled email</button>
       </form>
     {/if}
   </div>

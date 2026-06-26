@@ -469,6 +469,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Create scheduled email');
+    expect(scheduledEmails).not.toContain('<button type="submit">Create schedule</button>');
     expect(scheduledEmails).toContain('<h3>Preview scheduled email</h3>');
     expect(scheduledEmails).toContain('<h3>Scheduled email preview</h3>');
     expect(scheduledEmails).not.toContain('<h3>Preview</h3>');
