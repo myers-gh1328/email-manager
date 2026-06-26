@@ -219,7 +219,7 @@ function emailChoice(classSessionId: string, value: string) {
 }
 
 function classEmailCampaignName(defaultPurpose: string, templateName: string) {
-  if (!defaultPurpose) return `${templateName} class email`;
+  if (!defaultPurpose) return `${templateName} scheduled email`;
   return `${purposeLabel(defaultPurpose)} · ${templateName}`;
 }
 

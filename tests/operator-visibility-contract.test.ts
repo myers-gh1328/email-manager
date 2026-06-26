@@ -334,6 +334,8 @@ describe('operator visibility contract', () => {
     expect(classesServer).not.toContain('default email');
     expect(classDetailServer).toContain('Class updated. Created');
     expect(classDetailServer).toContain('scheduled email');
+    expect(classDetailServer).toContain('`${templateName} scheduled email`');
+    expect(classDetailServer).not.toContain('`${templateName} class email`');
     expect(classDetailServer).not.toContain('course email');
     expect(classDetailServer).not.toContain('default email');
   });
