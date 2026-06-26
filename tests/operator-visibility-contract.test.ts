@@ -420,7 +420,9 @@ describe('operator visibility contract', () => {
     expect(history).toContain('aria-label="Filter email history"');
     expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(history).toContain('Clear filters');
-    expect(history).toContain('href={`/communications/${communication.id}`}');
+    expect(history).toContain('historyReturnTo');
+    expect(history).toContain('returnTo=${encodeURIComponent(historyReturnTo)}');
+    expect(history).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}');
     expect(history).not.toContain('<div class="reply-list">');
     expect(history).not.toContain('{reply.snippet || reply.textBody}');
     expect(history).toContain('Reply');
@@ -435,6 +437,9 @@ describe('operator visibility contract', () => {
     expect(historyDetail).toContain('Reply handled');
     expect(historyDetail).toContain('Mark handled');
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
+    expect(historyDetail).toContain('href={data.returnTo || \'/communications\'}');
+    expect(historyDetailServer).toContain('localReturnTo');
+    expect(historyDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(historyDetail).toContain('?/markReplyHandled');
     expect(historyDetailServer).toContain('markReplyHandled');
     expect(historyServer).toContain('markReplyHandled');

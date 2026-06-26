@@ -25,7 +25,7 @@
       <p class="eyebrow">History detail</p>
       <h2>{communication.subject}</h2>
     </div>
-    <a class="button-link" href="/communications">Back to History</a>
+    <a class="button-link" href={data.returnTo || '/communications'}>Back to History</a>
   </div>
 
   {#if form?.message}<p class="success spaced">{form.message}</p>{/if}

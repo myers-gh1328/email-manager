@@ -11,6 +11,7 @@
     { value: '', label: 'All' },
     { value: 'needs_reply', label: 'Needs reply' }
   ];
+  let historyReturnTo = $derived(historyPageHref(currentHistoryPage));
 
   function historyPageHref(page: number) {
     const params = new URLSearchParams();
@@ -86,7 +87,7 @@
       {#each data.communications as communication}
         <article class="row-card tall">
           <div>
-            <a href={`/communications/${communication.id}`}><strong>{communication.subject}</strong></a>
+            <a href={`/communications/${communication.id}?returnTo=${encodeURIComponent(historyReturnTo)}`}><strong>{communication.subject}</strong></a>
             <p>
               {communication.contactName} · {communication.effectiveRecipient || communication.contactEmail}
               · {formatDateTime(communication.sentAt || communication.createdAt)}
