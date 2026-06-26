@@ -232,6 +232,7 @@
             {#if data.courseTypes.length === 0}<p class="muted">No course types yet.</p>{/if}
           </div>
           <form method="POST" action="?/createCourse" class="inline-edit-form add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
             <label>New course type<input name="name" required /></label>
             <label>Description<textarea name="description" rows="2"></textarea></label>
             <button type="submit">Add course type</button>
@@ -257,6 +258,7 @@
             {#if data.locations.length === 0}<p class="muted">No locations yet.</p>{/if}
           </div>
           <form method="POST" action="?/createLocation" class="inline-edit-form add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
             <label>New location<input name="name" required /></label>
             <label>Address<textarea name="address" rows="2"></textarea></label>
             <button type="submit">Add location</button>
@@ -279,6 +281,7 @@
             {#if data.checklistItems.length === 0}<p class="muted">No prep tasks yet.</p>{/if}
           </div>
           <form method="POST" action="?/createChecklistItem" class="inline-edit-form compact-row add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
             <label>New prep task<input name="label" required /></label>
             <button type="submit">Add prep task</button>
           </form>

@@ -3,6 +3,7 @@ import { repo } from '$lib/server/app';
 import { errorText, required, text } from '$lib/server/form-utils';
 import { extractRosterFromImage } from '$lib/server/llm';
 import { loadContactsData } from '$lib/server/page-data';
+import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
 import { importContactRows, parseRosterCsv } from '$lib/server/roster-import';
 import { getSettings } from '$lib/server/settings';
 import { formatPhoneNumber } from '$lib/shared/phone';
@@ -13,7 +14,8 @@ export const load = ({ url }) => ({
     search: url.searchParams.get('search') ?? '',
     page: Number(url.searchParams.get('page') ?? '1')
   }),
-  action: url.searchParams.get('action') ?? ''
+  action: url.searchParams.get('action') ?? '',
+  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
 });
 
 export const actions = {
@@ -31,7 +33,7 @@ export const actions = {
     } catch (error) {
       return fail(400, { error: true, message: contactActionError(error) });
     }
-    return { message: 'Contact added.' };
+    return returnAfterCreate(form, 'Contact added.');
   },
   importCsv: async ({ request }) => {
     const form = await request.formData();

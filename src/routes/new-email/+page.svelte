@@ -15,6 +15,9 @@
   let body = $derived(form?.body ?? data.prefillBody ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
   let templateOptions = $derived(data.templateOptions);
+  let newEmailReturnTo = '/new-email';
+  let addContactHref = `/contacts?action=add&returnTo=${encodeURIComponent(newEmailReturnTo)}`;
+  let addTemplateHref = `/templates?action=create&returnTo=${encodeURIComponent(newEmailReturnTo)}`;
   const variableFields = tokenFields(directEmailTokens);
 
   function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
@@ -66,7 +69,7 @@
   {/if}
   <form method="POST" action="?/previewDirectEmail" class="panel-form" data-local-busy use:enhance={draftWithAi}>
     <h3>Compose email</h3>
-    <ContactMultiSelect contacts={data.contactOptions} {selectedContactIds} addHref="/contacts?action=add" addLabel="Add contact" />
+    <ContactMultiSelect contacts={data.contactOptions} {selectedContactIds} addHref={addContactHref} addLabel="Add contact" />
 
     <SearchSelect
       name="templateId"
@@ -74,7 +77,7 @@
       options={templateOptions}
       value={selectedTemplateId}
       placeholder="Search templates"
-      addHref="/templates?action=create"
+      addHref={addTemplateHref}
       addLabel="Add template"
       searchHref="/templates/search"
     />

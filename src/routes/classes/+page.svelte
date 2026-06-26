@@ -11,6 +11,8 @@
   let classesSearch = $derived(data.classSessionsPage.search ?? '');
   let currentClassesPage = $derived(Math.floor(data.classSessionsPage.offset / data.classSessionsPage.limit) + 1);
   let totalClassesPages = $derived(Math.max(Math.ceil(data.classSessionsPage.total / data.classSessionsPage.limit), 1));
+  let addClassReturnTo = $derived(`/classes?action=session${data.classSessionsPage.search ? `&search=${encodeURIComponent(data.classSessionsPage.search)}` : ''}`);
+  let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(addClassReturnTo)}`);
 
   $effect(() => {
     if (!endDateTouched) newClassEndsOn = newClassStartsOn;
@@ -93,7 +95,7 @@
           label="Course"
           options={courseOptions}
           placeholder="Search courses"
-          addHref="/settings?section=app-data"
+          addHref={appDataAddHref}
           addLabel="Add course"
           searchHref="/courses/search"
           required
@@ -103,7 +105,7 @@
           label="Location"
           options={locationOptions}
           placeholder="Search locations"
-          addHref="/settings?section=app-data"
+          addHref={appDataAddHref}
           addLabel="Add location"
           searchHref="/locations/search"
           required

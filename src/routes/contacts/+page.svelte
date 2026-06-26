@@ -102,6 +102,7 @@
       {#if data.action === 'add'}
         <form method="POST" action="?/createContact" class="panel-form" use:enhance>
           <h3>Add contact</h3>
+          {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <div class="split">
             <label>First name<input name="firstName" required /></label>
             <label>Last name<input name="lastName" required /></label>

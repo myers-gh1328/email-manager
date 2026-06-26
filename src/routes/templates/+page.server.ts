@@ -3,6 +3,7 @@ import { repo } from '$lib/server/app';
 import { errorText, formText, required } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
 import { loadTemplatesData } from '$lib/server/page-data';
+import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
 
 export const load = ({ url }) => {
   const data = loadTemplatesData({
@@ -14,6 +15,7 @@ export const load = ({ url }) => {
   return {
     ...data,
     action,
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
     selectedTemplateId,
     selectedTemplate: selectedTemplateId ? repo.getTemplate(selectedTemplateId) : undefined
   };
@@ -27,7 +29,7 @@ export const actions = {
       subject: required(form, 'subject'),
       body: required(form, 'body')
     });
-    return { message: 'Template saved.' };
+    return returnAfterCreate(form, 'Template saved.');
   },
   updateTemplate: async ({ request }) => {
     const form = await request.formData();

@@ -126,6 +126,7 @@
       {/if}
       <form method="POST" action="?/createTemplate" class="panel-form" data-local-busy use:enhance={draftWithAi}>
         <h3>Create template</h3>
+        {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Subject<input name="subject" placeholder={'Welcome to {{courseName}}, {{firstName}}'} required /></label>
         <details class="token-help">
@@ -163,6 +164,7 @@
         <form method="POST" action={form.draft.templateId ? '?/updateTemplate' : '?/createTemplate'} class="panel-form draft-result" use:enhance={draftWithAi}>
           <h3>Review AI draft</h3>
           {#if form.draft.templateId}<input name="templateId" type="hidden" value={form.draft.templateId} />{/if}
+          {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <label>Name<input name="name" value={form.draft.name} required /></label>
           <label>Subject<input name="subject" value={form.draft.subject} required /></label>
           <details class="token-help">

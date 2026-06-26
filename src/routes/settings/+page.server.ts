@@ -17,6 +17,7 @@ import { testSmtpSettings } from '$lib/server/mailer';
 import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
 import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
+import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
 import {
   aiApiKeyForModelLoad,
   getAiApiKey,
@@ -41,6 +42,7 @@ export const load = ({ url }) => {
     ...data,
     message: url.searchParams.get('message') ?? '',
     openSection: url.searchParams.get('section') ?? '',
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
     externalSignOnLinked: url.searchParams.get('externalSignOn') === 'linked',
     externalSignOn: getExternalSignOnStatus(),
     externalSignOnRedirectUris: {
@@ -104,7 +106,7 @@ export const actions = {
   createCourse: async ({ request }) => {
     const form = await request.formData();
     repo.createCourseType({ name: required(form, 'name'), description: text(form, 'description') });
-    return { message: 'Course type added.' };
+    return returnAfterCreate(form, 'Course type added.');
   },
   updateCourse: async ({ request }) => {
     const form = await request.formData();
@@ -114,7 +116,7 @@ export const actions = {
   createLocation: async ({ request }) => {
     const form = await request.formData();
     repo.createLocation(locationInput(form));
-    return { message: 'Location added.' };
+    return returnAfterCreate(form, 'Location added.');
   },
   updateLocation: async ({ request }) => {
     const form = await request.formData();
@@ -124,7 +126,7 @@ export const actions = {
   createChecklistItem: async ({ request }) => {
     const form = await request.formData();
     repo.createChecklistItem({ label: required(form, 'label') });
-    return { message: 'Prep task added.' };
+    return returnAfterCreate(form, 'Prep task added.');
   },
   updateChecklistItem: async ({ request }) => {
     const form = await request.formData();

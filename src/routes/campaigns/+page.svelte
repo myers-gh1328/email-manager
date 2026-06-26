@@ -10,6 +10,9 @@
   let campaignsStatus = $derived(data.campaignsPage.status ?? '');
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
+  let campaignWorkflowReturnTo = $derived(`/campaigns${data.action ? `?action=${encodeURIComponent(data.action)}` : ''}`);
+  let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
+  let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   const statusFilters = [
     { value: '', label: 'All' },
     { value: 'upcoming', label: 'Upcoming' },
@@ -133,7 +136,7 @@
           label="Class"
           options={classOptions}
           placeholder="Search classes"
-          addHref="/classes?action=session"
+          addHref={addClassHref}
           addLabel="Add class"
           searchHref="/classes/search"
           required
@@ -143,7 +146,7 @@
           label="Template"
           options={templateOptions}
           placeholder="Search templates"
-          addHref="/templates?action=create"
+          addHref={addTemplateHref}
           addLabel="Add template"
           searchHref="/templates/search"
           required
@@ -163,7 +166,7 @@
           label="Class"
           options={classOptions}
           placeholder="Search classes"
-          addHref="/classes?action=session"
+          addHref={addClassHref}
           addLabel="Add class"
           searchHref="/classes/search"
           required
@@ -173,7 +176,7 @@
           label="Template"
           options={templateOptions}
           placeholder="Search templates"
-          addHref="/templates?action=create"
+          addHref={addTemplateHref}
           addLabel="Add template"
           searchHref="/templates/search"
           required

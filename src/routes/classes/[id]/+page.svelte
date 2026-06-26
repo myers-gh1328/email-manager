@@ -24,6 +24,10 @@
   let classEmailSearch = $derived(data.scheduledCampaignsPage.search ?? '');
   let currentClassEmailsPage = $derived(Math.floor(data.scheduledCampaignsPage.offset / data.scheduledCampaignsPage.limit) + 1);
   let totalClassEmailsPages = $derived(Math.max(Math.ceil(data.scheduledCampaignsPage.total / data.scheduledCampaignsPage.limit), 1));
+  let classDetailReturnTo = $derived(`/classes/${data.session.id}`);
+  let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
+  let addContactHref = $derived(`/contacts?action=add&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
+  let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
 
   $effect(() => {
     if (loadedSessionId !== data.session.id) {
@@ -230,7 +234,7 @@
         options={courseOptions}
         value={data.session.courseTypeId}
         placeholder="Search courses"
-        addHref="/settings?section=app-data"
+        addHref={appDataAddHref}
         addLabel="Add course"
         searchHref="/courses/search"
         required
@@ -241,7 +245,7 @@
         options={locationOptions}
         value={data.session.locationId}
         placeholder="Search locations"
-        addHref="/settings?section=app-data"
+        addHref={appDataAddHref}
         addLabel="Add location"
         searchHref="/locations/search"
         required
@@ -254,7 +258,7 @@
     </form>
     <form method="POST" action="?/enrollContact" class="panel-form" use:enhance>
       <h3>Add student</h3>
-      <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" addHref="/contacts?action=add" addLabel="Add contact" />
+      <ContactMultiSelect contacts={data.contactOptions} name="contactId" legend="Student" mode="single" addHref={addContactHref} addLabel="Add contact" />
       <button type="submit">Enroll</button>
     </form>
     <form method="POST" action="?/previewClassEmail" class="panel-form" use:enhance>
@@ -265,7 +269,7 @@
         options={templateOptions}
         value={form?.emailChoice ?? ''}
         placeholder="Choose email template"
-        addHref="/templates?action=create"
+        addHref={addTemplateHref}
         addLabel="Add template"
         searchHref="/templates/search"
         required

@@ -18,20 +18,39 @@ describe('SearchSelect contract', () => {
     const classes = readFileSync('src/routes/classes/+page.svelte', 'utf8');
     const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
     const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
+    const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+    const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
+    const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
+    const contactsServer = readFileSync('src/routes/contacts/+page.server.ts', 'utf8');
+    const templates = readFileSync('src/routes/templates/+page.svelte', 'utf8');
+    const templatesServer = readFileSync('src/routes/templates/+page.server.ts', 'utf8');
+    const returnTo = readFileSync('src/lib/server/return-to.ts', 'utf8');
 
     expect(source).toContain('bind:value={search}');
     expect(source).toContain('filteredOptions');
     expect(source).toContain('No options match that search.');
     expect(source).toContain('addHref');
     expect(source).toContain('addLabel');
-    expect(classes).toContain('addHref="/settings?section=app-data"');
+    expect(classes).toContain('appDataAddHref');
+    expect(classes).toContain('addHref={appDataAddHref}');
     expect(classes).toContain('addLabel="Add course"');
     expect(classes).toContain('addLabel="Add location"');
     expect(scheduledEmails).toContain('addLabel="Add class"');
     expect(scheduledEmails).toContain('addLabel="Add template"');
-    expect(scheduledEmails).toContain('addHref="/templates?action=create"');
+    expect(scheduledEmails).toContain('addTemplateHref');
+    expect(scheduledEmails).toContain('addHref={addTemplateHref}');
     expect(newEmail).toContain('addLabel="Add template"');
-    expect(newEmail).toContain('addHref="/templates?action=create"');
+    expect(newEmail).toContain('addHref={addTemplateHref}');
+    expect(classes).toContain('returnTo=');
+    expect(scheduledEmails).toContain('returnTo=');
+    expect(newEmail).toContain('returnTo=');
+    expect(settings).toContain('name="returnTo"');
+    expect(settingsServer).toContain('returnAfterCreate');
+    expect(returnTo).toContain("returnTo.startsWith('/')");
+    expect(contacts).toContain('name="returnTo"');
+    expect(contactsServer).toContain('returnAfterCreate');
+    expect(templates).toContain('name="returnTo"');
+    expect(templatesServer).toContain('returnAfterCreate');
   });
 
   test('uses a shared searchable contact multi-select for direct email recipients', () => {
@@ -50,7 +69,8 @@ describe('SearchSelect contract', () => {
     expect(picker).toContain('addHref');
     expect(picker).toContain('addLabel');
     expect(newEmail).toContain('addLabel="Add contact"');
-    expect(newEmail).toContain('addHref="/contacts?action=add"');
+    expect(newEmail).toContain('addContactHref');
+    expect(newEmail).toContain('addHref={addContactHref}');
   });
 
   test('uses the shared contact picker for class enrollment without a one-field collapse', () => {
@@ -62,7 +82,9 @@ describe('SearchSelect contract', () => {
     expect(classDetail).toContain("name=\"contactId\"");
     expect(classDetail).toContain("mode=\"single\"");
     expect(classDetail).toContain('addLabel="Add contact"');
-    expect(classDetail).toContain('addHref="/contacts?action=add"');
+    expect(classDetail).toContain('addContactHref');
+    expect(classDetail).toContain('addHref={addContactHref}');
+    expect(classDetail).toContain('returnTo=');
     expect(classDetail).not.toContain('<summary>Add student</summary>');
     expect(picker).toContain("mode = 'multi'");
     expect(picker).toContain("type={mode === 'single' ? 'radio' : 'checkbox'}");
@@ -129,8 +151,8 @@ describe('SearchSelect contract', () => {
     expect(classDetailServer).not.toContain('locations: repo.listLocations()');
     expect(classes).toContain('searchHref="/courses/search"');
     expect(classes).toContain('searchHref="/locations/search"');
-    expect(classes).toContain('addHref="/settings?section=app-data"');
-    expect(classDetail).toContain('addHref="/settings?section=app-data"');
+    expect(classes).toContain('addHref={appDataAddHref}');
+    expect(classDetail).toContain('addHref={appDataAddHref}');
     expect(classDetail).toContain('searchHref="/courses/search"');
     expect(classDetail).toContain('searchHref="/locations/search"');
     expect(courseSearchRoute).toContain('repo.listCourseTypesPage');
