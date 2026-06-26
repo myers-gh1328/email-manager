@@ -74,7 +74,7 @@
       options={templateOptions}
       value={selectedTemplateId}
       placeholder="Search templates"
-      addHref="/templates?action=add"
+      addHref="/templates?action=create"
       addLabel="Add template"
     />
     <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>

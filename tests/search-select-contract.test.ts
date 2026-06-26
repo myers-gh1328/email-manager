@@ -25,7 +25,9 @@ describe('SearchSelect contract', () => {
     expect(classes).toContain('addLabel="Add location"');
     expect(scheduledEmails).toContain('addLabel="Add class"');
     expect(scheduledEmails).toContain('addLabel="Add template"');
+    expect(scheduledEmails).toContain('addHref="/templates?action=create"');
     expect(newEmail).toContain('addLabel="Add template"');
+    expect(newEmail).toContain('addHref="/templates?action=create"');
   });
 
   test('uses a shared searchable contact multi-select for direct email recipients', () => {

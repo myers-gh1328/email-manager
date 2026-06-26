@@ -188,7 +188,7 @@
           options={templateOptions}
           value={form?.emailChoice ?? ''}
           placeholder="Choose email template"
-          addHref="/templates?action=add"
+          addHref="/templates?action=create"
           addLabel="Add template"
           required
         />

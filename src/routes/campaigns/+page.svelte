@@ -125,7 +125,7 @@
           label="Template"
           options={templateOptions}
           placeholder="Search templates"
-          addHref="/templates?action=add"
+          addHref="/templates?action=create"
           addLabel="Add template"
           required
         />
@@ -153,7 +153,7 @@
           label="Template"
           options={templateOptions}
           placeholder="Search templates"
-          addHref="/templates?action=add"
+          addHref="/templates?action=create"
           addLabel="Add template"
           required
         />
