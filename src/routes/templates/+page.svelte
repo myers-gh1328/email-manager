@@ -11,6 +11,7 @@
 	  let currentTemplatesPage = $derived(Math.floor(data.templatesPage.offset / data.templatesPage.limit) + 1);
 	  let totalTemplatesPages = $derived(Math.max(Math.ceil(data.templatesPage.total / data.templatesPage.limit), 1));
 	  let templateListReturnTo = $derived(templatesPageHref(currentTemplatesPage));
+	  let templateWorkflowReturnTo = $derived(data.returnTo || templateListReturnTo);
 	  const variableFields = tokenFields(classTemplateTokens);
 
   function confirmDelete() {
@@ -51,8 +52,8 @@
       </div>
     </div>
     <div class="action-row">
-      <a class:active={data.action === 'create'} class="button-link" href="/templates?action=create">Create template</a>
-      <a class:active={data.action === 'ai'} class="button-link" href="/templates?action=ai">AI draft</a>
+      <a class:active={data.action === 'create'} class="button-link" href={`/templates?action=create&returnTo=${encodeURIComponent(templateListReturnTo)}`}>Create template</a>
+      <a class:active={data.action === 'ai'} class="button-link" href={`/templates?action=ai&returnTo=${encodeURIComponent(templateListReturnTo)}`}>AI draft</a>
     </div>
     {#if form?.message}<p class={form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
     <form class="inline-filters" method="GET" action="/templates">
@@ -158,12 +159,12 @@
           <EmailBodyEditor name="body" rows={9} required value={form.draft.body} fields={variableFields} />
           <div class="button-row">
             <button type="submit">{form.draft.templateId ? 'Update template' : 'Save template'}</button>
-            <a class="button-link" href="/templates?action=ai">Discard draft</a>
+            <a class="button-link" href={`/templates?action=ai&returnTo=${encodeURIComponent(templateWorkflowReturnTo)}`}>Discard draft</a>
           </div>
         </form>
       {/if}
       <div class="button-row">
-        <a class="button-link" href="/templates">Cancel</a>
+        <a class="button-link" href={templateWorkflowReturnTo}>Cancel</a>
       </div>
     {/if}
     </div>

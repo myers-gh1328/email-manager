@@ -429,8 +429,15 @@ describe('operator visibility contract', () => {
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('templateListReturnTo');
+    expect(templates).toContain('templateWorkflowReturnTo');
+    expect(templates).toContain('href={`/templates?action=create&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
+    expect(templates).toContain('href={`/templates?action=ai&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
     expect(templates).toContain('href={`/templates?templateId=${template.id}&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
     expect(templates).toContain("href={data.returnTo || '/templates'}");
+    expect(templates).toContain('href={`/templates?action=ai&returnTo=${encodeURIComponent(templateWorkflowReturnTo)}`}');
+    expect(templates).toContain('href={templateWorkflowReturnTo}');
+    expect(templates).not.toContain('href="/templates?action=ai">Discard draft');
+    expect(templates).not.toContain('href="/templates">Cancel');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');
     expect(templates).toContain('fields={variableFields}');
     expect(templates).not.toContain('<summary>Template fields</summary>');
