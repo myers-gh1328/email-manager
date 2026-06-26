@@ -569,7 +569,7 @@
           <label class="check"><span><input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} /> Let agents view my app data</span></label>
           <label class="check"><span><input name="editRecords" type="checkbox" checked={data.settings.agentPermissions.editRecords} /> Let agents draft and edit records</span></label>
           <label class="check"><span><input name="importData" type="checkbox" checked={data.settings.agentPermissions.importData} /> Let agents import roster data</span></label>
-          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my review</span></label>
+          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my confirmation</span></label>
           <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule confirmed emails</span></label>
           <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send confirmed emails</span></label>
           <label class="check"><span><input name="updateSettings" type="checkbox" checked={data.settings.agentPermissions.updateSettings} /> Let agents update selected settings</span></label>
