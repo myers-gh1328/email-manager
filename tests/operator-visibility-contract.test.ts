@@ -244,6 +244,8 @@ describe('operator visibility contract', () => {
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     const repository = readFileSync('src/lib/server/repository/templates.ts', 'utf8');
 
+    expect(templates).toContain('<h2>Email templates</h2>');
+    expect(templates).not.toContain('Reusable personalized emails');
     expect(templates).toContain('Search templates');
     expect(templates).toContain('templatesPageHref');
     expect(templates).toContain('Page {currentTemplatesPage} of {totalTemplatesPages}');

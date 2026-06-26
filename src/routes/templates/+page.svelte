@@ -47,7 +47,7 @@
     <div class="section-heading compact">
       <div>
         <p class="eyebrow">Templates</p>
-        <h2>Reusable personalized emails</h2>
+        <h2>Email templates</h2>
       </div>
     </div>
     <div class="action-row">
