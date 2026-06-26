@@ -716,7 +716,8 @@ describe('operator visibility contract', () => {
     expect(history).toContain("value: '', label: 'All email types'");
     expect(history).toContain("value: 'direct', label: 'Direct'");
     expect(history).toContain("value: 'scheduled', label: 'Scheduled'");
-    expect(history).toContain("value: '', label: 'All delivery statuses'");
+    expect(history).toContain("value: '', label: 'All send statuses'");
+    expect(history).not.toContain("value: '', label: 'All delivery statuses'");
     expect(history).toContain("value: 'sent', label: 'Sent'");
     expect(history).toContain("value: 'failed', label: 'Failed'");
     expect(history).toContain('name="sourceId"');
@@ -777,6 +778,8 @@ describe('operator visibility contract', () => {
     expect(historyDetail).not.toContain("communication.className || 'Class detail'");
     expect(historyDetail).toContain('href={data.returnTo || \'/history\'}');
     expect(historyDetail).toContain('data.actionMessage');
+    expect(historyDetail).toContain('<dt>Send status</dt>');
+    expect(historyDetail).not.toContain('<dt>Delivery</dt>');
     expect(historyDetail).toContain('communication.classSessionId');
     expect(historyDetail).toContain('detailReturnTo');
     expect(historyDetail).toContain('href={`/contacts?contactId=${communication.contactId}&returnTo=${encodeURIComponent(detailReturnTo)}`}');

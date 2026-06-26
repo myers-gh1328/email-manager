@@ -39,7 +39,7 @@
         <dd><a href={`/contacts?contactId=${communication.contactId}&returnTo=${encodeURIComponent(detailReturnTo)}`}>{communication.contactName}</a></dd>
       </div>
       <div>
-        <dt>Delivery</dt>
+        <dt>Send status</dt>
         <dd><span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span></dd>
       </div>
       <div>

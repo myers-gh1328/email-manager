@@ -15,7 +15,7 @@
     { value: 'scheduled', label: 'Scheduled' }
   ];
   const statusFilters = [
-    { value: '', label: 'All delivery statuses' },
+    { value: '', label: 'All send statuses' },
     { value: 'sent', label: 'Sent' },
     { value: 'failed', label: 'Failed' }
   ];
