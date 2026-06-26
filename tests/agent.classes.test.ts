@@ -27,6 +27,23 @@ describe('agent class tools', () => {
     expect(result.labels.classSessionLabel).toBe('Class session');
   });
 
+  it('lists class sessions through the paged repository query', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Open Water' });
+    repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const listAll = repo.listClassSessions.bind(repo);
+    repo.listClassSessions = () => {
+      throw new Error('agent class search should not list every class session');
+    };
+
+    const result = listClassSessionsTool(repo, { query: 'open', limit: 5 }, agentSettings({ viewData: true }));
+
+    repo.listClassSessions = listAll;
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.classSessions).toMatchObject([{ courseName: 'Open Water' }]);
+  });
+
   it('denies class reads when agent access or viewData are disabled', () => {
     const repo = createTestRepository();
 
