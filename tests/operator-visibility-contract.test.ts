@@ -165,13 +165,17 @@ describe('operator visibility contract', () => {
     const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
     const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
     const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
 
     expect(scheduledEmailDetail).toContain('deliveryStatusLabel(recipient.status)');
     expect(history).toContain('messageStatusLabel(communication.status)');
     expect(contacts).toContain('messageStatusLabel(communication.status)');
+    expect(classDetail).toContain('scheduledEmailDeliverySummary(campaign)');
     expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
     expect(history).not.toContain('{communication.status}</span>');
     expect(contacts).not.toContain('{communication.status}</span>');
+    expect(classDetail).not.toContain('{campaign.pendingCount} pending');
+    expect(classDetail).not.toContain('{campaign.failedCount} failed');
   });
 
   test('keeps Test Sends paginated and searchable', () => {

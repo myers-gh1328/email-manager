@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { deliveryStatusLabel, formatClassSchedule, messageStatusLabel, purposeLabel, timingLabel } from '../src/lib/shared/format';
+import {
+  deliveryStatusLabel,
+  formatClassSchedule,
+  messageStatusLabel,
+  scheduledEmailDeliverySummary,
+  purposeLabel,
+  timingLabel
+} from '../src/lib/shared/format';
 
 describe('shared formatting helpers', () => {
   test('formats class schedules consistently', () => {
@@ -19,5 +26,14 @@ describe('shared formatting helpers', () => {
     expect(deliveryStatusLabel('not planned')).toBe('Not prepared');
     expect(messageStatusLabel('accepted')).toBe('Accepted by mail server');
     expect(messageStatusLabel('sent')).toBe('Sent');
+  });
+
+  test('summarizes scheduled email delivery counts in operator language', () => {
+    expect(scheduledEmailDeliverySummary({ recipientCount: 4, pendingCount: 3, sentCount: 1, failedCount: 0 })).toBe(
+      '4 recipients · 3 prepared · 1 sent'
+    );
+    expect(scheduledEmailDeliverySummary({ recipientCount: 2, pendingCount: 0, sentCount: 1, failedCount: 1 })).toBe(
+      '2 recipients · 1 sent · 1 needs review'
+    );
   });
 });

@@ -45,3 +45,16 @@ export function messageStatusLabel(status: string) {
   };
   return labels[status] ?? status;
 }
+
+export function scheduledEmailDeliverySummary(counts: {
+  recipientCount: number;
+  pendingCount?: number;
+  sentCount?: number;
+  failedCount?: number;
+}) {
+  const parts = [`${counts.recipientCount} recipient${counts.recipientCount === 1 ? '' : 's'}`];
+  if (counts.pendingCount) parts.push(`${counts.pendingCount} prepared`);
+  if (counts.sentCount) parts.push(`${counts.sentCount} sent`);
+  if (counts.failedCount) parts.push(`${counts.failedCount} needs review`);
+  return parts.join(' · ');
+}
