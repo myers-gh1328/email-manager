@@ -301,8 +301,8 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('{#if form?.emailSearch}<input name="emailSearch" type="hidden" value={form.emailSearch} />{/if}');
     expect(classDetail).toContain('{#if form?.emailPage}<input name="emailPage" type="hidden" value={form.emailPage} />{/if}');
     expect(classDetailServer).toContain("returnTo: text(form, 'returnTo')");
-    expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Class email scheduled.'))");
-    expect(classDetailServer).not.toContain("return { panel: 'email', message: 'Class email scheduled.' }");
+    expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Scheduled email created.'))");
+    expect(classDetailServer).not.toContain("Class email scheduled.");
   });
 
   test('names inherited class emails without default or class-type jargon', () => {

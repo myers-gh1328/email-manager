@@ -156,7 +156,7 @@ export const actions = {
       sendOffsetMinutes: sendOffsetMinutes ? Number(sendOffsetMinutes) : 0
     });
     repo.ensurePendingDeliveries(campaign.id);
-    throw redirect(303, classDetailActionReturn(params.id, form, 'Class email scheduled.'));
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Scheduled email created.'));
   },
   back: async () => {
     throw redirect(303, '/classes');
