@@ -112,7 +112,7 @@
             <span class="pill">From course</span>
           </article>
         {:else}
-          <p class="empty">No automatic emails are configured for this course.</p>
+          <p class="empty">No automatic scheduled emails are configured for this class.</p>
         {/each}
       </div>
     </section>

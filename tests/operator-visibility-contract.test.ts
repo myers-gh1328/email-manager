@@ -315,6 +315,7 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('Automatic scheduled emails');
     expect(classDetail).toContain('Emails added automatically');
     expect(classDetail).toContain('These scheduled emails are created automatically for this class.');
+    expect(classDetail).toContain('No automatic scheduled emails are configured for this class.');
     expect(classDetail).toContain('Scheduled emails for this class');
     expect(classDetail).not.toContain('What will send for this class');
     expect(classDetail).toContain('From course');
@@ -322,6 +323,7 @@ describe('operator visibility contract', () => {
     expect(classDetail).not.toContain('Course email defaults');
     expect(classDetail).not.toContain('Automatic class emails');
     expect(classDetail).not.toContain('Changing course emails');
+    expect(classDetail).not.toContain('No automatic emails are configured for this course.');
     expect(classDetail).not.toContain('Automatic schedules from this class type');
     expect(classDetail).not.toContain('Inherited from course type');
     expect(classDetail).not.toContain('Manual schedule');
