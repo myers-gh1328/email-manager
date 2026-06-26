@@ -97,11 +97,11 @@
     <section class="panel-form spaced">
       <div class="section-heading compact">
         <div>
-          <p class="eyebrow">Automatic class emails</p>
-          <h3>Emails added from course</h3>
+          <p class="eyebrow">Automatic scheduled emails</p>
+          <h3>Emails added automatically</h3>
         </div>
       </div>
-      <p class="body-copy">These emails come from the selected course. Changing course emails updates future unsent class emails while preserving emails already sent.</p>
+      <p class="body-copy">These scheduled emails are created automatically for this class. Changes here affect future unsent emails while preserving emails already sent.</p>
       <div class="list">
         {#each data.defaultTemplates as defaultTemplate}
           <article class="row-card">

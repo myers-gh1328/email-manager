@@ -310,13 +310,16 @@ describe('operator visibility contract', () => {
     const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
     const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
 
-    expect(classDetail).toContain('Automatic class emails');
-    expect(classDetail).toContain('Emails added from course');
+    expect(classDetail).toContain('Automatic scheduled emails');
+    expect(classDetail).toContain('Emails added automatically');
+    expect(classDetail).toContain('These scheduled emails are created automatically for this class.');
     expect(classDetail).toContain('Scheduled emails for this class');
     expect(classDetail).not.toContain('What will send for this class');
     expect(classDetail).toContain('From course');
     expect(classDetail).toContain('Added for this class');
     expect(classDetail).not.toContain('Course email defaults');
+    expect(classDetail).not.toContain('Automatic class emails');
+    expect(classDetail).not.toContain('Changing course emails');
     expect(classDetail).not.toContain('Automatic schedules from this class type');
     expect(classDetail).not.toContain('Inherited from course type');
     expect(classDetail).not.toContain('Manual schedule');
