@@ -490,6 +490,9 @@ describe('operator visibility contract', () => {
     expect(templates).toContain('href={templatesClearHref}');
     expect(templates).toContain('templateListReturnTo');
     expect(templates).toContain('templateWorkflowReturnTo');
+    expect(templates).toContain('data.actionMessage');
+    expect(templates).toContain('{#if templatesSearch}<input name="search" type="hidden" value={templatesSearch} />{/if}');
+    expect(templates).toContain('{#if currentTemplatesPage > 1}<input name="page" type="hidden" value={currentTemplatesPage} />{/if}');
     expect(templates).toContain('href={`/templates?action=create&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
     expect(templates).toContain('href={`/templates?action=ai&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
     expect(templates).toContain('href={`/templates?templateId=${template.id}&returnTo=${encodeURIComponent(templateListReturnTo)}`}');
@@ -505,6 +508,9 @@ describe('operator visibility contract', () => {
     expect(templates.indexOf('<div class="list">')).toBeLessThan(templates.indexOf('<div class="form-stack task-stack">'));
     expect(templates).not.toContain('<section class="band two-column">');
     expect(templatesServer).toContain('page: Number(url.searchParams.get');
+    expect(templatesServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(templatesServer).toContain('templateActionReturn');
+    expect(templatesServer).toContain('throw redirect(303, templateActionReturn(form,');
     expect(pageData).toContain('templatesPage = repo.listTemplatesPage');
     expect(repository).toContain('limit ? offset ?');
   });

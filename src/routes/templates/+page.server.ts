@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { errorText, formText, required } from '$lib/server/form-utils';
 import { suggestTemplate } from '$lib/server/llm';
@@ -16,6 +16,7 @@ export const load = ({ url }) => {
     ...data,
     action,
     returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+    actionMessage: url.searchParams.get('message') ?? '',
     selectedTemplateId,
     selectedTemplate: selectedTemplateId ? repo.getTemplate(selectedTemplateId) : undefined
   };
@@ -38,13 +39,13 @@ export const actions = {
       subject: required(form, 'subject'),
       body: required(form, 'body')
     });
-    return { message: 'Template updated.' };
+    throw redirect(303, templateActionReturn(form, 'Template updated.', required(form, 'templateId')));
   },
   deleteTemplate: async ({ request }) => {
     const form = await request.formData();
     try {
       repo.deleteTemplate(required(form, 'templateId'));
-      return { message: 'Template deleted.' };
+      throw redirect(303, templateActionReturn(form, 'Template deleted.'));
     } catch (error) {
       return { message: errorText(error) };
     }
@@ -73,3 +74,16 @@ export const actions = {
     }
   }
 };
+
+function templateActionReturn(form: FormData, message: string, templateId = '') {
+  const params = new URLSearchParams();
+  const returnTo = localReturnTo(formText(form.get('returnTo')));
+  const search = formText(form.get('search'));
+  const page = Math.max(Number(formText(form.get('page')) || '1'), 1);
+  if (templateId) params.set('templateId', templateId);
+  if (returnTo) params.set('returnTo', returnTo);
+  if (search) params.set('search', search);
+  if (page > 1) params.set('page', String(page));
+  params.set('message', message);
+  return `/templates?${params.toString()}`;
+}

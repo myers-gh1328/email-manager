@@ -57,7 +57,9 @@
       <a class:active={data.action === 'create'} class="button-link" href={`/templates?action=create&returnTo=${encodeURIComponent(templateListReturnTo)}`}>Create template</a>
       <a class:active={data.action === 'ai'} class="button-link" href={`/templates?action=ai&returnTo=${encodeURIComponent(templateListReturnTo)}`}>AI draft</a>
     </div>
-    {#if form?.message}<p class={form.message.includes('cannot') ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}
+      <p class={form?.message?.includes('cannot') ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>
+    {/if}
     <form class="inline-filters" method="GET" action="/templates">
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
       <label>
@@ -102,6 +104,9 @@
       {/if}
       <form method="POST" action="?/updateTemplate" class="panel-form" data-local-busy use:enhance={draftWithAi}>
         <h3>Edit template</h3>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if templatesSearch}<input name="search" type="hidden" value={templatesSearch} />{/if}
+        {#if currentTemplatesPage > 1}<input name="page" type="hidden" value={currentTemplatesPage} />{/if}
         <input name="templateId" type="hidden" value={data.selectedTemplate.id} />
         <label>Name<input name="name" value={data.selectedTemplate.name} required /></label>
         <label>Subject<input name="subject" value={data.selectedTemplate.subject} required /></label>
@@ -157,6 +162,8 @@
           <h3>Edit AI draft</h3>
           {#if form.draft.templateId}<input name="templateId" type="hidden" value={form.draft.templateId} />{/if}
           {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+          {#if templatesSearch}<input name="search" type="hidden" value={templatesSearch} />{/if}
+          {#if currentTemplatesPage > 1}<input name="page" type="hidden" value={currentTemplatesPage} />{/if}
           <label>Name<input name="name" value={form.draft.name} required /></label>
           <label>Subject<input name="subject" value={form.draft.subject} required /></label>
           <EmailBodyEditor name="body" rows={9} required value={form.draft.body} fields={variableFields} />
