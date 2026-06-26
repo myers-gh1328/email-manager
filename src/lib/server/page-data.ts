@@ -200,10 +200,8 @@ export function loadCommunicationsData(input: { contactId?: string; sourceId?: s
     offset: (page - 1) * limit
   });
   return {
-    contactOptions: loadContactOptions(),
     communications: communicationPage.items,
     communicationPage,
-    templateOptions: loadTemplateOptions(),
     selectedContactId: input.contactId ?? '',
     selectedSourceId: input.sourceId ?? '',
     settings: getSettings()

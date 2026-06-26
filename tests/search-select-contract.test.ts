@@ -77,7 +77,6 @@ describe('SearchSelect contract', () => {
     expect(classDetailServer).not.toContain('contacts: repo.listContacts()');
     expect(pageData).toContain('function loadContactOptions');
     expect(pageData).toContain('repo.listContactsPage({ limit: 25 }).items');
-    expect(pageData).toContain('contactOptions: loadContactOptions()');
     expect(classDetailServer).toContain('loadContactOptions');
     expect(classDetailServer).toContain('contactOptions: loadContactOptions()');
     expect(picker).toContain("searchHref = '/contacts/search'");
@@ -125,6 +124,16 @@ describe('SearchSelect contract', () => {
 
     expect(pageData).not.toContain('contactOptions: loadContactOptions(),\n    classSessionOptions: loadClassSessionOptions()');
     expect(pageData).not.toContain('locations: repo.listLocations(),\n    templateOptions: loadTemplateOptions()');
+  });
+
+  test('does not preload unused picker options for the History page', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+    const historyLoad = pageData.slice(pageData.indexOf('export function loadCommunicationsData'), pageData.indexOf('export function loadNewEmailData'));
+
+    expect(historyLoad).not.toContain('contactOptions');
+    expect(historyLoad).not.toContain('templateOptions');
+    expect(historyLoad).toContain('communications: communicationPage.items');
+    expect(historyLoad).toContain('selectedContactId');
   });
 
   test('uses the shared search select for discovered AI models in settings', () => {
