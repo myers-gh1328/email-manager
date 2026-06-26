@@ -72,7 +72,7 @@
 
   <div class="form-stack">
     <form method="POST" action="?/updateCampaign" class="panel-form" use:enhance>
-      <h3>Lifecycle</h3>
+      <h3>Edit schedule</h3>
       <label>Name<input name="name" value={data.campaign.name} required /></label>
       <label>Send at<input name="scheduledFor" type="datetime-local" value={data.scheduledForInput} required /></label>
       {#if data.campaign.approved}
