@@ -169,4 +169,43 @@ describe('repository communications', () => {
       }
     ]);
   });
+
+  test('lists redirected test email audits with pagination and search', () => {
+    const repo = createTestRepository();
+
+    repo.recordEmailTestAudit({
+      originalRecipient: 'maya@example.com',
+      effectiveRecipient: 'instructor@example.com',
+      subject: 'Pool reminder',
+      body: 'Test body',
+      providerMessage: 'provider-123'
+    });
+    repo.recordEmailTestAudit({
+      originalRecipient: 'jo@example.com',
+      effectiveRecipient: 'instructor@example.com',
+      subject: 'Schedule change',
+      body: 'Another body',
+      providerMessage: 'provider-456'
+    });
+    repo.recordEmailTestAudit({
+      originalRecipient: 'maya@example.com',
+      effectiveRecipient: 'instructor@example.com',
+      subject: 'Final details',
+      body: 'Later body',
+      providerMessage: 'provider-789'
+    });
+
+    const page = repo.listEmailTestAuditsPage({ limit: 1, offset: 0, search: 'maya' });
+
+    expect(page.total).toBe(2);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([
+      {
+        originalRecipient: 'maya@example.com',
+        subject: 'Final details',
+        providerMessage: 'provider-789'
+      }
+    ]);
+  });
 });

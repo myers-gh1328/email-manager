@@ -222,6 +222,20 @@ export interface EmailTestAuditItem {
   createdAt: string;
 }
 
+export interface EmailTestAuditPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface EmailTestAuditPage {
+  items: EmailTestAuditItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export type ExternalEntityType = 'contact' | 'class_session' | 'enrollment';
 
 export interface ExternalMappingInput {

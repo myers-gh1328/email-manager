@@ -81,6 +81,7 @@ import {
   listContactCommunications,
   listRecentContactCommunications,
   listEmailTestAudits,
+  listEmailTestAuditsPage,
   markCommunicationReplyReviewed,
   recordCommunication,
   recordCommunicationReply,
@@ -118,6 +119,7 @@ import type {
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
   EmailTestAuditInput,
+  EmailTestAuditPageInput,
   EnrollmentChecklistCompletionInput,
   ExternalEntityType,
   ExternalEventIngestion,
@@ -156,6 +158,8 @@ export type {
   DuplicateContactMatch,
   EmailTestAuditInput,
   EmailTestAuditItem,
+  EmailTestAuditPage,
+  EmailTestAuditPageInput,
   EnrollmentChecklistCompletionInput,
   EnrollmentChecklistState,
   ExternalEntityType,
@@ -511,6 +515,10 @@ export class AppRepository {
 
   listEmailTestAudits() {
     return listEmailTestAudits(this.db);
+  }
+
+  listEmailTestAuditsPage(input?: EmailTestAuditPageInput) {
+    return listEmailTestAuditsPage(this.db, input);
   }
 
   listCommunications() {

@@ -103,4 +103,16 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");
     expect(scheduledEmailsServer).not.toContain("form.get('approved') === 'on'");
   });
+
+  test('keeps Test Sends paginated and searchable', () => {
+    const testSends = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
+    const testSendsServer = readFileSync('src/routes/test-audit/+page.server.ts', 'utf8');
+    const repository = readFileSync('src/lib/server/repository/communications.ts', 'utf8');
+
+    expect(testSendsServer).toContain('listEmailTestAuditsPage');
+    expect(testSends).toContain('Search test sends');
+    expect(testSends).toContain('testAuditPageHref');
+    expect(testSends).toContain('Page {currentTestAuditPage} of {totalTestAuditPages}');
+    expect(repository).toContain('limit ? offset ?');
+  });
 });

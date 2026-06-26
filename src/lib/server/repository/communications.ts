@@ -10,6 +10,8 @@ import type {
   RecordedCommunicationReply,
   EmailTestAuditInput,
   EmailTestAuditItem,
+  EmailTestAuditPage,
+  EmailTestAuditPageInput,
   Row
 } from './types';
 
@@ -108,6 +110,44 @@ export function listEmailTestAudits(db: DatabaseSync): EmailTestAuditItem[] {
     .prepare('select * from email_test_audits order by created_at desc, rowid desc')
     .all()
     .map(mapEmailTestAudit);
+}
+
+export function listEmailTestAuditsPage(db: DatabaseSync, input: EmailTestAuditPageInput = {}): EmailTestAuditPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(original_recipient) like ?
+        or lower(effective_recipient) like ?
+        or lower(subject) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from email_test_audits ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from email_test_audits
+       ${whereSql}
+       order by created_at desc, rowid desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapEmailTestAudit(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 function getEmailTestAudit(db: DatabaseSync, id: string): EmailTestAuditItem {
