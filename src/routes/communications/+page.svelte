@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
   import { formatDateTime, messageStatusLabel } from '$lib/shared/format';
 
   let { data } = $props();
@@ -18,14 +17,6 @@
     return query ? `/communications?${query}` : '/communications';
   }
 
-  function replyHref(communication: { contactId: string; subject: string }, reply: { snippet: string; textBody: string }) {
-    const params = new URLSearchParams();
-    params.set('contactId', communication.contactId);
-    params.set('subject', communication.subject.toLowerCase().startsWith('re:') ? communication.subject : `Re: ${communication.subject}`);
-    const quoted = reply.snippet || reply.textBody;
-    if (quoted) params.set('body', `\n\nOn their reply:\n${quoted}`);
-    return `/new-email?${params.toString()}`;
-  }
 </script>
 
 <svelte:head>
@@ -64,7 +55,7 @@
       {#each data.communications as communication}
         <article class="row-card tall">
           <div>
-            <strong>{communication.subject}</strong>
+            <a href={`/communications/${communication.id}`}><strong>{communication.subject}</strong></a>
             <p>
               {communication.contactName} · {communication.effectiveRecipient || communication.contactEmail}
               · {formatDateTime(communication.sentAt || communication.createdAt)}
@@ -77,30 +68,6 @@
               {/if}
             </p>
             {#if communication.errorMessage}<p class="error">Error: {communication.errorMessage}</p>{/if}
-            {#if communication.replies.length}
-              <div class="reply-list">
-                {#each communication.replies as reply}
-                  <article class="reply-card">
-                    <div>
-                      <strong>{reply.fromName || reply.fromEmail || 'Reply'}</strong>
-                      <p>{formatDateTime(reply.receivedAt)}{#if reply.subject} · {reply.subject}{/if}</p>
-                      <p>{reply.snippet || reply.textBody}</p>
-                    </div>
-                    {#if reply.reviewedAt}
-                      <span class="pill good">Reply reviewed</span>
-                    {:else}
-                      <div class="button-row compact">
-                        <a class="button-link" href={replyHref(communication, reply)}>Reply</a>
-                        <form method="POST" action="?/markReplyReviewed" use:enhance>
-                          <input name="replyId" type="hidden" value={reply.id} />
-                          <button class="secondary" type="submit">Mark reviewed</button>
-                        </form>
-                      </div>
-                    {/if}
-                  </article>
-                {/each}
-              </div>
-            {/if}
           </div>
           <dl class="history-facts">
             <div>
@@ -141,23 +108,6 @@
 </section>
 
 <style>
-  .reply-list {
-    display: grid;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  .reply-card {
-    align-items: start;
-    background: rgba(37, 99, 235, 0.05);
-    border: 1px solid rgba(37, 99, 235, 0.16);
-    border-radius: 8px;
-    display: flex;
-    gap: 10px;
-    justify-content: space-between;
-    padding: 10px;
-  }
-
   .history-facts {
     align-items: flex-end;
     display: flex;
@@ -189,7 +139,6 @@
   }
 
   @media (max-width: 720px) {
-    .reply-card,
     .history-facts {
       align-items: stretch;
     }

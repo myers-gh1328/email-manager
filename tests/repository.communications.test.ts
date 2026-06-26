@@ -101,6 +101,43 @@ describe('repository communications', () => {
     expect(repo.listContactCommunications(contact.id)[0].unreviewedReplyCount).toBe(0);
   });
 
+  test('loads one communication with body and replies for the history detail view', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const communication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Pool reminder',
+      body: 'Full rendered email body.',
+      status: 'accepted',
+      messageId: '<detail@example.com>'
+    });
+    repo.recordCommunicationReply({
+      communicationId: communication.id,
+      providerKey: 'inbox:detail',
+      fromEmail: 'maya@example.com',
+      subject: 'Re: Pool reminder',
+      textBody: 'I will be there.',
+      receivedAt: '2026-06-22T12:00:00.000Z'
+    });
+
+    expect(repo.getCommunication(communication.id)).toMatchObject({
+      id: communication.id,
+      contactId: contact.id,
+      contactName: 'Maya Patel',
+      subject: 'Pool reminder',
+      body: 'Full rendered email body.',
+      replies: [
+        {
+          fromEmail: 'maya@example.com',
+          subject: 'Re: Pool reminder',
+          textBody: 'I will be there.'
+        }
+      ]
+    });
+  });
+
   test('lists communication history with pagination and search for summary pages', () => {
     const repo = createTestRepository();
     const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

@@ -80,6 +80,7 @@ import {
   updateCourseTypeChecklistItem
 } from './checklists';
 import {
+  getCommunication,
   listCommunicationMessageIds,
   listCommunications,
   listCommunicationsPage,
@@ -520,6 +521,10 @@ export class AppRepository {
 
   recordCommunication(input: CommunicationInput) {
     return recordCommunication(this.db, input);
+  }
+
+  getCommunication(id: string) {
+    return getCommunication(this.db, id);
   }
 
   recordCommunicationReply(input: CommunicationReplyInput) {

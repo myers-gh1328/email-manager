@@ -333,14 +333,18 @@ describe('operator visibility contract', () => {
 
   test('lets instructors reply to imported email replies from History', () => {
     const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const historyDetail = readFileSync('src/routes/communications/[id]/+page.svelte', 'utf8');
     const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const newEmailServer = readFileSync('src/routes/new-email/+page.server.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
 
-    expect(history).toContain('replyHref');
+    expect(historyDetail).toContain('replyHref');
     expect(history).toContain('data.selectedSourceId');
     expect(history).toContain('params.set(\'sourceId\', data.selectedSourceId)');
     expect(history).toContain('name="sourceId"');
+    expect(history).toContain('href={`/communications/${communication.id}`}');
+    expect(history).not.toContain('<div class="reply-list">');
+    expect(history).not.toContain('{reply.snippet || reply.textBody}');
     expect(history).toContain('Reply');
     expect(history).toContain('Search sent, failed, and replied-to emails.');
     expect(history).not.toContain('compose workflow');
@@ -350,14 +354,16 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('new</span>');
     expect(history).toContain('Student replied');
     expect(history).toContain('Needs reply');
-    expect(history).toContain('Reply reviewed');
+    expect(historyDetail).toContain('Reply reviewed');
     expect(history).toContain('<h3>Email records</h3>');
     expect(history).toContain('<dl class="history-facts">');
     expect(history).toContain('<dt>Delivery</dt>');
     expect(history).toContain('<dt>Replies</dt>');
     expect(history).not.toContain('Every recorded email');
     expect(history).not.toContain('<div class="status-stack">');
-    expect(history).toContain('/new-email?');
+    expect(historyDetail).toContain('/new-email?');
+    expect(historyDetail).toContain('<div class="reply-list">');
+    expect(historyDetail).toContain('{communication.body}');
     expect(newEmailServer).toContain("url.searchParams.get('subject')");
     expect(newEmailServer).toContain("url.searchParams.get('body')");
     expect(pageData).toContain('prefillSubject');

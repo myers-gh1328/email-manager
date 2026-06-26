@@ -282,6 +282,10 @@ export function listCommunicationMessageIds(db: DatabaseSync) {
     .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
 }
 
+export function getCommunication(db: DatabaseSync, id: string) {
+  return listCommunicationById(db, id);
+}
+
 export function recordCommunicationReply(db: DatabaseSync, input: CommunicationReplyInput): RecordedCommunicationReply {
   const existing = db.prepare('select * from communication_replies where provider_key = ?').get(input.providerKey) as Row | undefined;
   if (existing) return { ...mapReply(existing), created: false };
