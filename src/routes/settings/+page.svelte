@@ -517,12 +517,12 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])}
+    {#if sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])}
     <details class="settings-section settings-panel" open={sectionOpen('reply-sync')}>
       <summary>Reply Sync</summary>
       <form method="POST" action="?/updateReplySync" class="panel-form" use:enhance>
         <div>
-          <p class="eyebrow">Acknowledgements</p>
+          <p class="eyebrow">Replies</p>
           <h3>Show replies to sent email</h3>
           <p class="help-text">Connect the inbox for the same address you send from. The app only imports messages that reply to emails it already sent.</p>
         </div>

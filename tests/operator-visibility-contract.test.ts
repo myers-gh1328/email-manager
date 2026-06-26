@@ -497,6 +497,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain('Scheduled email created.');
     expect(settings).not.toContain('Blocks campaign sends');
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
+    expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");
+    expect(settings).toContain('<p class="eyebrow">Replies</p>');
+    expect(settings).not.toContain("sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])");
+    expect(settings).not.toContain('<p class="eyebrow">Acknowledgements</p>');
     expect(settings).toContain("sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])");
     expect(settings).toContain("sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings confirmation workflow risk'])");
     expect(settings).not.toContain("sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token approval'])");
