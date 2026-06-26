@@ -139,7 +139,7 @@ export const actions = {
     }
     const previews = buildClassEmailPreviews(params.id, templateId);
     if (hasMissingVariables(previews)) {
-      return fail(400, { panel: 'email', previews, templateId, previewToken: classEmailPreviewToken(params.id, templateId), message: 'Resolve missing template variables before scheduling.' });
+      return fail(400, { panel: 'email', previews, templateId, previewToken: classEmailPreviewToken(params.id, templateId), message: 'Resolve missing template variables before creating this scheduled email.' });
     }
     const template = repo.getTemplate(templateId);
     const defaultPurpose = text(form, 'defaultPurpose');

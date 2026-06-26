@@ -309,6 +309,8 @@ describe('operator visibility contract', () => {
     expect(classDetailServer).toContain("returnTo: text(form, 'returnTo')");
     expect(classDetailServer).toContain("throw redirect(303, classDetailActionReturn(params.id, form, 'Scheduled email created.'))");
     expect(classDetailServer).toContain("Preview this scheduled email before creating it.");
+    expect(classDetailServer).toContain('Resolve missing template variables before creating this scheduled email.');
+    expect(classDetailServer).not.toContain('Resolve missing template variables before scheduling.');
     expect(classDetailServer).not.toContain("Class email scheduled.");
     expect(classDetailServer).not.toContain("Preview this class email before scheduling it.");
   });
