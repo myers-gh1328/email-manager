@@ -454,6 +454,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).not.toContain("label: 'Needs review'");
     expect(scheduledEmails).toContain("value: 'needs_attention', label: 'Needs attention'");
     expect(scheduledEmails).not.toContain("value: 'needs_review'");
+    expect(readFileSync('src/lib/server/repository/campaigns.ts', 'utf8')).not.toContain("input.status === 'needs_review'");
     expect(scheduledEmails).toContain('data.campaignsPage.status');
     expect(scheduledEmails).toContain('campaignsPageHref');
     expect(scheduledEmails).toContain('Create scheduled email');
