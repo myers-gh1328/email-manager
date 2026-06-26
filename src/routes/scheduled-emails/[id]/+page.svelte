@@ -109,7 +109,7 @@
         {#if retryableRecipientCount}
           <button class="secondary" type="submit">Retry selected</button>
         {:else if data.recipients.length}
-          <p class="help-text">No failed recipients to retry.</p>
+          <p class="help-text">No recipients need retrying.</p>
         {/if}
       </form>
       {#if totalRecipientPages > 1}
