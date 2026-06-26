@@ -459,7 +459,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Ready to send');
     expect(scheduledEmails).toContain('scheduledEmailStatusLabel(scheduledEmail.readyToSend)');
     expect(scheduledEmails).toContain('class:good={scheduledEmail.readyToSend}');
-    expect(scheduledEmails).toContain('scheduledEmailDeliverySummary(scheduledEmail)');
+    expect(scheduledEmails).toContain('scheduledEmailSendSummary(scheduledEmail)');
+    expect(scheduledEmails).not.toContain('scheduledEmailDeliverySummary(scheduledEmail)');
     expect(scheduledEmailDetail).toContain('scheduledEmailStatusLabel(data.campaign.readyToSend)');
     expect(scheduledEmailDetail).toContain('class:good={data.campaign.readyToSend}');
     expect(classDetail).toContain('scheduledEmailStatusLabel(campaign.readyToSend)');
@@ -628,7 +629,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('deliveryStatusLabel(recipient.status)');
     expect(history).toContain('messageStatusLabel(communication.status)');
     expect(contacts).toContain('messageStatusLabel(communication.status)');
-    expect(classDetail).toContain('scheduledEmailDeliverySummary(campaign)');
+    expect(classDetail).toContain('scheduledEmailSendSummary(campaign)');
+    expect(classDetail).not.toContain('scheduledEmailDeliverySummary(campaign)');
     expect(classDetail).toContain('Search scheduled emails');
     expect(classDetail).toContain('data.scheduledCampaignsPage.total');
     expect(classDetail).toContain('classEmailsPageHref');

@@ -4,7 +4,7 @@ import {
   formatClassSchedule,
   messageStatusLabel,
   replySummary,
-  scheduledEmailDeliverySummary,
+  scheduledEmailSendSummary,
   scheduledEmailStatusLabel,
   purposeLabel,
   timingLabel
@@ -35,11 +35,11 @@ describe('shared formatting helpers', () => {
     expect(scheduledEmailStatusLabel(false)).toBe('Needs preview');
   });
 
-  test('summarizes scheduled email delivery counts in operator language', () => {
-    expect(scheduledEmailDeliverySummary({ recipientCount: 4, pendingCount: 3, sentCount: 1, failedCount: 0 })).toBe(
+  test('summarizes scheduled email send counts in operator language', () => {
+    expect(scheduledEmailSendSummary({ recipientCount: 4, pendingCount: 3, sentCount: 1, failedCount: 0 })).toBe(
       '4 recipients · 3 prepared · 1 sent'
     );
-    expect(scheduledEmailDeliverySummary({ recipientCount: 2, pendingCount: 0, sentCount: 1, failedCount: 1 })).toBe(
+    expect(scheduledEmailSendSummary({ recipientCount: 2, pendingCount: 0, sentCount: 1, failedCount: 1 })).toBe(
       '2 recipients · 1 sent · 1 needs attention'
     );
   });

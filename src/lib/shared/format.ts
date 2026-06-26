@@ -50,7 +50,7 @@ export function scheduledEmailStatusLabel(readyToSend: boolean) {
   return readyToSend ? 'Ready to send' : 'Needs preview';
 }
 
-export function scheduledEmailDeliverySummary(counts: {
+export function scheduledEmailSendSummary(counts: {
   recipientCount: number;
   pendingCount?: number;
   sentCount?: number;

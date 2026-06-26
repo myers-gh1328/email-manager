@@ -3,7 +3,7 @@
 	  import BusyOverlay from '$lib/BusyOverlay.svelte';
 	  import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
 	  import SearchSelect from '$lib/SearchSelect.svelte';
-	  import { formatClassSchedule, formatDateTime, purposeLabel, scheduledEmailDeliverySummary, scheduledEmailStatusLabel, timingLabel } from '$lib/shared/format';
+	  import { formatClassSchedule, formatDateTime, purposeLabel, scheduledEmailSendSummary, scheduledEmailStatusLabel, timingLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let importingImage = $state(false);
@@ -142,7 +142,7 @@
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
                 {campaign.source === 'course_default' ? 'Automatic' : 'Added for this class'}
-                · {scheduledEmailDeliverySummary(campaign)}
+                · {scheduledEmailSendSummary(campaign)}
               </p>
             </div>
             <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import SearchSelect from '$lib/SearchSelect.svelte';
-  import { scheduledEmailDeliverySummary, scheduledEmailStatusLabel } from '$lib/shared/format';
+  import { scheduledEmailSendSummary, scheduledEmailStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let classOptions = $derived(data.classSessionOptions);
@@ -88,7 +88,7 @@
           <div>
             <a href={`/scheduled-emails/${scheduledEmail.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{scheduledEmail.name}</strong></a>
             <p>{scheduledEmail.courseName} · {scheduledEmail.templateName} · {formatDateTime(scheduledEmail.scheduledFor)}</p>
-            <p>{scheduledEmailDeliverySummary(scheduledEmail)}</p>
+            <p>{scheduledEmailSendSummary(scheduledEmail)}</p>
           </div>
           <span class:good={scheduledEmail.readyToSend} class="pill">{scheduledEmailStatusLabel(scheduledEmail.readyToSend)}</span>
         </article>
