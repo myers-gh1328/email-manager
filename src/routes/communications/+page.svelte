@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatDateTime, messageStatusLabel } from '$lib/shared/format';
+  import { formatDateTime, messageStatusLabel, replySummary } from '$lib/shared/format';
 
   let { data } = $props();
 
@@ -109,12 +109,9 @@
             <div>
               <dt>Replies</dt>
               <dd>
-                {#if communication.replyCount}
-                  <span class="pill good">Student replied</span>
-                  {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} Needs reply</span>{/if}
-                {:else}
-                  <span class="muted">None</span>
-                {/if}
+                <span class:good={communication.replyCount && !communication.unreviewedReplyCount} class:warn={communication.unreviewedReplyCount} class="pill">
+                  {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })}
+                </span>
               </dd>
             </div>
           </dl>

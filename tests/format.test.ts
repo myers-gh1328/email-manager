@@ -3,6 +3,7 @@ import {
   deliveryStatusLabel,
   formatClassSchedule,
   messageStatusLabel,
+  replySummary,
   scheduledEmailDeliverySummary,
   scheduledEmailStatusLabel,
   purposeLabel,
@@ -41,5 +42,12 @@ describe('shared formatting helpers', () => {
     expect(scheduledEmailDeliverySummary({ recipientCount: 2, pendingCount: 0, sentCount: 1, failedCount: 1 })).toBe(
       '2 recipients · 1 sent · 1 needs attention'
     );
+  });
+
+  test('summarizes replies in plain instructor language', () => {
+    expect(replySummary({ replyCount: 0, unhandledReplyCount: 0 })).toBe('No replies');
+    expect(replySummary({ replyCount: 1, unhandledReplyCount: 0 })).toBe('1 reply handled');
+    expect(replySummary({ replyCount: 1, unhandledReplyCount: 1 })).toBe('1 reply needs response');
+    expect(replySummary({ replyCount: 3, unhandledReplyCount: 2 })).toBe('3 replies · 2 need response');
   });
 });

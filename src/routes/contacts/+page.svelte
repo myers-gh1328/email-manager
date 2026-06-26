@@ -1,7 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
-  import { messageStatusLabel } from '$lib/shared/format';
+  import { messageStatusLabel, replySummary } from '$lib/shared/format';
 
   let { data, form } = $props();
   let importingImage = $state(false);
@@ -207,8 +207,7 @@
                   <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
                   {#if communication.replyCount}
                     <p>
-                      {communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}
-                      {#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} Needs reply{/if}
+                      {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })}
                     </p>
                   {/if}
                   {#if communication.status === 'failed' && communication.errorMessage}

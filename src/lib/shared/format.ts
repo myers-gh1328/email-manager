@@ -62,3 +62,12 @@ export function scheduledEmailDeliverySummary(counts: {
   if (counts.failedCount) parts.push(`${counts.failedCount} needs attention`);
   return parts.join(' · ');
 }
+
+export function replySummary(counts: { replyCount: number; unhandledReplyCount?: number }) {
+  if (!counts.replyCount) return 'No replies';
+  const replyText = `${counts.replyCount} repl${counts.replyCount === 1 ? 'y' : 'ies'}`;
+  const unhandled = counts.unhandledReplyCount ?? 0;
+  if (!unhandled) return `${replyText} handled`;
+  if (counts.replyCount === unhandled) return `${replyText} need${unhandled === 1 ? 's' : ''} response`;
+  return `${replyText} · ${unhandled} need response`;
+}

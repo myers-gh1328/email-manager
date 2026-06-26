@@ -111,7 +111,7 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('returnTo=${encodeURIComponent(contactHistoryHref)}');
     expect(contacts).toContain('href={`/communications/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}');
     expect(contacts).toContain("communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'");
-    expect(contacts).toContain('Needs reply');
+    expect(contacts).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })');
     expect(contacts).not.toContain('communication.unreviewedReplyCount} new');
     expect(contacts).not.toContain('· {communication.source}');
     expect(contacts).not.toContain('Email activity');
@@ -410,6 +410,7 @@ describe('operator visibility contract', () => {
 
   test('lets instructors reply to imported email replies from History', () => {
     const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
     const historyDetail = readFileSync('src/routes/communications/[id]/+page.svelte', 'utf8');
     const historyServer = readFileSync('src/routes/communications/+page.server.ts', 'utf8');
     const historyDetailServer = readFileSync('src/routes/communications/[id]/+page.server.ts', 'utf8');
@@ -437,13 +438,17 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('{reply.snippet || reply.textBody}');
     expect(history).toContain('Reply');
     expect(history).toContain('Search sent, failed, and replied-to emails.');
+    expect(history).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })');
+    expect(contacts).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })');
+    expect(history).not.toContain('{communication.unreviewedReplyCount} Needs reply');
+    expect(contacts).not.toContain('{communication.unreviewedReplyCount} Needs reply');
     expect(history).not.toContain('compose workflow');
     expect(history).not.toContain('No reply yet');
     expect(history).not.toContain('Acknowledged');
     expect(history).not.toContain('<span class="pill good">Reviewed</span>');
     expect(history).not.toContain('new</span>');
-    expect(history).toContain('Student replied');
-    expect(history).toContain('Needs reply');
+    expect(history).toContain('replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unreviewedReplyCount })');
+    expect(history).toContain("value: 'needs_reply', label: 'Needs reply'");
     expect(historyDetail).toContain('Reply handled');
     expect(historyDetail).toContain('Mark handled');
     expect(historyDetail).toContain('Reply to the student or mark replies handled.');
