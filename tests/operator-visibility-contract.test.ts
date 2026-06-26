@@ -42,6 +42,8 @@ describe('operator visibility contract', () => {
     expect(architecture).not.toContain('acknowledgements');
     expect(architecture).not.toContain('acknowledgement');
     expect(maintainerGuide).toContain('`src/routes/scheduled-emails/` owns Scheduled Emails');
+    expect(maintainerGuide).toContain('`src/routes/scheduled-emails/` owns Scheduled Emails: preview, scheduling, detail, send status, and retry.');
+    expect(maintainerGuide).not.toContain('detail, delivery status, and retry');
     expect(maintainerGuide).toContain('`src/routes/history/` owns History');
     expect(agentDevEnv).toContain('`/history` shows History');
     expect(maintainerGuide).not.toContain('`src/routes/campaigns/` owns Scheduled Emails');

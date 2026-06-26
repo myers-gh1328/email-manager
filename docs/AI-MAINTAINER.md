@@ -31,7 +31,7 @@ For narrow work, read the owning route and the server helper it calls. Avoid sca
 - `src/routes/contacts/` owns reusable student records, roster import entry points, and contact history display.
 - `src/routes/classes/` owns course types, locations, dated sessions, enrollments, automatic course emails, and class email scheduling.
 - `src/routes/templates/` owns reusable templates and AI draft review.
-- `src/routes/scheduled-emails/` owns Scheduled Emails: preview, scheduling, detail, delivery status, and retry.
+- `src/routes/scheduled-emails/` owns Scheduled Emails: preview, scheduling, detail, send status, and retry.
 - `src/routes/new-email/` owns direct email compose, preview, and send.
 - `src/routes/history/` owns History: outbound email history filtering and reply handling.
 - `src/routes/settings/` owns settings forms, Microsoft OAuth start/callback endpoints, SMTP test, and admin password changes.
