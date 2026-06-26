@@ -3,6 +3,8 @@ import { newId, now } from './ids';
 import { mapClassSession, mapContact, mapCourseType, mapLocation, rowString } from './mappers';
 import type {
   ClassSessionInput,
+  ClassSessionPage,
+  ClassSessionPageInput,
   ContactHistoryItem,
   ContactInput,
   ContactPage,
@@ -292,6 +294,58 @@ export function listClassSessions(db: DatabaseSync) {
     )
     .all()
     .map(mapClassSession);
+}
+
+export function listClassSessionsPage(db: DatabaseSync, input: ClassSessionPageInput = {}): ClassSessionPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(ct.name) like ?
+        or lower(coalesce(l.name, cs.location)) like ?
+        or lower(cs.starts_on) like ?
+        or lower(cs.ends_on) like ?)`
+    );
+    params.push(pattern, pattern, pattern, pattern);
+  }
+
+  const fromSql = `
+    from class_sessions cs
+    join course_types ct on ct.id = cs.course_type_id
+    left join locations l on l.id = cs.location_id
+  `;
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select cs.*, ct.name as course_name,
+        l.name as location_name,
+        l.address as location_address,
+        l.phone as location_phone,
+        l.website as location_website,
+        l.parking_notes as location_parking_notes,
+        l.meeting_instructions as location_meeting_instructions,
+        l.notes as location_notes
+       ${fromSql}
+       ${whereSql}
+       order by cs.starts_on desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapClassSession(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function getClassSession(db: DatabaseSync, id: string) {

@@ -95,13 +95,21 @@ export function loadContactsData(input: { contactId?: string; search?: string; p
   };
 }
 
-export function loadClassesData() {
+export function loadClassesData(input: { search?: string; page?: number } = {}) {
+  const limit = 25;
+  const page = Math.max(input.page ?? 1, 1);
+  const classSessionsPage = repo.listClassSessionsPage({
+    search: input.search,
+    limit,
+    offset: (page - 1) * limit
+  });
   return {
     contacts: repo.listContacts(),
     courseTypes: repo.listCourseTypes(),
     locations: repo.listLocations(),
     templates: repo.listTemplates(),
-    classSessions: repo.listClassSessions()
+    classSessions: classSessionsPage.items,
+    classSessionsPage
   };
 }
 

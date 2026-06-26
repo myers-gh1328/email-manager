@@ -8,7 +8,10 @@ export const load = ({ url }) => {
   const selectedCourseId = url.searchParams.get('courseId') ?? '';
   const selectedLocationId = url.searchParams.get('locationId') ?? '';
   return {
-    ...loadClassesData(),
+    ...loadClassesData({
+      search: url.searchParams.get('search') ?? '',
+      page: Number(url.searchParams.get('page') ?? '1')
+    }),
     action: url.searchParams.get('action') ?? '',
     tab: url.searchParams.get('tab') ?? (url.searchParams.get('action') === 'course' ? 'courses' : 'sessions'),
     checklistItems: repo.listChecklistItems(),

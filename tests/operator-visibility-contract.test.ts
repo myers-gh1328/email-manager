@@ -69,6 +69,8 @@ describe('operator visibility contract', () => {
 
   test('keeps Classes focused on selecting scheduled classes, not setup data', () => {
     const classes = readFileSync('src/routes/classes/+page.svelte', 'utf8');
+    const classesServer = readFileSync('src/routes/classes/+page.server.ts', 'utf8');
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
     expect(classes).toContain('<h2>Scheduled classes</h2>');
     expect(classes).toContain('Open class');
     expect(classes).toContain('href={`/classes/${session.id}`}');
@@ -78,6 +80,11 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Add course type');
     expect(classes).not.toContain('Add location');
     expect(classes).not.toContain('Enroll student');
+    expect(classes).toContain('Search classes');
+    expect(classes).toContain('classesPageHref');
+    expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
+    expect(classesServer).toContain('page: Number(url.searchParams.get');
+    expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
 
   test('gives setup data a Settings App Data home', () => {

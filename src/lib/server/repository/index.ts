@@ -17,6 +17,7 @@ import {
   getCourseType,
   getLocation,
   listClassSessions,
+  listClassSessionsPage,
   listContacts,
   listContactsPage,
   listCourseTypes,
@@ -112,6 +113,7 @@ import type {
   CampaignPageInput,
   ChecklistItemInput,
   ClassSessionInput,
+  ClassSessionPageInput,
   ContactPageInput,
   CommunicationInput,
   CommunicationHistoryPageInput,
@@ -149,6 +151,9 @@ export type {
   ChecklistItemInput,
   ChecklistItemScope,
   ClassSessionInput,
+  ClassSessionPage,
+  ClassSessionPageInput,
+  ClassSessionRecord,
   ContactPage,
   ContactPageInput,
   ContactRecord,
@@ -324,6 +329,10 @@ export class AppRepository {
 
   listClassSessions() {
     return listClassSessions(this.db);
+  }
+
+  listClassSessionsPage(input?: ClassSessionPageInput) {
+    return listClassSessionsPage(this.db, input);
   }
 
   getClassSession(id: string) {

@@ -46,6 +46,38 @@ export interface ClassSessionInput {
   notes?: string;
 }
 
+export interface ClassSessionRecord {
+  id: string;
+  courseTypeId: string;
+  locationId: string;
+  courseName: string;
+  startsOn: string;
+  endsOn: string;
+  startTime: string;
+  location: string;
+  locationAddress: string;
+  locationPhone: string;
+  locationWebsite: string;
+  locationParkingNotes: string;
+  locationMeetingInstructions: string;
+  locationNotes: string;
+  notes: string;
+}
+
+export interface ClassSessionPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ClassSessionPage {
+  items: ClassSessionRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface DuplicateContactMatch {
   id: string;
   email: string;

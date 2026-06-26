@@ -7,6 +7,21 @@ import { AppRepository } from '../src/lib/server/repository';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository contacts and classes', () => {
+  test('lists class sessions with pagination and search', () => {
+    const repo = createTestRepository();
+    const openWater = repo.createCourseType({ name: 'Open Water' });
+    const rescue = repo.createCourseType({ name: 'Rescue Diver' });
+    repo.createClassSession({ courseTypeId: openWater.id, startsOn: '2026-08-02', location: 'Pool' });
+    repo.createClassSession({ courseTypeId: rescue.id, startsOn: '2026-09-10', location: 'Dock' });
+
+    const page = repo.listClassSessionsPage({ limit: 1, offset: 0, search: 'rescue' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([{ courseName: 'Rescue Diver', location: 'Dock' }]);
+  });
+
   test('lists contacts with pagination and search', () => {
     const repo = createTestRepository();
     repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

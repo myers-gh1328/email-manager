@@ -8,6 +8,9 @@
   let endDateTouched = $state(false);
   let courseOptions = $derived(data.courseTypes.map((course) => ({ value: course.id, label: course.name })));
   let locationOptions = $derived(data.locations.map((location) => ({ value: location.id, label: location.name })));
+  let classesSearch = $derived(data.classSessionsPage.search ?? '');
+  let currentClassesPage = $derived(Math.floor(data.classSessionsPage.offset / data.classSessionsPage.limit) + 1);
+  let totalClassesPages = $derived(Math.max(Math.ceil(data.classSessionsPage.total / data.classSessionsPage.limit), 1));
 
   $effect(() => {
     if (!endDateTouched) newClassEndsOn = newClassStartsOn;
@@ -17,6 +20,14 @@
     const endsOn = session.endsOn || session.startsOn;
     const dateRange = endsOn !== session.startsOn ? `${session.startsOn} - ${endsOn}` : session.startsOn;
     return session.startTime ? `${dateRange} · ${session.startTime}` : dateRange;
+  }
+
+  function classesPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.classSessionsPage.search) params.set('search', data.classSessionsPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/classes?${query}` : '/classes';
   }
 </script>
 
@@ -35,6 +46,16 @@
     </div>
     {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
 
+    <form class="inline-filters" method="GET" action="/classes">
+      <label>
+        Search classes
+        <input name="search" value={classesSearch} placeholder="Course, location, or date" />
+      </label>
+      <button type="submit">Search</button>
+      {#if data.classSessionsPage.search}<a class="button-link" href="/classes">Clear</a>{/if}
+    </form>
+    <p class="help-text">Showing {data.classSessions.length} of {data.classSessionsPage.total} classes.</p>
+
     <div class="list">
       {#each data.classSessions as session}
         <article class="row-card">
@@ -48,6 +69,19 @@
         <p class="empty">Create a class before adding a roster.</p>
       {/each}
     </div>
+    {#if totalClassesPages > 1}
+      <nav class="pagination" aria-label="Class pages">
+        <a class="button-link" aria-disabled={currentClassesPage === 1} href={classesPageHref(Math.max(currentClassesPage - 1, 1))}>Previous</a>
+        <span>Page {currentClassesPage} of {totalClassesPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentClassesPage >= totalClassesPages}
+          href={classesPageHref(Math.min(currentClassesPage + 1, totalClassesPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
   </div>
 
   <div class="form-stack">
