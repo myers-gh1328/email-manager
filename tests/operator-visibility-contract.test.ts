@@ -376,6 +376,8 @@ describe('operator visibility contract', () => {
   test('lets instructors reply to imported email replies from History', () => {
     const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
     const historyDetail = readFileSync('src/routes/communications/[id]/+page.svelte', 'utf8');
+    const historyServer = readFileSync('src/routes/communications/+page.server.ts', 'utf8');
+    const historyDetailServer = readFileSync('src/routes/communications/[id]/+page.server.ts', 'utf8');
     const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
     const newEmailServer = readFileSync('src/routes/new-email/+page.server.ts', 'utf8');
     const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
@@ -400,7 +402,16 @@ describe('operator visibility contract', () => {
     expect(history).not.toContain('new</span>');
     expect(history).toContain('Student replied');
     expect(history).toContain('Needs reply');
-    expect(historyDetail).toContain('Reply reviewed');
+    expect(historyDetail).toContain('Reply handled');
+    expect(historyDetail).toContain('Mark handled');
+    expect(historyDetail).toContain('Reply to the student or mark replies handled.');
+    expect(historyDetail).not.toContain('Reply reviewed');
+    expect(historyDetail).not.toContain('Mark reviewed');
+    expect(historyDetail).not.toContain('mark replies reviewed');
+    expect(historyServer).toContain('Reply marked handled.');
+    expect(historyDetailServer).toContain('Reply marked handled.');
+    expect(historyServer).not.toContain('Reply marked reviewed.');
+    expect(historyDetailServer).not.toContain('Reply marked reviewed.');
     expect(history).toContain('<h3>Email records</h3>');
     expect(history).toContain('<dl class="history-facts">');
     expect(history).toContain('<dt>Delivery</dt>');

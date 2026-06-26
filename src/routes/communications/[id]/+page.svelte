@@ -73,7 +73,7 @@
     <div class="section-heading compact">
       <div>
         <h3>Replies</h3>
-        <p class="help-text">Reply to the student or mark replies reviewed.</p>
+        <p class="help-text">Reply to the student or mark replies handled.</p>
       </div>
     </div>
     <div class="reply-list">
@@ -85,13 +85,13 @@
             <p>{reply.snippet || reply.textBody}</p>
           </div>
           {#if reply.reviewedAt}
-            <span class="pill good">Reply reviewed</span>
+            <span class="pill good">Reply handled</span>
           {:else}
             <div class="button-row compact">
               <a class="button-link" href={replyHref(reply)}>Reply</a>
               <form method="POST" action="?/markReplyReviewed" use:enhance>
                 <input name="replyId" type="hidden" value={reply.id} />
-                <button class="secondary" type="submit">Mark reviewed</button>
+                <button class="secondary" type="submit">Mark handled</button>
               </form>
             </div>
           {/if}
