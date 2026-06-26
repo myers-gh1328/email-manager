@@ -53,8 +53,8 @@
         {/each}
         {#if data.failedTodayCount}
           <a class="row-card" href="/communications?status=failed">
-            <strong>Fix failed emails</strong>
-            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'} need attention before retrying.</p>
+            <strong>Failed email history</strong>
+            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'}. View failed sends in History before retrying from the scheduled email detail page.</p>
           </a>
         {/if}
         {#if data.remoteStatus.enabled && !data.remoteStatus.ready}

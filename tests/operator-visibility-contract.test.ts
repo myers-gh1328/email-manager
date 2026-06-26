@@ -81,12 +81,13 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('Scheduled Emails');
     expect(dashboard).toContain('<h2>Recent scheduled emails</h2>');
     expect(dashboard).not.toContain('<h2>Recent schedules</h2>');
-    expect(dashboard).toContain('Fix failed emails');
+    expect(dashboard).toContain('Failed email history');
     expect(dashboard).toContain('href="/communications?status=failed"');
     expect(dashboard).not.toContain('href="/communications?search=failed"');
-    expect(dashboard).toContain('need attention before retrying');
-    expect(dashboard).not.toContain('Review failed emails');
+    expect(dashboard).not.toContain('Fix failed emails');
+    expect(dashboard).not.toContain('need attention before retrying');
     expect(dashboard).not.toContain('need review before retrying');
+    expect(dashboard).toContain('View failed sends in History before retrying from the scheduled email detail page.');
     expect(dashboard).toContain('email issue');
     expect(dashboard).toContain('data.recentScheduledEmails');
     expect(dashboard).toContain('dashboardReturnTo');
