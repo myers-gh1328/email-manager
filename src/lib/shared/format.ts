@@ -69,5 +69,5 @@ export function replySummary(counts: { replyCount: number; unhandledReplyCount?:
   const unhandled = counts.unhandledReplyCount ?? 0;
   if (!unhandled) return `${replyText} handled`;
   if (counts.replyCount === unhandled) return `${replyText} need${unhandled === 1 ? 's' : ''} response`;
-  return `${replyText} · ${unhandled} need response`;
+  return `${replyText} · ${unhandled} need${unhandled === 1 ? 's' : ''} response`;
 }

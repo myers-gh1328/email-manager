@@ -48,6 +48,7 @@ describe('shared formatting helpers', () => {
     expect(replySummary({ replyCount: 0, unhandledReplyCount: 0 })).toBe('No replies');
     expect(replySummary({ replyCount: 1, unhandledReplyCount: 0 })).toBe('1 reply handled');
     expect(replySummary({ replyCount: 1, unhandledReplyCount: 1 })).toBe('1 reply needs response');
+    expect(replySummary({ replyCount: 2, unhandledReplyCount: 1 })).toBe('2 replies · 1 needs response');
     expect(replySummary({ replyCount: 3, unhandledReplyCount: 2 })).toBe('3 replies · 2 need response');
   });
 });
