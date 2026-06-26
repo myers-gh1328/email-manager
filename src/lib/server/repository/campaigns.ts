@@ -136,6 +136,23 @@ export function countReadyScheduledEmailsDue(db: DatabaseSync, nowIso: string) {
   return Number(row.value ?? 0);
 }
 
+export function listReadyScheduledEmailsDue(db: DatabaseSync, nowIso: string, input: { limit?: number } = {}) {
+  const limit = Math.min(Math.max(input.limit ?? 100, 1), 500);
+  return db
+    .prepare(
+      `select c.*, t.name as template_name, ct.name as course_name, cs.starts_on, cs.ends_on, cs.start_time
+       from campaigns c
+       join templates t on t.id = c.template_id
+       join class_sessions cs on cs.id = c.class_session_id
+       join course_types ct on ct.id = cs.course_type_id
+       where c.approved = 1 and c.scheduled_for <= ?
+       order by c.scheduled_for asc
+       limit ?`
+    )
+    .all(nowIso, limit)
+    .map(mapCampaign);
+}
+
 export function getNextReadyScheduledEmail(db: DatabaseSync, nowIso: string) {
   const row = db
     .prepare(

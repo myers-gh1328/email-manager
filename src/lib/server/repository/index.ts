@@ -48,6 +48,7 @@ import {
   listCampaigns,
   listCampaignsPage,
   listCampaignsForClassSession,
+  listReadyScheduledEmailsDue,
   listDeliveries,
   listPendingDeliveries,
   markAcceptedAttemptAuditIncomplete,
@@ -440,6 +441,10 @@ export class AppRepository {
 
   countReadyScheduledEmailsDue(nowIso: string) {
     return countReadyScheduledEmailsDue(this.db, nowIso);
+  }
+
+  listReadyScheduledEmailsDue(nowIso: string, input?: { limit?: number }) {
+    return listReadyScheduledEmailsDue(this.db, nowIso, input);
   }
 
   getNextReadyScheduledEmail(nowIso: string) {

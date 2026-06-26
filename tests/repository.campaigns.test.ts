@@ -42,6 +42,45 @@ describe('repository campaigns and deliveries', () => {
     });
   });
 
+  test('lists only due ready scheduled emails for bounded send planning', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready later',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready first',
+      scheduledFor: '2026-08-01T12:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Future ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Draft due',
+      scheduledFor: '2026-08-01T12:30:00.000Z',
+      approved: false
+    });
+
+    const due = repo.listReadyScheduledEmailsDue('2026-08-02T00:00:00.000Z', { limit: 1 });
+
+    expect(due).toMatchObject([{ name: 'Due ready first', scheduledFor: '2026-08-01T12:00:00.000Z' }]);
+  });
+
   test('lists scheduled emails with pagination and search', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Rescue Diver' });

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const repo = {
   listCampaigns: vi.fn(),
+  listReadyScheduledEmailsDue: vi.fn(),
   getClassSession: vi.fn(),
   getTemplate: vi.fn(),
   ensurePendingDeliveries: vi.fn(),
@@ -34,6 +35,15 @@ describe('background campaign communication logging', () => {
     vi.clearAllMocks();
     vi.resetModules();
     repo.listCampaigns.mockReturnValue([
+      {
+        id: 'campaign-1',
+        classSessionId: 'class-1',
+        templateId: 'template-1',
+        approved: true,
+        scheduledFor: '2000-01-01T00:00'
+      }
+    ]);
+    repo.listReadyScheduledEmailsDue.mockReturnValue([
       {
         id: 'campaign-1',
         classSessionId: 'class-1',
@@ -84,6 +94,15 @@ describe('background campaign communication logging', () => {
       messageId: '<campaign-1@example.com>',
       providerMessage: 'provider-123'
     });
+  });
+
+  test('plans due sends from a bounded repository query instead of listing every scheduled email', async () => {
+    const { sendDueCampaigns } = await import('../src/lib/server/background');
+
+    await sendDueCampaigns();
+
+    expect(repo.listReadyScheduledEmailsDue).toHaveBeenCalledWith(expect.any(String), { limit: 100 });
+    expect(repo.listCampaigns).not.toHaveBeenCalled();
   });
 
   test('does not run overlapping due-send batches', async () => {
