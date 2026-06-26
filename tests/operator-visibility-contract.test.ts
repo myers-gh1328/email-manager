@@ -478,6 +478,10 @@ describe('operator visibility contract', () => {
     expect(newEmailServer).toContain("url.searchParams.get('returnTo')");
     expect(newEmailServer).toContain('returnTo: localReturnTo');
     expect(newEmail).toContain('newEmailReturnTo');
+    expect(newEmail).toContain('newEmailWorkflowReturnTo');
+    expect(newEmail).toContain("params.set('subject', subject)");
+    expect(newEmail).toContain("params.set('body', body)");
+    expect(newEmail).toContain("params.set('returnTo', newEmailReturnTo)");
     expect(newEmail).toContain('href={newEmailReturnTo || \'/communications\'}');
     expect(newEmail).toContain('name="returnTo"');
     expect(newEmailServer).toContain('directEmailOperationId');

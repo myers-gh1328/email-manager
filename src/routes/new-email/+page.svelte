@@ -16,9 +16,9 @@
   let previewToken = $derived(form?.previewToken ?? '');
   let newEmailReturnTo = $derived(form?.returnTo ?? data.returnTo ?? '');
   let templateOptions = $derived(data.templateOptions);
-  let addWorkflowReturnTo = '/new-email';
-  let addContactHref = `/contacts?action=add&returnTo=${encodeURIComponent(addWorkflowReturnTo)}`;
-  let addTemplateHref = `/templates?action=create&returnTo=${encodeURIComponent(addWorkflowReturnTo)}`;
+  let newEmailWorkflowReturnTo = $derived(composeWorkflowReturnTo());
+  let addContactHref = $derived(`/contacts?action=add&returnTo=${encodeURIComponent(newEmailWorkflowReturnTo)}`);
+  let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(newEmailWorkflowReturnTo)}`);
   const variableFields = tokenFields(directEmailTokens);
 
   function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
@@ -31,6 +31,16 @@
         if (isAiSubmit) drafting = false;
       }
     };
+  }
+
+  function composeWorkflowReturnTo() {
+    const params = new URLSearchParams();
+    if (selectedContactIds[0]) params.set('contactId', selectedContactIds[0]);
+    if (subject) params.set('subject', subject);
+    if (body) params.set('body', body);
+    if (newEmailReturnTo) params.set('returnTo', newEmailReturnTo);
+    const query = params.toString();
+    return query ? `/new-email?${query}` : '/new-email';
   }
 </script>
 
