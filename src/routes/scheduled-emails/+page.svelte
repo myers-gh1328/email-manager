@@ -112,6 +112,7 @@
     {#if form?.previews}
       <div class="preview-list">
         <h3>Scheduled email preview</h3>
+        <p class="body-copy">Will create one scheduled email for the selected class. Each student gets their own message.</p>
         {#each form.previews as preview}
           <article>
             <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>

@@ -541,6 +541,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('<button type="submit">Preview scheduled email</button>');
     expect(scheduledEmails).not.toContain('Preview personalization');
     expect(scheduledEmails).toContain('<h3>Scheduled email preview</h3>');
+    expect(scheduledEmails).toContain('Will create one scheduled email for the selected class. Each student gets their own message.');
     expect(scheduledEmails).toContain('Missing template fields: {preview.missing.join');
     expect(scheduledEmails).toContain('Skipped because: {preview.reason}');
     expect(scheduledEmails).not.toContain('Missing: {preview.missing.join');
