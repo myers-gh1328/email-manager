@@ -76,7 +76,10 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('Scheduled sending');
     expect(dashboard).toContain('data.schedulerStatus.dueReadyCount');
     expect(dashboard).toContain('data.schedulerStatus.nextReady');
-    expect(dashboard).toContain('ready scheduled email');
+    expect(dashboard).toContain("scheduled email{data.schedulerStatus.dueReadyCount === 1 ? '' : 's'} ready to send");
+    expect(dashboard).toContain('No upcoming scheduled email ready to send');
+    expect(dashboard).not.toContain('ready scheduled email');
+    expect(dashboard).not.toContain('No upcoming ready scheduled email');
     expect(dashboard).toContain('Next scheduled send');
     expect(dashboard).toContain('Scheduled Emails');
     expect(dashboard).toContain('<h2>Recent scheduled emails</h2>');

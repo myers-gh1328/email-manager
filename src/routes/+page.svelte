@@ -31,11 +31,11 @@
         <div>
           <strong>{data.schedulerStatus.ready ? 'Automatic sending is ready' : 'Automatic sending needs setup'}</strong>
           <p>
-            {data.schedulerStatus.dueReadyCount} ready scheduled email{data.schedulerStatus.dueReadyCount === 1 ? '' : 's'}
+            {data.schedulerStatus.dueReadyCount} scheduled email{data.schedulerStatus.dueReadyCount === 1 ? '' : 's'} ready to send
             {#if data.schedulerStatus.nextReady}
               · Next scheduled send: {data.schedulerStatus.nextReady.name} at {formatDateTime(data.schedulerStatus.nextReady.scheduledFor)}
             {:else}
-              · No upcoming ready scheduled email
+              · No upcoming scheduled email ready to send
             {/if}
           </p>
         </div>
