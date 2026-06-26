@@ -127,6 +127,41 @@ describe('agent campaign send-due tools', () => {
     }
   });
 
+  it('uses confirmation wording when prepared send-due confirmation is missing or mismatched', async () => {
+    const repo = createTestRepository();
+    const wrongTool = repo.createAgentApproval({
+      toolName: 'commit_direct_email',
+      risk: 'sends_email',
+      summary: 'Prepared direct email',
+      operationJson: '{}',
+      reviewJson: '{}',
+      confirmationText: 'CONFIRM SEND appr_test',
+      expiresAt: '2030-01-01T00:00:00.000Z'
+    });
+
+    const missing = await commitSendDueCampaignsTool(
+      repo,
+      { approvalId: 'appr_missing', confirmationText: 'CONFIRM SEND appr_missing' },
+      agentSettings({ sendEmail: true })
+    );
+    const mismatched = await commitSendDueCampaignsTool(
+      repo,
+      { approvalId: wrongTool.id, confirmationText: wrongTool.confirmationText },
+      agentSettings({ sendEmail: true })
+    );
+
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) {
+      expect(missing.error.message).toBe('Confirmation was not found.');
+      expect(missing.error.message).not.toContain('Approval');
+    }
+    expect(mismatched.ok).toBe(false);
+    if (!mismatched.ok) {
+      expect(mismatched.error.message).toBe('Confirmation does not match this tool.');
+      expect(mismatched.error.message).not.toContain('Approval');
+    }
+  });
+
   it('fails closed when due campaign IDs change after prepare', async () => {
     const repo = createTestRepository();
     seedDueCampaign(repo, 'first');
@@ -144,7 +179,8 @@ describe('agent campaign send-due tools', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('approval_changed');
-      expect(result.error.message).toBe('Due scheduled emails changed after approval was prepared.');
+      expect(result.error.message).toBe('Due scheduled emails changed after confirmation was prepared.');
+      expect(result.error.message).not.toContain('approval');
       expect(result.error.message).not.toContain('approved campaigns');
     }
     expect(sendOutboundEmail).not.toHaveBeenCalled();

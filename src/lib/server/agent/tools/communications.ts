@@ -76,9 +76,9 @@ export async function commitDirectEmailTool(repo: AppRepository, input: CommitDi
   if (denied) return denied;
 
   const approval = repo.getAgentApproval(input.approvalId);
-  if (!approval) return agentError('not_found', 'Approval was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+  if (!approval) return agentError('not_found', 'Confirmation was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   if (approval.toolName !== 'commit_direct_email') {
-    return agentError('approval_changed', 'Approval does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+    return agentError('approval_changed', 'Confirmation does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   }
   if (approval.confirmationText !== input.confirmationText) {
     return agentError('approval_required', 'Exact confirmation text is required.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
@@ -88,7 +88,7 @@ export async function commitDirectEmailTool(repo: AppRepository, input: CommitDi
   if (!sameJson(operation.reviewSnapshot, currentSnapshot)) {
     return agentError(
       'approval_changed',
-      'Direct email recipients or rendered content changed after approval was prepared.',
+      'Direct email recipients or rendered content changed after confirmation was prepared.',
       { approvalId: input.approvalId },
       { labels: settings.vocabulary }
     );

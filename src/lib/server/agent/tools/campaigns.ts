@@ -47,9 +47,9 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (denied) return denied;
 
   const approval = repo.getAgentApproval(input.approvalId);
-  if (!approval) return agentError('not_found', 'Approval was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+  if (!approval) return agentError('not_found', 'Confirmation was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   if (approval.toolName !== 'commit_send_due_campaigns') {
-    return agentError('approval_changed', 'Approval does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+    return agentError('approval_changed', 'Confirmation does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   }
   if (approval.confirmationText !== input.confirmationText) {
     return agentError('approval_required', 'Exact confirmation text is required.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
@@ -70,7 +70,7 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (!sameStringSet(preparedIds, currentIds)) {
     return agentError(
       'approval_changed',
-      'Due scheduled emails changed after approval was prepared.',
+      'Due scheduled emails changed after confirmation was prepared.',
       { approvalId: input.approvalId, preparedCampaignIds: preparedIds, currentCampaignIds: currentIds },
       { labels: settings.vocabulary }
     );
