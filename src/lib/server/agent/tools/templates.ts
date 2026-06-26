@@ -59,15 +59,9 @@ function requireEditAccess(settings: AppSettings = getSettings()) {
 export function listTemplatesTool(repo: AppRepository, input: { query?: string; limit?: number }, settingsOverride?: AppSettings) {
   const { settings, denied } = requireReadAccess(settingsOverride);
   if (denied) return denied;
-  const query = (input.query ?? '').trim().toLowerCase();
+  const query = (input.query ?? '').trim();
   const limit = clampLimit(input.limit);
-  const templates = repo
-    .listTemplates()
-    .filter((template) => {
-      if (!query) return true;
-      return [template.name, template.subject, template.body].join(' ').toLowerCase().includes(query);
-    })
-    .slice(0, limit);
+  const templates = repo.listTemplatesPage({ search: query, limit }).items;
   return agentOk({ templates }, { labels: settings.vocabulary, nextActions: ['create_template', 'update_template'] });
 }
 
