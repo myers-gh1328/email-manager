@@ -77,6 +77,7 @@ import {
 import {
   listCommunicationMessageIds,
   listCommunications,
+  listCommunicationsPage,
   listContactCommunications,
   listEmailTestAudits,
   markCommunicationReplyReviewed,
@@ -107,6 +108,7 @@ import type {
   ChecklistItemInput,
   ClassSessionInput,
   CommunicationInput,
+  CommunicationHistoryPageInput,
   CommunicationReplyInput,
   ContactInput,
   CourseTypeInput,
@@ -138,6 +140,8 @@ export type {
   ChecklistItemScope,
   ClassSessionInput,
   CommunicationHistoryItem,
+  CommunicationHistoryPage,
+  CommunicationHistoryPageInput,
   CommunicationInput,
   CommunicationReply,
   CommunicationReplyInput,
@@ -510,6 +514,10 @@ export class AppRepository {
 
   listCommunications() {
     return listCommunications(this.db);
+  }
+
+  listCommunicationsPage(input?: CommunicationHistoryPageInput) {
+    return listCommunicationsPage(this.db, input);
   }
 
   listContactCommunications(contactId: string) {

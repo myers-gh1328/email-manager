@@ -101,6 +101,53 @@ describe('repository communications', () => {
     expect(repo.listContactCommunications(contact.id)[0].unreviewedReplyCount).toBe(0);
   });
 
+  test('lists communication history with pagination and search for summary pages', () => {
+    const repo = createTestRepository();
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const jo = repo.createContact({ firstName: 'Jo', lastName: 'Rivera', email: 'jo@example.com' });
+
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Pool reminder',
+      body: 'Earlier Maya body.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: jo.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Schedule change',
+      body: 'Jo body.',
+      status: 'accepted'
+    });
+    repo.recordCommunication({
+      contactId: maya.id,
+      channel: 'email',
+      source: 'campaign',
+      subject: 'Final details',
+      body: 'Later Maya body.',
+      status: 'failed',
+      errorMessage: 'SMTP rejected'
+    });
+
+    const page = repo.listCommunicationsPage({ limit: 1, offset: 0, search: 'maya' });
+
+    expect(page.total).toBe(2);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([
+      {
+        contactId: maya.id,
+        contactName: 'Maya Patel',
+        subject: 'Final details',
+        status: 'failed',
+        errorMessage: 'SMTP rejected'
+      }
+    ]);
+  });
+
   test('records redirected test email audits separately from student history', () => {
     const repo = createTestRepository();
 

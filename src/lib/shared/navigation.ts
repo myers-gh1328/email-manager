@@ -7,12 +7,12 @@ export const baseNavItems = [
   { href: '/contacts', label: 'Contacts' },
   { href: '/classes', label: 'Classes' },
   { href: '/templates', label: 'Templates' },
-  { href: '/campaigns', label: 'Campaigns' },
-  { href: '/communications', label: 'Communications' },
+  { href: '/campaigns', label: 'Scheduled Emails' },
+  { href: '/communications', label: 'History' },
   { href: '/settings', label: 'Settings' }
 ];
 
 export function navigationItems(settings?: NavigationSettings) {
   if (!settings?.emailTestModeEnabled) return baseNavItems;
-  return [...baseNavItems.slice(0, -1), { href: '/test-audit', label: 'Test audit' }, baseNavItems.at(-1)!];
+  return [...baseNavItems.slice(0, -1), { href: '/test-audit', label: 'Test Sends' }, baseNavItems.at(-1)!];
 }

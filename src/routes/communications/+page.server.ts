@@ -7,7 +7,12 @@ import { sendOutboundEmail } from '$lib/server/mailer';
 import { loadCommunicationsData } from '$lib/server/page-data';
 import { getSettings } from '$lib/server/settings';
 
-export const load = ({ url }) => loadCommunicationsData(url.searchParams.get('contactId') || undefined);
+export const load = ({ url }) =>
+  loadCommunicationsData({
+    contactId: url.searchParams.get('contactId') || undefined,
+    search: url.searchParams.get('search') || undefined,
+    page: Number(url.searchParams.get('page') || '1')
+  });
 
 export const actions = {
   previewDirectEmail: async ({ request }) => {

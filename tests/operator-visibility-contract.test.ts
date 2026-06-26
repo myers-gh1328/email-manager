@@ -29,7 +29,7 @@ describe('operator visibility contract', () => {
       'checklistState: repo.listEnrollmentChecklistState(params.id)'
     );
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('toggleChecklistItem');
-    expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('communications: repo.listCommunications()');
+    expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('communicationPage = repo.listCommunicationsPage');
     expect(readFileSync('src/lib/shared/navigation.ts', 'utf8')).toContain('emailTestModeEnabled');
     expect(readFileSync('src/lib/server/llm.ts', 'utf8')).toContain('listAiModels');
   });

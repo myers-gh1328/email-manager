@@ -15,6 +15,9 @@
   let body = $derived(form?.body ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
   let recipientSearch = $state('');
+  let historySearch = $derived(data.communicationPage.search ?? '');
+  let currentHistoryPage = $derived(Math.floor(data.communicationPage.offset / data.communicationPage.limit) + 1);
+  let totalHistoryPages = $derived(Math.max(Math.ceil(data.communicationPage.total / data.communicationPage.limit), 1));
   let filteredContacts = $derived(
     data.contacts.filter((contact) =>
       `${contact.firstName} ${contact.lastName} ${contact.email}`.toLowerCase().includes(recipientSearch.toLowerCase())
@@ -25,6 +28,15 @@
 
   function isSelected(contactId: string) {
     return selectedContactIds.includes(contactId);
+  }
+
+  function historyPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.communicationPage.search) params.set('search', data.communicationPage.search);
+    if (data.selectedContactId) params.set('contactId', data.selectedContactId);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/communications?${query}` : '/communications';
   }
 
 	  function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
@@ -41,14 +53,14 @@
 </script>
 
 <svelte:head>
-  <title>Communications · Training Communications Studio</title>
+  <title>History · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">
   <div>
     <div class="section-heading compact">
       <div>
-        <p class="eyebrow">Communications</p>
+        <p class="eyebrow">History</p>
         <h2>Direct email composer</h2>
       </div>
     </div>
@@ -76,6 +88,17 @@
           <h3>Every recorded email</h3>
         </div>
       </div>
+      <form class="inline-filters" method="GET" action="/communications">
+        {#if data.selectedContactId}<input type="hidden" name="contactId" value={data.selectedContactId} />{/if}
+        <label>
+          <span class="sr-only">Search history</span>
+          <input name="search" value={historySearch} placeholder="Search by name, email, or subject" />
+        </label>
+        <button class="secondary" type="submit">Search</button>
+      </form>
+      <p class="help-text">
+        Showing {data.communications.length} of {data.communicationPage.total} emails.
+      </p>
       <div class="list">
         {#each data.communications as communication}
           <article class="row-card tall">
@@ -86,7 +109,7 @@
                 · {formatDateTime(communication.sentAt || communication.createdAt)}
               </p>
               <p>
-                {communication.source === 'campaign' ? 'Scheduled campaign' : 'Direct email'}
+                {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}
                 {#if communication.testMode} · Test mode{/if}
                 {#if communication.originalRecipient && communication.effectiveRecipient && communication.originalRecipient !== communication.effectiveRecipient}
                   · Intended for {communication.originalRecipient}
@@ -130,6 +153,19 @@
           <p class="empty">No email history recorded yet.</p>
         {/each}
       </div>
+      {#if totalHistoryPages > 1}
+        <nav class="pagination" aria-label="History pages">
+          <a class="button-link" aria-disabled={currentHistoryPage === 1} href={historyPageHref(Math.max(currentHistoryPage - 1, 1))}>Previous</a>
+          <span>Page {currentHistoryPage} of {totalHistoryPages}</span>
+          <a
+            class="button-link"
+            aria-disabled={currentHistoryPage >= totalHistoryPages}
+            href={historyPageHref(Math.min(currentHistoryPage + 1, totalHistoryPages))}
+          >
+            Next
+          </a>
+        </nav>
+      {/if}
     </section>
   </div>
 
@@ -205,6 +241,15 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  .inline-filters,
+  .pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
   }
 
   @media (max-width: 720px) {

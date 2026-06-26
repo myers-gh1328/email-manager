@@ -20,21 +20,21 @@
 </script>
 
 <svelte:head>
-  <title>Campaigns · Training Communications Studio</title>
+  <title>Scheduled Emails · Training Communications Studio</title>
 </svelte:head>
 
 <section class="band two-column">
   <div>
     <div class="section-heading compact">
       <div>
-        <p class="eyebrow">Campaigns</p>
-        <h2>Schedule one-time class sends</h2>
+        <p class="eyebrow">Scheduled Emails</p>
+        <h2>Schedule class emails</h2>
       </div>
     </div>
     {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
     <div class="action-row">
-      <a class:active={data.action === 'preview'} class="button-link" href="/campaigns?action=preview">Preview campaign</a>
-      <a class:active={data.action === 'schedule'} class="button-link" href="/campaigns?action=schedule">Schedule campaign</a>
+      <a class:active={data.action === 'preview'} class="button-link" href="/campaigns?action=preview">Preview class email</a>
+      <a class:active={data.action === 'schedule'} class="button-link" href="/campaigns?action=schedule">Schedule class email</a>
     </div>
     <div class="list">
       {#each data.campaigns as campaign}
@@ -43,10 +43,10 @@
             <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
             <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
           </div>
-          <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Approved' : 'Draft'}</span>
+          <span class:good={campaign.approved} class="pill">{campaign.approved ? 'Scheduled' : 'Draft'}</span>
         </article>
       {:else}
-        <p class="empty">No campaigns scheduled.</p>
+        <p class="empty">No class emails scheduled.</p>
       {/each}
     </div>
     {#if form?.previews}
@@ -69,7 +69,7 @@
         <input name="previewToken" type="hidden" value={form.previewToken} />
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
-        <label class="check"><input name="approved" type="checkbox" checked /> Approved after preview</label>
+        <label class="check"><input name="approved" type="checkbox" checked /> Schedule after preview</label>
         <button type="submit">Create schedule</button>
       </form>
     {/if}
@@ -77,7 +77,7 @@
   <div class="form-stack">
     {#if data.action === 'preview'}
       <form method="POST" action="?/previewCampaign" class="panel-form" use:enhance>
-        <h3>Preview campaign</h3>
+        <h3>Preview class email</h3>
         <SearchSelect name="classSessionId" label="Class" options={classOptions} placeholder="Search classes" required />
         <SearchSelect name="templateId" label="Template" options={templateOptions} placeholder="Search templates" required />
         <div class="button-row">
@@ -88,12 +88,12 @@
     {/if}
     {#if data.action === 'schedule'}
       <form method="POST" action="?/createCampaign" class="panel-form" use:enhance>
-        <h3>Schedule campaign</h3>
+        <h3>Schedule class email</h3>
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <SearchSelect name="classSessionId" label="Class" options={classOptions} placeholder="Search classes" required />
         <SearchSelect name="templateId" label="Template" options={templateOptions} placeholder="Search templates" required />
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
-        <span class="help-text">Manual schedules are saved as drafts. Use Preview campaign first to create an approved schedule.</span>
+        <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>
         <div class="button-row">
           <button type="submit">Create draft schedule</button>
           <a class="button-link" href="/campaigns">Cancel</a>

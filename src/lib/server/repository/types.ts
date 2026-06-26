@@ -188,6 +188,22 @@ export interface CommunicationHistoryItem {
   acknowledgedAt?: string;
 }
 
+export interface CommunicationHistoryPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  contactId?: string;
+}
+
+export interface CommunicationHistoryPage {
+  items: CommunicationHistoryItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+  contactId: string;
+}
+
 export interface EmailTestAuditInput {
   originalRecipient: string;
   effectiveRecipient: string;

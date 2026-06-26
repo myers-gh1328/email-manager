@@ -2,6 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
 import type {
   CommunicationHistoryItem,
+  CommunicationHistoryPage,
+  CommunicationHistoryPageInput,
   CommunicationInput,
   CommunicationReply,
   CommunicationReplyInput,
@@ -139,6 +141,59 @@ export function listCommunications(db: DatabaseSync) {
     .all()
       .map((row) => row as Row)
   );
+}
+
+export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHistoryPageInput = {}): CommunicationHistoryPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const contactId = input.contactId?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (contactId) {
+    where.push('cm.contact_id = ?');
+    params.push(contactId);
+  }
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(c.first_name || ' ' || c.last_name) like ?
+        or lower(c.email) like ?
+        or lower(cm.subject) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db
+    .prepare(
+      `select count(*) as value
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       ${whereSql}`
+    )
+    .get(...params) as Row;
+  const rows = db
+    .prepare(
+      `select cm.*, c.first_name, c.last_name, c.email
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       ${whereSql}
+       order by cm.created_at desc, cm.rowid desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => row as Row);
+
+  return {
+    items: withReplies(db, rows),
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search,
+    contactId
+  };
 }
 
 export function listContactCommunications(db: DatabaseSync, contactId: string) {

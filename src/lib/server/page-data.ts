@@ -115,12 +115,21 @@ export function loadCampaignsData() {
   };
 }
 
-export function loadCommunicationsData(contactId?: string) {
+export function loadCommunicationsData(input: { contactId?: string; search?: string; page?: number } = {}) {
+  const limit = 25;
+  const page = Math.max(input.page ?? 1, 1);
+  const communicationPage = repo.listCommunicationsPage({
+    contactId: input.contactId,
+    search: input.search,
+    limit,
+    offset: (page - 1) * limit
+  });
   return {
     contacts: repo.listContacts(),
-    communications: repo.listCommunications(),
+    communications: communicationPage.items,
+    communicationPage,
     templates: repo.listTemplates(),
-    selectedContactId: contactId ?? '',
+    selectedContactId: input.contactId ?? '',
     settings: getSettings()
   };
 }
