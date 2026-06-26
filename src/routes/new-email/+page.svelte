@@ -14,7 +14,7 @@
   let subject = $derived(form?.subject ?? data.prefillSubject ?? '');
   let body = $derived(form?.body ?? data.prefillBody ?? '');
   let previewToken = $derived(form?.previewToken ?? '');
-  let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
+  let templateOptions = $derived(data.templateOptions);
   const variableFields = tokenFields(directEmailTokens);
 
   function draftWithAi({ submitter }: { submitter: HTMLElement | null }) {
@@ -76,6 +76,7 @@
       placeholder="Search templates"
       addHref="/templates?action=create"
       addLabel="Add template"
+      searchHref="/templates/search"
     />
     <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>
     <label>Subject<input name="subject" value={subject} placeholder="Quick class update" /></label>

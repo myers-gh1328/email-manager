@@ -121,6 +121,25 @@ export function loadContactOptions(selectedContactIds: string[] = []) {
   return [...byId.values()];
 }
 
+export function formatClassSessionOption(session: ReturnType<typeof repo.listClassSessionsPage>['items'][number]) {
+  const endsOn = session.endsOn || session.startsOn;
+  const dateRange = endsOn !== session.startsOn ? `${session.startsOn} - ${endsOn}` : session.startsOn;
+  const schedule = session.startTime ? `${dateRange} · ${session.startTime}` : dateRange;
+  return { value: session.id, label: `${session.courseName} · ${schedule}` };
+}
+
+export function formatTemplateOption(template: ReturnType<typeof repo.listTemplatesPage>['items'][number]) {
+  return { value: template.id, label: template.name };
+}
+
+export function loadClassSessionOptions() {
+  return repo.listClassSessionsPage({ limit: 25 }).items.map(formatClassSessionOption);
+}
+
+export function loadTemplateOptions() {
+  return repo.listTemplatesPage({ limit: 25 }).items.map(formatTemplateOption);
+}
+
 export function loadClassesData(input: { search?: string; page?: number } = {}) {
   const limit = 25;
   const page = Math.max(input.page ?? 1, 1);
@@ -133,7 +152,7 @@ export function loadClassesData(input: { search?: string; page?: number } = {}) 
     contactOptions: loadContactOptions(),
     courseTypes: repo.listCourseTypes(),
     locations: repo.listLocations(),
-    templates: repo.listTemplates(),
+    templateOptions: loadTemplateOptions(),
     classSessions: classSessionsPage.items,
     classSessionsPage
   };
@@ -164,9 +183,9 @@ export function loadCampaignsData(input: { search?: string; page?: number } = {}
   });
   return {
     contactOptions: loadContactOptions(),
-    classSessions: repo.listClassSessions(),
+    classSessionOptions: loadClassSessionOptions(),
     locations: repo.listLocations(),
-    templates: repo.listTemplates(),
+    templateOptions: loadTemplateOptions(),
     campaigns: campaignsPage.items,
     campaignsPage,
     settings: getSettings()
@@ -186,7 +205,7 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
     contactOptions: loadContactOptions(),
     communications: communicationPage.items,
     communicationPage,
-    templates: repo.listTemplates(),
+    templateOptions: loadTemplateOptions(),
     selectedContactId: input.contactId ?? '',
     settings: getSettings()
   };
@@ -195,7 +214,7 @@ export function loadCommunicationsData(input: { contactId?: string; search?: str
 export function loadNewEmailData(input: { contactId?: string; subject?: string; body?: string } = {}) {
   return {
     contactOptions: loadContactOptions(input.contactId ? [input.contactId] : []),
-    templates: repo.listTemplates(),
+    templateOptions: loadTemplateOptions(),
     selectedContactId: input.contactId ?? '',
     prefillSubject: input.subject ?? '',
     prefillBody: input.body ?? '',

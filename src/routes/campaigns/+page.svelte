@@ -3,19 +3,11 @@
   import SearchSelect from '$lib/SearchSelect.svelte';
 
   let { data, form } = $props();
-  let classOptions = $derived(
-    data.classSessions.map((session) => ({ value: session.id, label: `${session.courseName} · ${formatClassSchedule(session)}` }))
-  );
-  let templateOptions = $derived(data.templates.map((template) => ({ value: template.id, label: template.name })));
+  let classOptions = $derived(data.classSessionOptions);
+  let templateOptions = $derived(data.templateOptions);
   let campaignsSearch = $derived(data.campaignsPage.search ?? '');
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
-
-  function formatClassSchedule(session: { startsOn: string; endsOn?: string; startTime?: string }) {
-    const endsOn = session.endsOn || session.startsOn;
-    const dateRange = endsOn !== session.startsOn ? `${session.startsOn} - ${endsOn}` : session.startsOn;
-    return session.startTime ? `${dateRange} · ${session.startTime}` : dateRange;
-  }
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -118,6 +110,7 @@
           placeholder="Search classes"
           addHref="/classes?action=session"
           addLabel="Add class"
+          searchHref="/classes/search"
           required
         />
         <SearchSelect
@@ -127,6 +120,7 @@
           placeholder="Search templates"
           addHref="/templates?action=create"
           addLabel="Add template"
+          searchHref="/templates/search"
           required
         />
         <div class="button-row">
@@ -146,6 +140,7 @@
           placeholder="Search classes"
           addHref="/classes?action=session"
           addLabel="Add class"
+          searchHref="/classes/search"
           required
         />
         <SearchSelect
@@ -155,6 +150,7 @@
           placeholder="Search templates"
           addHref="/templates?action=create"
           addLabel="Add template"
+          searchHref="/templates/search"
           required
         />
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>

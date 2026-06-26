@@ -15,7 +15,7 @@
   let locationOptions = $derived(data.locations.map((location) => ({ value: location.id, label: location.name })));
   let templateOptions = $derived([
     ...data.defaultTemplates.map((item) => ({ value: `default:${item.purpose}:${item.templateId}`, label: `${purposeLabel(item.purpose)} · ${item.templateName} · ${timingLabel(item.sendOffsetMinutes)}` })),
-    ...data.templates.map((template) => ({ value: template.id, label: template.name }))
+    ...data.templateOptions
   ]);
   let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiBaseUrl && data.settings.aiModel));
 
@@ -199,6 +199,7 @@
           placeholder="Choose email template"
           addHref="/templates?action=create"
           addLabel="Add template"
+          searchHref="/templates/search"
           required
         />
         <button type="submit">Preview student emails</button>

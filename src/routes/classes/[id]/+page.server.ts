@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
 import { errorText, required, text } from '$lib/server/form-utils';
-import { loadContactOptions } from '$lib/server/page-data';
+import { loadContactOptions, loadTemplateOptions } from '$lib/server/page-data';
 import {
   buildCampaignEmailPreviews,
   campaignEmailPreviewToken,
@@ -18,7 +18,7 @@ export const load = ({ params }) => ({
   contactOptions: loadContactOptions(),
   courseTypes: repo.listCourseTypes(),
   locations: repo.listLocations(),
-  templates: repo.listTemplates(),
+  templateOptions: loadTemplateOptions(),
   defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
   scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
   checklistState: repo.listEnrollmentChecklistState(params.id),

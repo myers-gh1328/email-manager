@@ -66,11 +66,38 @@ describe('SearchSelect contract', () => {
     expect(pageData).toContain('function loadContactOptions');
     expect(pageData).toContain('repo.listContactsPage({ limit: 25 }).items');
     expect(pageData).toContain('contactOptions: loadContactOptions()');
-    expect(classDetailServer).toContain("import { loadContactOptions } from '$lib/server/page-data'");
+    expect(classDetailServer).toContain('loadContactOptions');
     expect(classDetailServer).toContain('contactOptions: loadContactOptions()');
     expect(picker).toContain("searchHref = '/contacts/search'");
     expect(picker).toContain('fetch(');
     expect(contactSearchRoute).toContain('repo.listContactsPage');
     expect(contactSearchRoute).toContain('limit: 25');
+  });
+
+  test('does not load every class or template into shared search selects', () => {
+    const pageData = readFileSync('src/lib/server/page-data.ts', 'utf8');
+    const classDetailServer = readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8');
+    const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
+    const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
+    const newEmail = readFileSync('src/routes/new-email/+page.svelte', 'utf8');
+    const searchSelect = readFileSync('src/lib/SearchSelect.svelte', 'utf8');
+    const classSearchRoute = readFileSync('src/routes/classes/search/+server.ts', 'utf8');
+    const templateSearchRoute = readFileSync('src/routes/templates/search/+server.ts', 'utf8');
+
+    expect(pageData).not.toContain('classSessions: repo.listClassSessions()');
+    expect(pageData).not.toContain('templates: repo.listTemplates()');
+    expect(classDetailServer).not.toContain('templates: repo.listTemplates()');
+    expect(pageData).toContain('function loadClassSessionOptions');
+    expect(pageData).toContain('function loadTemplateOptions');
+    expect(pageData).toContain('repo.listClassSessionsPage({ limit: 25 }).items');
+    expect(pageData).toContain('repo.listTemplatesPage({ limit: 25 }).items');
+    expect(scheduledEmails).toContain('searchHref="/classes/search"');
+    expect(scheduledEmails).toContain('searchHref="/templates/search"');
+    expect(classDetail).toContain('searchHref="/templates/search"');
+    expect(newEmail).toContain('searchHref="/templates/search"');
+    expect(searchSelect).toContain('searchHref');
+    expect(searchSelect).toContain('fetch(');
+    expect(classSearchRoute).toContain('repo.listClassSessionsPage');
+    expect(templateSearchRoute).toContain('repo.listTemplatesPage');
   });
 });
