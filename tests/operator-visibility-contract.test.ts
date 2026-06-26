@@ -162,10 +162,18 @@ describe('operator visibility contract', () => {
     expect(classes).toContain('Search classes');
     expect(classes).toContain('classesPageHref');
     expect(classes).toContain('classesListReturnTo');
+    expect(classes).toContain('classWorkflowReturnTo');
+    expect(classes).toContain('addClassReturnTo');
+    expect(classes).toContain('href={`/classes?action=session&returnTo=${encodeURIComponent(classesListReturnTo)}`}');
     expect(classes).toContain('href={`/classes/${session.id}?returnTo=${encodeURIComponent(classesListReturnTo)}`}');
+    expect(classes).toContain("href={data.returnTo || '/classes'}");
+    expect(classes).not.toContain('href="/classes?action=session">Add class');
+    expect(classes).not.toContain('href="/classes">Cancel');
     expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
     expect(classes).not.toContain('<section class="band two-column">');
     expect(classesServer).toContain('page: Number(url.searchParams.get');
+    expect(classesServer).toContain('localReturnTo');
+    expect(classesServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
 

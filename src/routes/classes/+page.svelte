@@ -12,7 +12,8 @@
   let currentClassesPage = $derived(Math.floor(data.classSessionsPage.offset / data.classSessionsPage.limit) + 1);
   let totalClassesPages = $derived(Math.max(Math.ceil(data.classSessionsPage.total / data.classSessionsPage.limit), 1));
   let classesListReturnTo = $derived(classesPageHref(currentClassesPage));
-  let addClassReturnTo = $derived(`/classes?action=session${data.classSessionsPage.search ? `&search=${encodeURIComponent(data.classSessionsPage.search)}` : ''}`);
+  let classWorkflowReturnTo = $derived(data.returnTo || classesListReturnTo);
+  let addClassReturnTo = $derived(`/classes?action=session&returnTo=${encodeURIComponent(classWorkflowReturnTo)}`);
   let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(addClassReturnTo)}`);
 
   $effect(() => {
@@ -45,7 +46,7 @@
         <p class="eyebrow">Classes</p>
         <h2>Scheduled classes</h2>
       </div>
-      <a class="button-link" href="/classes?action=session">Add class</a>
+      <a class="button-link" href={`/classes?action=session&returnTo=${encodeURIComponent(classesListReturnTo)}`}>Add class</a>
     </div>
     {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
 
@@ -118,7 +119,7 @@
         <label>Notes<textarea name="notes" rows="2"></textarea></label>
         <div class="button-row">
           <button type="submit">Add class</button>
-          <a class="button-link" href="/classes">Cancel</a>
+          <a class="button-link" href={data.returnTo || '/classes'}>Cancel</a>
         </div>
       </form>
     </div>

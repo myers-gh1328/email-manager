@@ -3,6 +3,7 @@ import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
 import { errorText, required, text } from '$lib/server/form-utils';
 import { loadClassesData } from '$lib/server/page-data';
+import { localReturnTo } from '$lib/server/return-to';
 
 export const load = ({ url }) => {
   return {
@@ -10,7 +11,8 @@ export const load = ({ url }) => {
       search: url.searchParams.get('search') ?? '',
       page: Number(url.searchParams.get('page') ?? '1')
     }),
-    action: url.searchParams.get('action') ?? ''
+    action: url.searchParams.get('action') ?? '',
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
   };
 };
 
