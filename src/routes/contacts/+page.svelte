@@ -72,6 +72,32 @@
       {#if data.contactsPage.search}<a class="button-link" href="/contacts">Clear</a>{/if}
     </form>
     <p class="help-text">Showing {data.contacts.length} of {data.contactsPage.total} contacts.</p>
+    <div class="list">
+      {#each data.contacts as contact}
+        <article class="row-card tall">
+          <div>
+            <a href={`/contacts?contactId=${contact.id}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
+            <p>{contact.email}{contact.phone ? ` · ${contact.phone}` : ''}</p>
+          </div>
+          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
+        </article>
+      {:else}
+        <p class="empty">No contacts yet.</p>
+      {/each}
+    </div>
+    {#if totalContactsPages > 1}
+      <nav class="pagination" aria-label="Contact pages">
+        <a class="button-link" aria-disabled={currentContactsPage === 1} href={contactsPageHref(Math.max(currentContactsPage - 1, 1))}>Previous</a>
+        <span>Page {currentContactsPage} of {totalContactsPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentContactsPage >= totalContactsPages}
+          href={contactsPageHref(Math.min(currentContactsPage + 1, totalContactsPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
     <div class="form-stack task-stack">
       {#if data.action === 'add'}
         <form method="POST" action="?/createContact" class="panel-form" use:enhance>
@@ -121,32 +147,6 @@
           </section>
       {/if}
     </div>
-    <div class="list">
-      {#each data.contacts as contact}
-        <article class="row-card tall">
-          <div>
-            <a href={`/contacts?contactId=${contact.id}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
-            <p>{contact.email}{contact.phone ? ` · ${contact.phone}` : ''}</p>
-          </div>
-          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
-        </article>
-      {:else}
-        <p class="empty">No contacts yet.</p>
-      {/each}
-    </div>
-    {#if totalContactsPages > 1}
-      <nav class="pagination" aria-label="Contact pages">
-        <a class="button-link" aria-disabled={currentContactsPage === 1} href={contactsPageHref(Math.max(currentContactsPage - 1, 1))}>Previous</a>
-        <span>Page {currentContactsPage} of {totalContactsPages}</span>
-        <a
-          class="button-link"
-          aria-disabled={currentContactsPage >= totalContactsPages}
-          href={contactsPageHref(Math.min(currentContactsPage + 1, totalContactsPages))}
-        >
-          Next
-        </a>
-      </nav>
-    {/if}
 
     {#if data.contactDetail}
       <div class="preview-list">

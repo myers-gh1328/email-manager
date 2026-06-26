@@ -103,6 +103,7 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('Search contacts');
     expect(contacts).toContain('contactsPageHref');
     expect(contacts).toContain('Page {currentContactsPage} of {totalContactsPages}');
+    expect(contacts.indexOf('<div class="list">')).toBeLessThan(contacts.indexOf('<div class="form-stack task-stack">'));
     expect(contactsServer).toContain('page: Number(url.searchParams.get');
     expect(pageData).toContain('contactsPage = repo.listContactsPage');
   });
