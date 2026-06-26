@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { repo } from '$lib/server/app';
 import { setAdminPassword, verifyAdminPassword } from '$lib/server/auth';
 import {
   allowExternalSignOnLink,
@@ -11,7 +12,7 @@ import {
 } from '$lib/server/external-sign-on';
 import { listAiModels } from '$lib/server/llm';
 import { syncRepliesNow } from '$lib/server/reply-sync';
-import { errorText, formText, required } from '$lib/server/form-utils';
+import { errorText, formText, required, text } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
 import { assertOutboundBatchAllowed } from '$lib/server/outbound-gate';
 import { OutboundGateError } from '$lib/server/outbound-errors';
@@ -96,6 +97,41 @@ export const actions = {
   updateVocabulary: async ({ request }) => {
     updateVocabularySettings(await request.formData());
     return { message: 'Vocabulary settings saved.' };
+  },
+  createCourse: async ({ request }) => {
+    const form = await request.formData();
+    repo.createCourseType({ name: required(form, 'name'), description: text(form, 'description') });
+    return { message: 'Course type added.' };
+  },
+  updateCourse: async ({ request }) => {
+    const form = await request.formData();
+    repo.updateCourseType(required(form, 'courseId'), { name: required(form, 'name'), description: text(form, 'description') });
+    return { message: 'Course type updated.' };
+  },
+  createLocation: async ({ request }) => {
+    const form = await request.formData();
+    repo.createLocation(locationInput(form));
+    return { message: 'Location added.' };
+  },
+  updateLocation: async ({ request }) => {
+    const form = await request.formData();
+    repo.updateLocation(required(form, 'locationId'), locationInput(form));
+    return { message: 'Location updated.' };
+  },
+  createChecklistItem: async ({ request }) => {
+    const form = await request.formData();
+    repo.createChecklistItem({ label: required(form, 'label') });
+    return { message: 'Class prep default added.' };
+  },
+  updateChecklistItem: async ({ request }) => {
+    const form = await request.formData();
+    repo.updateChecklistItem(required(form, 'itemId'), { label: required(form, 'label') });
+    return { message: 'Class prep default updated.' };
+  },
+  deleteChecklistItem: async ({ request }) => {
+    const form = await request.formData();
+    repo.deleteChecklistItem(required(form, 'itemId'));
+    return { message: 'Class prep default deleted.' };
   },
   saveExternalSignOnProvider: async ({ request }) => {
     const form = await request.formData();
@@ -211,6 +247,18 @@ function externalSignOnProviderSettingsFromForm(form: FormData) {
     entraTenant: formText(form.get('entraTenant')),
     entraClientId: formText(form.get('entraClientId')),
     entraClientSecret: formText(form.get('entraClientSecret'))
+  };
+}
+
+function locationInput(form: FormData) {
+  return {
+    name: required(form, 'name'),
+    address: text(form, 'address'),
+    phone: text(form, 'phone'),
+    website: text(form, 'website'),
+    parkingNotes: text(form, 'parkingNotes'),
+    meetingInstructions: text(form, 'meetingInstructions'),
+    notes: text(form, 'notes')
   };
 }
 

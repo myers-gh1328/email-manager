@@ -70,4 +70,15 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Add location');
     expect(classes).not.toContain('Enroll student');
   });
+
+  test('gives setup data a Settings App Data home', () => {
+    const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+    expect(settings).toContain('<summary>App Data</summary>');
+    expect(settings).toContain('Course types');
+    expect(settings).toContain('Locations');
+    expect(settings).toContain('Class prep defaults');
+    expect(settings).toContain('?/createCourse');
+    expect(settings).toContain('?/createLocation');
+    expect(settings).toContain('?/createChecklistItem');
+  });
 });

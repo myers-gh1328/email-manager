@@ -147,6 +147,9 @@ export function loadSettingsData() {
   const settings = getSettings();
   return {
     settings,
+    courseTypes: repo.listCourseTypes(),
+    locations: repo.listLocations(),
+    checklistItems: repo.listChecklistItems(),
     remoteStatus: remoteAccessStatus(settings)
   };
 }

@@ -176,6 +176,85 @@
     </details>
     {/if}
 
+    {#if sectionMatches('App Data', ['course types locations class prep defaults setup checklist reusable class data'])}
+    <details class="settings-section settings-panel wide" open={data.openSection === 'app-data'}>
+      <summary>App Data</summary>
+      <div class="panel-form">
+        <div>
+          <p class="eyebrow">Reusable setup</p>
+          <h3>Course types, locations, and class prep</h3>
+          <p class="help-text">Manage the lists used when creating classes. Scheduled email defaults stay with the selected class workflow.</p>
+        </div>
+
+        <section class="app-data-block">
+          <h3>Course types</h3>
+          <div class="app-data-list">
+            {#each data.courseTypes as course}
+              <form method="POST" action="?/updateCourse" class="inline-edit-form" use:enhance>
+                <input type="hidden" name="courseId" value={course.id} />
+                <label>Name<input name="name" value={course.name} required /></label>
+                <label>Description<textarea name="description" rows="2">{course.description}</textarea></label>
+                <button type="submit">Save</button>
+              </form>
+            {/each}
+            {#if data.courseTypes.length === 0}<p class="muted">No course types yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createCourse" class="inline-edit-form add-row" use:enhance>
+            <label>New course type<input name="name" required /></label>
+            <label>Description<textarea name="description" rows="2"></textarea></label>
+            <button type="submit">Add course type</button>
+          </form>
+        </section>
+
+        <section class="app-data-block">
+          <h3>Locations</h3>
+          <div class="app-data-list">
+            {#each data.locations as location}
+              <form method="POST" action="?/updateLocation" class="inline-edit-form" use:enhance>
+                <input type="hidden" name="locationId" value={location.id} />
+                <label>Name<input name="name" value={location.name} required /></label>
+                <label>Address<textarea name="address" rows="2">{location.address}</textarea></label>
+                <input type="hidden" name="phone" value={location.phone} />
+                <input type="hidden" name="website" value={location.website} />
+                <input type="hidden" name="parkingNotes" value={location.parkingNotes} />
+                <input type="hidden" name="meetingInstructions" value={location.meetingInstructions} />
+                <input type="hidden" name="notes" value={location.notes} />
+                <button type="submit">Save</button>
+              </form>
+            {/each}
+            {#if data.locations.length === 0}<p class="muted">No locations yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createLocation" class="inline-edit-form add-row" use:enhance>
+            <label>New location<input name="name" required /></label>
+            <label>Address<textarea name="address" rows="2"></textarea></label>
+            <button type="submit">Add location</button>
+          </form>
+        </section>
+
+        <section class="app-data-block">
+          <h3>Class prep defaults</h3>
+          <div class="app-data-list">
+            {#each data.checklistItems as item}
+              <form method="POST" action="?/updateChecklistItem" class="inline-edit-form compact-row" use:enhance>
+                <input type="hidden" name="itemId" value={item.id} />
+                <label>Task<input name="label" value={item.label} required /></label>
+                <div class="button-row">
+                  <button type="submit">Save</button>
+                  <button class="danger" type="submit" formaction="?/deleteChecklistItem">Delete</button>
+                </div>
+              </form>
+            {/each}
+            {#if data.checklistItems.length === 0}<p class="muted">No class prep defaults yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createChecklistItem" class="inline-edit-form compact-row add-row" use:enhance>
+            <label>New prep task<input name="label" required /></label>
+            <button type="submit">Add prep task</button>
+          </form>
+        </section>
+      </div>
+    </details>
+    {/if}
+
     {#if sectionMatches('SMTP and provider authentication', ['smtp email account provider authentication microsoft outlook gmail fastmail password test send'])}
     <details class="settings-section settings-panel wide" open>
       <summary>SMTP and Provider Authentication</summary>
@@ -683,8 +762,43 @@
     gap: 12px;
   }
 
+  .app-data-block {
+    display: grid;
+    gap: 10px;
+    padding-top: 8px;
+  }
+
+  .app-data-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .inline-edit-form {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 2fr) auto;
+    gap: 10px;
+    align-items: end;
+    padding: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.72);
+  }
+
+  .inline-edit-form.compact-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .inline-edit-form.add-row {
+    border-style: dashed;
+  }
+
   @media (max-width: 720px) {
     .split {
+      grid-template-columns: 1fr;
+    }
+
+    .inline-edit-form,
+    .inline-edit-form.compact-row {
       grid-template-columns: 1fr;
     }
   }
