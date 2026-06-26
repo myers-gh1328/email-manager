@@ -124,6 +124,7 @@
         <input name="templateId" type="hidden" value={form.templateId} />
         <input name="previewToken" type="hidden" value={form.previewToken} />
         <input name="scheduleMode" type="hidden" value="ready" />
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
         <button type="submit">Create schedule</button>

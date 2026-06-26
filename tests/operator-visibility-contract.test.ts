@@ -315,6 +315,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmails).toContain('href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
     expect(scheduledEmails).toContain('href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
     expect(scheduledEmails).toContain("href={data.returnTo || '/campaigns'}");
+    expect(scheduledEmails).toContain('{#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}');
     expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
     expect(scheduledEmailDetail).toContain("href={data.returnTo || '/campaigns'}");
     expect(scheduledEmailDetailServer).toContain('localReturnTo');
