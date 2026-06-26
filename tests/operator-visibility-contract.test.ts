@@ -192,11 +192,17 @@ describe('operator visibility contract', () => {
     expect(classes).toContain("href={data.returnTo || '/classes'}");
     expect(classes).not.toContain('href="/classes?action=session">Add class');
     expect(classes).not.toContain('href="/classes">Cancel');
+    expect(classes).toContain('data.actionMessage');
+    expect(classes).toContain('{#if classesSearch}<input name="search" type="hidden" value={classesSearch} />{/if}');
+    expect(classes).toContain('{#if currentClassesPage > 1}<input name="page" type="hidden" value={currentClassesPage} />{/if}');
     expect(classes).toContain('Page {currentClassesPage} of {totalClassesPages}');
     expect(classes).not.toContain('<section class="band two-column">');
     expect(classesServer).toContain('page: Number(url.searchParams.get');
     expect(classesServer).toContain('localReturnTo');
     expect(classesServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
+    expect(classesServer).toContain("actionMessage: url.searchParams.get('message') ?? ''");
+    expect(classesServer).toContain('classActionReturn');
+    expect(classesServer).toContain('throw redirect(303, classActionReturn(form,');
     expect(pageData).toContain('classSessionsPage = repo.listClassSessionsPage');
   });
 

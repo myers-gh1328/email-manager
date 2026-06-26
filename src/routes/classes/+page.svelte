@@ -50,7 +50,7 @@
       </div>
       <a class="button-link" href={`/classes?action=session&returnTo=${encodeURIComponent(classesListReturnTo)}`}>Add class</a>
     </div>
-    {#if form?.message}<p class="success spaced">{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}<p class="success spaced">{form?.message || data.actionMessage}</p>{/if}
 
     <form class="inline-filters" method="GET" action="/classes">
       {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
@@ -120,6 +120,9 @@
         <label>End date<input bind:value={newClassEndsOn} name="endsOn" type="date" oninput={() => (endDateTouched = true)} required /></label>
         <label>Start time<input name="startTime" type="time" /></label>
         <label>Notes<textarea name="notes" rows="2"></textarea></label>
+        {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+        {#if classesSearch}<input name="search" type="hidden" value={classesSearch} />{/if}
+        {#if currentClassesPage > 1}<input name="page" type="hidden" value={currentClassesPage} />{/if}
         <div class="button-row">
           <button type="submit">Add class</button>
           <a class="button-link" href={data.returnTo || '/classes'}>Cancel</a>
