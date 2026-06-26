@@ -63,11 +63,11 @@
     <section class="panel-form spaced">
       <div class="section-heading compact">
         <div>
-          <p class="eyebrow">Course scheduled emails</p>
-          <h3>Emails added from course setup</h3>
+          <p class="eyebrow">Automatic class emails</p>
+          <h3>Emails added from course</h3>
         </div>
       </div>
-      <p class="body-copy">These emails come from the course setup. Changing setup emails updates future unsent class emails while preserving emails already sent.</p>
+      <p class="body-copy">These emails come from the selected course. Changing course emails updates future unsent class emails while preserving emails already sent.</p>
       <div class="list">
         {#each data.defaultTemplates as defaultTemplate}
           <article class="row-card">
@@ -75,10 +75,10 @@
               <strong>{purposeLabel(defaultTemplate.purpose)}</strong>
               <p>{defaultTemplate.templateName} · {timingLabel(defaultTemplate.sendOffsetMinutes)}</p>
             </div>
-            <span class="pill">From course setup</span>
+            <span class="pill">From course</span>
           </article>
         {:else}
-          <p class="empty">No setup emails are configured for this course.</p>
+          <p class="empty">No automatic emails are configured for this course.</p>
         {/each}
       </div>
     </section>
@@ -96,7 +96,7 @@
               <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
-                {campaign.source === 'course_default' ? 'From course setup' : 'Manual schedule'}
+                {campaign.source === 'course_default' ? 'From course' : 'Manual schedule'}
                 · {scheduledEmailDeliverySummary(campaign)}
               </p>
             </div>

@@ -141,13 +141,13 @@ function sendOffsetMinutes(form: FormData, purpose: string) {
 
 function courseDefaultsMessage(sync: { created: number; updated: number; deleted: number; skippedSent: number }) {
   const skipped = sync.skippedSent ? `, skipped ${sync.skippedSent} already-sent` : '';
-  return `Course setup emails updated. Scheduled ${sync.created}, updated ${sync.updated}, removed ${sync.deleted}${skipped}.`;
+  return `Course emails updated. Scheduled ${sync.created}, updated ${sync.updated}, removed ${sync.deleted}${skipped}.`;
 }
 
 function classCreatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class added.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
-  return `Class added. Scheduled ${defaultCampaignCount} setup email${plural}.`;
+  return `Class added. Scheduled ${defaultCampaignCount} course email${plural}.`;
 }
 
 function locationInput(form: FormData) {
