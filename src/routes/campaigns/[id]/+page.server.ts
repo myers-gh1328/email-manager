@@ -3,6 +3,7 @@ import { repo } from '$lib/server/app';
 import { errorText, formText, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
 import { withReadyToSend } from '$lib/server/page-data';
+import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ params, url }) => {
@@ -12,7 +13,12 @@ export const load = ({ params, url }) => {
     offset: (page - 1) * 25,
     search: url.searchParams.get('search') ?? ''
   });
-  return { ...detail, campaign: withReadyToSend(detail.campaign), scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor) };
+  return {
+    ...detail,
+    campaign: withReadyToSend(detail.campaign),
+    scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor),
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
+  };
 };
 
 export const actions = {

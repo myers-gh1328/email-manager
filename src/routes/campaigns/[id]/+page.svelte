@@ -45,7 +45,7 @@
       </div>
       <div class="button-row compact">
         <a class="button-link" href={`/communications?sourceId=${data.campaign.id}`}>View in History</a>
-        <a class="button-link" href="/campaigns">Back</a>
+        <a class="button-link" href={data.returnTo || '/campaigns'}>Back</a>
       </div>
     </div>
     <dl class="detail-facts">

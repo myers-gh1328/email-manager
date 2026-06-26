@@ -11,6 +11,7 @@
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
   let campaignWorkflowReturnTo = $derived(`/campaigns${data.action ? `?action=${encodeURIComponent(data.action)}` : ''}`);
+  let scheduledEmailReturnTo = $derived(campaignsPageHref(currentCampaignsPage));
   let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   const statusFilters = [
@@ -79,7 +80,7 @@
       {#each data.campaigns as campaign}
         <article class="row-card">
           <div>
-            <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
+            <a href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}><strong>{campaign.name}</strong></a>
             <p>{campaign.courseName} · {campaign.templateName} · {formatDateTime(campaign.scheduledFor)}</p>
             <p>{scheduledEmailDeliverySummary(campaign)}</p>
           </div>

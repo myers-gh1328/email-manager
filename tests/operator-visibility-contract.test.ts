@@ -278,6 +278,12 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('View in History');
     expect(scheduledEmailDetail).toContain('/communications?sourceId=');
+    expect(scheduledEmails).toContain('scheduledEmailReturnTo');
+    expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
+    expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmailDetail).toContain("href={data.returnTo || '/campaigns'}");
+    expect(scheduledEmailDetailServer).toContain('localReturnTo');
+    expect(scheduledEmailDetailServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(scheduledEmailDetail).toContain('Ready to send');
     expect(scheduledEmails).toContain('scheduledEmailStatusLabel(campaign.readyToSend)');
     expect(scheduledEmails).toContain('class:good={campaign.readyToSend}');
