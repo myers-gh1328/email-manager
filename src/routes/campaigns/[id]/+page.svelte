@@ -100,7 +100,7 @@
       {/if}
       <div class="button-row">
         <button type="submit">Update scheduled email</button>
-        <button class="danger" type="submit" formaction="?/deleteCampaign" onclick={confirmDelete}>Delete draft</button>
+        <button class="danger" type="submit" formaction="?/deleteCampaign" onclick={confirmDelete}>Delete scheduled email</button>
       </div>
     </form>
     <section class="panel-form">
