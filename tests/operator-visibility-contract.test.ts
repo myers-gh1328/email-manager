@@ -242,6 +242,8 @@ describe('operator visibility contract', () => {
       expect(source).not.toContain('approved campaigns');
       expect(source).not.toContain('approved scheduled campaigns');
     }
+    expect(settings).toContain('Let agents schedule confirmed emails');
+    expect(settings).not.toContain('Let agents schedule reviewed emails');
     expect(scheduledEmailDetail).not.toContain('Campaign detail');
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).not.toContain('<div class="status-row">');
