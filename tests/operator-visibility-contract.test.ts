@@ -85,7 +85,9 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('email issue');
     expect(dashboard).toContain('data.recentScheduledEmails');
     expect(dashboard).toContain('href={`/campaigns/${campaign.id}`}');
-    expect(dashboard).toContain('scheduledEmailStatusLabel(campaign.approved)');
+    expect(dashboard).toContain('scheduledEmailStatusLabel(campaign.readyToSend)');
+    expect(dashboard).toContain('class:good={campaign.readyToSend}');
+    expect(dashboard).not.toContain('campaign.approved');
     expect(dashboard).not.toContain("campaign.approved ? 'Scheduled' : 'Draft'");
     expect(pageData).toContain('recentScheduledEmails');
     expect(pageData).toContain('countReadyScheduledEmailsDue');

@@ -5,7 +5,10 @@ import { getSettings } from './settings';
 export function loadDashboardData() {
   const settings = getSettings();
   const nowIso = new Date().toISOString();
-  const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items;
+  const recentScheduledEmails = repo.listCampaignsPage({ limit: 5 }).items.map((campaign) => ({
+    ...campaign,
+    readyToSend: campaign.approved
+  }));
   const retryWindow = localTodayWindow();
   return {
     stats: repo.stats(),

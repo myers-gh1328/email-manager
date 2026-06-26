@@ -86,7 +86,7 @@
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
         </div>
-        <span class:good={campaign.approved} class="pill">{scheduledEmailStatusLabel(campaign.approved)}</span>
+        <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>
       </a>
     {:else}
       <p class="empty">No class emails scheduled.</p>
