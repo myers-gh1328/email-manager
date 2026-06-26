@@ -53,7 +53,7 @@
         {/each}
         {#if data.failedTodayCount}
           <a class="row-card" href="/communications?status=failed">
-            <strong>Failed email history</strong>
+            <strong>Failed emails</strong>
             <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'}. View failed sends in History before retrying from the scheduled email detail page.</p>
           </a>
         {/if}
