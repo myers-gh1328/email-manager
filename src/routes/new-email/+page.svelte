@@ -77,7 +77,7 @@
     <BusyOverlay message="Drafting message..." />
   {/if}
   <form method="POST" action="?/previewDirectEmail" class="panel-form" data-local-busy use:enhance={draftWithAi}>
-    <h3>Compose email</h3>
+    <h3>Email details</h3>
     <ContactMultiSelect contacts={data.contactOptions} {selectedContactIds} addHref={addContactHref} addLabel="Add contact" />
 
     <SearchSelect
