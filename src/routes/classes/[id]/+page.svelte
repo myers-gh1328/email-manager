@@ -24,7 +24,7 @@
   let classEmailSearch = $derived(data.scheduledCampaignsPage.search ?? '');
   let currentClassEmailsPage = $derived(Math.floor(data.scheduledCampaignsPage.offset / data.scheduledCampaignsPage.limit) + 1);
   let totalClassEmailsPages = $derived(Math.max(Math.ceil(data.scheduledCampaignsPage.total / data.scheduledCampaignsPage.limit), 1));
-  let classDetailReturnTo = $derived(`/classes/${data.session.id}`);
+  let classDetailReturnTo = $derived(classEmailsPageHref(currentClassEmailsPage));
   let appDataAddHref = $derived(`/settings?section=app-data&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
   let addContactHref = $derived(`/contacts?action=add&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
   let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(classDetailReturnTo)}`);
@@ -133,7 +133,7 @@
         {#each data.scheduledCampaigns as campaign}
           <article class="row-card tall">
             <div>
-              <a href={`/campaigns/${campaign.id}`}><strong>{campaign.name}</strong></a>
+              <a href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}><strong>{campaign.name}</strong></a>
               <p>Sends {formatDateTime(campaign.scheduledFor)} · {campaign.templateName}</p>
               <p>
                 {campaign.source === 'course_default' ? 'From course' : 'Added for this class'}

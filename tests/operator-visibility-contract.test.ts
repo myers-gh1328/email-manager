@@ -377,6 +377,8 @@ describe('operator visibility contract', () => {
     expect(classDetail).toContain('Search scheduled emails');
     expect(classDetail).toContain('data.scheduledCampaignsPage.total');
     expect(classDetail).toContain('classEmailsPageHref');
+    expect(classDetail).toContain('classDetailReturnTo = $derived(classEmailsPageHref(currentClassEmailsPage))');
+    expect(classDetail).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(classDetailReturnTo)}`}');
     expect(classDetail).toContain('Page {currentClassEmailsPage} of {totalClassEmailsPages}');
     expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
     expect(history).not.toContain('{communication.status}</span>');
