@@ -90,6 +90,9 @@ describe('operator visibility contract', () => {
     expect(classes).not.toContain('Checklist defaults');
     expect(classes).not.toContain('Add course type');
     expect(classes).not.toContain('Enroll student');
+    expect(classes).not.toContain('Manage class setup');
+    expect(classes).not.toContain('defaults.');
+    expect(classes).toContain('Manage courses, locations, and prep tasks');
     expect(classes).toContain('addLabel="Add course"');
     expect(classes).toContain('addLabel="Add location"');
     expect(classes).toContain('Search classes');
