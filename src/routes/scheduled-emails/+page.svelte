@@ -161,7 +161,7 @@
           required
         />
         <div class="button-row">
-          <button type="submit">Preview personalization</button>
+          <button type="submit">Preview scheduled email</button>
           <a class="button-link" href={data.returnTo || '/scheduled-emails'}>Cancel</a>
         </div>
       </form>
