@@ -1,6 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { formatDateTime } from '$lib/shared/format';
+  import { formatDateTime, messageStatusLabel } from '$lib/shared/format';
 
   let { data } = $props();
 
@@ -101,7 +101,7 @@
             {/if}
           </div>
           <div class="status-stack">
-            <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{communication.status}</span>
+            <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span>
             {#if communication.replyCount}
               <span class="pill good">Acknowledged</span>
               {#if communication.unreviewedReplyCount}<span class="pill warn">{communication.unreviewedReplyCount} new</span>{/if}

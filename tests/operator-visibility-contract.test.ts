@@ -157,6 +157,19 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetailServer).not.toContain('manual_send_due');
   });
 
+  test('formats technical delivery statuses before showing them to instructors', () => {
+    const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
+    const history = readFileSync('src/routes/communications/+page.svelte', 'utf8');
+    const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
+
+    expect(scheduledEmailDetail).toContain('deliveryStatusLabel(recipient.status)');
+    expect(history).toContain('messageStatusLabel(communication.status)');
+    expect(contacts).toContain('messageStatusLabel(communication.status)');
+    expect(scheduledEmailDetail).not.toContain('{recipient.status}</span>');
+    expect(history).not.toContain('{communication.status}</span>');
+    expect(contacts).not.toContain('{communication.status}</span>');
+  });
+
   test('keeps Test Sends paginated and searchable', () => {
     const testSends = readFileSync('src/routes/test-audit/+page.svelte', 'utf8');
     const testSendsServer = readFileSync('src/routes/test-audit/+page.server.ts', 'utf8');

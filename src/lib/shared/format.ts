@@ -22,3 +22,26 @@ export function timingLabel(minutes: number) {
   const unit = absolute % (24 * 60) === 0 ? 'day' : 'hour';
   return `${value} ${unit}${value === 1 ? '' : 's'} ${minutes < 0 ? 'before' : 'after'}`;
 }
+
+export function deliveryStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pending: 'Ready to send',
+    sending: 'Sending',
+    sent: 'Sent',
+    failed: 'Failed',
+    retry_scheduled: 'Will retry',
+    needs_attention: 'Needs review',
+    skipped: 'Skipped',
+    'not planned': 'Not prepared'
+  };
+  return labels[status] ?? status;
+}
+
+export function messageStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    accepted: 'Accepted by mail server',
+    sent: 'Sent',
+    failed: 'Failed'
+  };
+  return labels[status] ?? status;
+}

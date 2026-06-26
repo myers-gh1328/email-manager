@@ -1,6 +1,7 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
+  import { messageStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
   let importingImage = $state(false);
@@ -210,7 +211,7 @@
                   {/if}
                 </div>
                 <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">
-                  {communication.status === 'accepted' ? 'Accepted by mail server' : communication.status}
+                  {messageStatusLabel(communication.status)}
                 </span>
               </article>
             {:else}

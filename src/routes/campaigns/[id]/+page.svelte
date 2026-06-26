@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { deliveryStatusLabel } from '$lib/shared/format';
 
   let { data, form } = $props();
 
@@ -58,7 +59,7 @@
                 {#if recipient.delivery?.attemptCount}<p>Attempts: {recipient.delivery.attemptCount}{recipient.delivery.nextAttemptAt ? ` · Next retry ${formatDateTime(recipient.delivery.nextAttemptAt)}` : ''}</p>{/if}
                 {#if recipient.delivery?.providerMessage}<p>{recipient.delivery.providerMessage}</p>{/if}
               </div>
-              <span class:good={recipient.status === 'sent'} class:warn={recipient.status === 'skipped' || recipient.status === 'needs_attention'} class="pill">{recipient.status}</span>
+              <span class:good={recipient.status === 'sent'} class:warn={recipient.status === 'skipped' || recipient.status === 'needs_attention'} class="pill">{deliveryStatusLabel(recipient.status)}</span>
             </div>
           </article>
         {:else}
