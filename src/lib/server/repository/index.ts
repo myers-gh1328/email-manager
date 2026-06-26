@@ -8,6 +8,7 @@ import {
   createLocation,
   deleteContact,
   enrollContact,
+  findContactsByEmails,
   findDuplicateClassSession,
   findDuplicateContact,
   getClassSession,
@@ -230,6 +231,10 @@ export class AppRepository {
 
   listContactsPage(input?: ContactPageInput) {
     return listContactsPage(this.db, input);
+  }
+
+  findContactsByEmails(emails: string[]) {
+    return findContactsByEmails(this.db, emails);
   }
 
   findDuplicateContact(input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {

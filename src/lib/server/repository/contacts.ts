@@ -85,6 +85,21 @@ export function listContactsPage(db: DatabaseSync, input: ContactPageInput = {})
   };
 }
 
+export function findContactsByEmails(db: DatabaseSync, emails: string[]) {
+  const normalizedEmails = [...new Set(emails.map(normalizeEmail).filter(Boolean))];
+  if (!normalizedEmails.length) return [];
+  const placeholders = normalizedEmails.map(() => '?').join(', ');
+  return db
+    .prepare(
+      `select *
+       from contacts
+       where lower(trim(email)) in (${placeholders})
+       order by last_name, first_name`
+    )
+    .all(...normalizedEmails)
+    .map((row) => mapContact(row as Row));
+}
+
 export function findDuplicateContact(db: DatabaseSync, input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {
   const email = normalizeEmail(input.email);
   if (!email) return undefined;

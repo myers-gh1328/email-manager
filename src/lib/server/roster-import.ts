@@ -11,7 +11,7 @@ export interface RosterImportRow {
 
 export interface RosterImportRepository {
   createContact(input: RosterImportRow): { id: string; email: string };
-  listContacts(): Array<{ id: string; email: string }>;
+  findContactsByEmails(emails: string[]): Array<{ id: string; email: string }>;
   enrollContact(classSessionId: string, contactId: string): unknown;
 }
 
@@ -73,14 +73,15 @@ export function importRosterRows(
 }
 
 export function importContactRows(
-  repo: Pick<RosterImportRepository, 'createContact' | 'listContacts'>,
+  repo: Pick<RosterImportRepository, 'createContact' | 'findContactsByEmails'>,
   rows: RosterImportRow[]
 ): RosterImportResult & { contactIds: string[] } {
   let created = 0;
   let reused = 0;
   let skipped = 0;
   const contactIds: string[] = [];
-  const contactsByEmail = new Map(repo.listContacts().map((contact) => [contact.email.toLowerCase(), contact]));
+  const importedEmails = rows.map((row) => row.email);
+  const contactsByEmail = new Map(repo.findContactsByEmails(importedEmails).map((contact) => [contact.email.toLowerCase(), contact]));
 
   for (const row of rows) {
     if (!row.firstName.trim() || !row.lastName.trim() || !row.email.trim()) {

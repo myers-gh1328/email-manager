@@ -66,6 +66,25 @@ describe('roster import', () => {
     expect(repo.listContacts().find((contact) => contact.email === 'lee@example.com')?.phone).toBe('(555) 019-9000');
   });
 
+  test('imports contacts through a batch email lookup instead of loading every contact', () => {
+    const repo = createTestRepository();
+    repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const listAll = repo.listContacts.bind(repo);
+    repo.listContacts = () => {
+      throw new Error('roster import should not list every contact');
+    };
+
+    const result = importContactRows(repo, [
+      { firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' },
+      { firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' }
+    ]);
+
+    repo.listContacts = listAll;
+    expect(result.created).toBe(1);
+    expect(result.reused).toBe(1);
+    expect(repo.listContacts().map((contact) => contact.email).sort()).toEqual(['lee@example.com', 'maya@example.com']);
+  });
+
   test('requires an enabled vision model before extracting rows from an image', async () => {
     await expect(
       extractRosterRowsFromImage(
