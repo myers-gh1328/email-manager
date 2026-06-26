@@ -77,6 +77,18 @@ describe('agent-facing repository assets', () => {
     expect(operatingModel).toContain('must not expose raw SQL');
   });
 
+  it('uses plain scheduled-email language in MCP tool descriptions', () => {
+    const mcpServer = read('src/mcp/server.ts');
+    expect(mcpServer).toContain('due ready scheduled email count');
+    expect(mcpServer).toContain('next ready scheduled email');
+    expect(mcpServer).toContain('currently due scheduled emails');
+    expect(mcpServer).toContain('Run the shared send-due scheduled-email path');
+    expect(mcpServer).not.toContain('due approved count');
+    expect(mcpServer).not.toContain('next approved send');
+    expect(mcpServer).not.toContain('approved campaign sends');
+    expect(mcpServer).not.toContain('send-due campaign path');
+  });
+
   it('defines a single full validation script for agents', () => {
     const packageJson = read('package.json');
     const standardsCheck = read('scripts/agent/standards-check.mjs');

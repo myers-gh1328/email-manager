@@ -45,7 +45,7 @@ export function createMcpServer() {
     'get_scheduler_readiness',
     {
       title: 'Get Scheduler Readiness',
-      description: 'Return scheduled sending readiness, blockers, due approved count, and next approved send.'
+      description: 'Return scheduled sending readiness, blockers, due ready scheduled email count, and next ready scheduled email.'
     },
     () => asToolContent(getSchedulerReadiness())
   );
@@ -232,7 +232,7 @@ export function createMcpServer() {
     'prepare_send_due_campaigns',
     {
       title: 'Prepare Send Due Campaigns',
-      description: 'Create an approval packet for currently due approved campaign sends.',
+      description: 'Create an approval packet for currently due scheduled emails.',
       inputSchema: {}
     },
     () => asToolContent(prepareSendDueCampaignsTool(repo))
@@ -242,7 +242,7 @@ export function createMcpServer() {
     'commit_send_due_campaigns',
     {
       title: 'Commit Send Due Campaigns',
-      description: 'Run the shared send-due campaign path after exact human approval confirmation.',
+      description: 'Run the shared send-due scheduled-email path after exact human approval confirmation.',
       inputSchema: approvalCommitInputSchema
     },
     async (input) => asToolContent(await commitSendDueCampaignsTool(repo, input))
