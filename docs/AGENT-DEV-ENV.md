@@ -33,7 +33,7 @@ When changing UI or route behavior, run the agent dev server and inspect the app
 - `/classes` supports mobile navigation and does not push all edit forms into a right column.
 - A class detail page shows both automatic course emails and concrete scheduled emails.
 - `/templates` keeps template tags contextual instead of dumping all tags at the top.
-- `/communications` shows History with global outbound email records, including test-mode sends.
+- `/history` shows History with global outbound email records, including test-mode sends.
 - `/test-audit` is available from navigation while test mode is enabled.
 - `/settings` saves grouped settings independently.
 

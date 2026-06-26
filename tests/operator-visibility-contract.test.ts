@@ -34,6 +34,12 @@ describe('operator visibility contract', () => {
     }
     expect(agentDevEnv).toContain('next scheduled send');
     expect(agentDevEnv).toContain('automatic course emails');
+    expect(maintainerGuide).toContain('`src/routes/scheduled-emails/` owns Scheduled Emails');
+    expect(maintainerGuide).toContain('`src/routes/history/` owns History');
+    expect(agentDevEnv).toContain('`/history` shows History');
+    expect(maintainerGuide).not.toContain('`src/routes/campaigns/` owns Scheduled Emails');
+    expect(maintainerGuide).not.toContain('`src/routes/communications/` owns History');
+    expect(agentDevEnv).not.toContain('`/communications` shows History');
   });
 
   test('keeps implementation hooks for documented visibility requirements', () => {
