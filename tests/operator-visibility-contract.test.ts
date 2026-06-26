@@ -833,6 +833,8 @@ describe('operator visibility contract', () => {
     expect(pageData).toContain('selectedReplyStatus');
     expect(newEmail).toContain('data.prefillSubject');
     expect(newEmail).toContain('data.prefillBody');
+    expect(newEmail).toContain('Missing template fields: {preview.missing.join');
+    expect(newEmail).not.toContain('Missing: {preview.missing.join');
     expect(newEmail).not.toContain('<section class="band two-column">');
   });
 });

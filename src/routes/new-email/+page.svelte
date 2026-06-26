@@ -66,7 +66,7 @@
             <strong>{preview.contact.firstName} {preview.contact.lastName}</strong>
             <p>{preview.subject}</p>
             <pre>{preview.body}</pre>
-            {#if preview.missing.length}<p class="error">Missing: {preview.missing.join(', ')}</p>{/if}
+            {#if preview.missing.length}<p class="error">Missing template fields: {preview.missing.join(', ')}</p>{/if}
           </article>
         {/each}
       </div>
