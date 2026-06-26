@@ -2,11 +2,14 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
 describe('SearchSelect contract', () => {
-  test('submits through a real select instead of a hidden datalist value', () => {
+  test('submits through a searchable option list instead of a native select box', () => {
     const source = readFileSync('src/lib/SearchSelect.svelte', 'utf8');
 
-    expect(source).toContain('<select');
-    expect(source).not.toContain('type="hidden"');
+    expect(source).toContain('type="hidden"');
+    expect(source).toContain('role="listbox"');
+    expect(source).toContain('aria-selected');
+    expect(source).toContain('selectOption');
+    expect(source).not.toContain('<select');
     expect(source).not.toContain('<datalist');
   });
 

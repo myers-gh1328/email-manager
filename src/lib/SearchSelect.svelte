@@ -37,6 +37,9 @@
       ? remoteOptions
       : options.filter((option) => option.label.toLowerCase().includes(search.trim().toLowerCase()))
   );
+  let selectedOption = $derived(
+    [...options, ...remoteOptions].find((option) => option.value === selectedValue)
+  );
 
   $effect(() => {
     if (!initialized) {
@@ -74,6 +77,11 @@
       window.clearTimeout(timeout);
     };
   });
+
+  function selectOption(option: SearchOption) {
+    selectedValue = option.value;
+    search = option.label;
+  }
 </script>
 
 <div class="search-select">
@@ -82,14 +90,42 @@
     {#if addHref && addLabel}<a class="button-link" href={addHref}>{addLabel}</a>{/if}
   </div>
   <input id={`${name}-search`} bind:value={search} placeholder={placeholder} />
+  <input type="hidden" {name} value={selectedValue} />
+  {#if selectedOption}<p class="help-text">Selected: {selectedOption.label}</p>{/if}
   {#if loading}<p class="help-text">Searching...</p>{/if}
   {#if searchError}<p class="error">{searchError}</p>{/if}
-  <select {name} bind:value={selectedValue} required={required}>
-    <option value="">{placeholder}</option>
+  <div class="option-list" role="listbox" aria-label={label} aria-required={required}>
     {#each filteredOptions as option}
-      <option value={option.value}>{option.label}</option>
+      <button
+        type="button"
+        class:selected={option.value === selectedValue}
+        role="option"
+        aria-selected={option.value === selectedValue}
+        onclick={() => selectOption(option)}
+      >
+        {option.label}
+      </button>
     {:else}
-      <option value="" disabled>No options match that search.</option>
+      <p class="empty">No options match that search.</p>
     {/each}
-  </select>
+  </div>
 </div>
+
+<style>
+  .option-list {
+    display: grid;
+    gap: 6px;
+    max-height: 260px;
+    overflow: auto;
+  }
+
+  .option-list button {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .option-list button.selected {
+    background: var(--brand);
+    color: white;
+  }
+</style>
