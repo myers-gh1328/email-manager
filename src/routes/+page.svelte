@@ -1,8 +1,9 @@
-	<script lang="ts">
-	  import { formatDateTime, scheduledEmailStatusLabel } from '$lib/shared/format';
+<script lang="ts">
+  import { formatDateTime, scheduledEmailStatusLabel } from '$lib/shared/format';
 
-	  let { data } = $props();
-	</script>
+  let { data } = $props();
+  let dashboardReturnTo = $derived('/');
+</script>
 
 <svelte:head>
   <title>Dashboard · Training Communications Studio</title>
@@ -81,7 +82,7 @@
   </div>
   <div class="list">
     {#each data.recentScheduledEmails as campaign}
-      <a class="row-card" href={`/campaigns/${campaign.id}`}>
+      <a class="row-card" href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(dashboardReturnTo)}`}>
         <div>
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
