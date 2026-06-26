@@ -104,6 +104,7 @@ describe('operator visibility contract', () => {
     expect(contacts).toContain('<p class="eyebrow">Contacts</p>');
     expect(contacts).toContain('<h2>Students and email recipients</h2>');
     expect(contacts).toContain('Recent emails');
+    expect(contacts).toContain('href={`/classes/${item.classSessionId}`}');
     expect(contacts).toContain('View all in History');
     expect(contacts).toContain('/communications?contactId=');
     expect(contacts).toContain('contactHistoryHref');

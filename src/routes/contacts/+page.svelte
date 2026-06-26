@@ -181,7 +181,7 @@
             {#each data.contactDetail.classHistory as item}
               <article class="row-card">
                 <div>
-                  <strong>{item.courseName}</strong>
+                  <a href={`/classes/${item.classSessionId}`}><strong>{item.courseName}</strong></a>
                   <p>{formatClassSchedule(item)} · {item.location}</p>
                 </div>
               </article>
