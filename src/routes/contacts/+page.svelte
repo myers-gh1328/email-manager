@@ -169,7 +169,7 @@
       <div class="preview-list">
         <div class="section-heading compact">
           <div>
-            <p class="eyebrow">Student record</p>
+            <p class="eyebrow">Contact record</p>
             <h3>{data.contactDetail.contact.firstName} {data.contactDetail.contact.lastName}</h3>
           </div>
         </div>

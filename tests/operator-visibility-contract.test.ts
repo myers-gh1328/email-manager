@@ -155,6 +155,8 @@ describe('operator visibility contract', () => {
     expect(contacts).not.toContain('<p class="eyebrow">People</p>');
     expect(contacts).toContain('<p class="eyebrow">Contacts</p>');
     expect(contacts).toContain('<h2>Students and email recipients</h2>');
+    expect(contacts).toContain('<p class="eyebrow">Contact record</p>');
+    expect(contacts).not.toContain('<p class="eyebrow">Student record</p>');
     expect(contacts).toContain('Recent emails');
     expect(contacts).toContain('contactDetailReturnTo');
     expect(contacts).toContain('href={`/classes/${item.classSessionId}?returnTo=${encodeURIComponent(contactDetailReturnTo)}`}');
