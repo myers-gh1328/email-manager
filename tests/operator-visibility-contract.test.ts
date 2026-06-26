@@ -509,6 +509,10 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailsServer).toContain('Scheduled email created.');
     expect(scheduledEmailRepository).not.toContain('Campaign has sent deliveries and cannot be deleted.');
     expect(scheduledEmailRepository).toContain('Scheduled email has sent deliveries and cannot be deleted.');
+    expect(scheduledEmailRepository).not.toContain('Campaign not found');
+    expect(scheduledEmailRepository).not.toContain('Campaign delivery not found');
+    expect(scheduledEmailRepository).toContain('Scheduled email not found');
+    expect(scheduledEmailRepository).toContain('Scheduled email delivery not found');
     expect(settings).not.toContain('Blocks campaign sends');
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
     expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");

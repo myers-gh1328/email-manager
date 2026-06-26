@@ -265,7 +265,7 @@ export function getCampaign(db: DatabaseSync, id: string) {
        where c.id = ?`
     )
     .get(id) as Row | undefined;
-  if (!row) throw new Error(`Campaign not found: ${id}`);
+  if (!row) throw new Error(`Scheduled email not found: ${id}`);
   return mapCampaign(row);
 }
 
@@ -602,7 +602,7 @@ export function finalizeDeliveryAttemptFailed(
 ) {
   const timestamp = now();
   const delivery = db.prepare('select * from campaign_deliveries where id = ?').get(input.deliveryId) as Row | undefined;
-  if (!delivery) throw new Error(`Campaign delivery not found: ${input.deliveryId}`);
+  if (!delivery) throw new Error(`Scheduled email delivery not found: ${input.deliveryId}`);
   const attemptCount = Number(delivery.attempt_count ?? 1);
   const maxRetries = Number(delivery.retry_policy_max_auto_retries ?? 3);
   const retryable = input.retryable && input.failureKind === 'transient' && attemptCount <= maxRetries;
