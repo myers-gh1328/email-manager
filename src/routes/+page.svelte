@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatDateTime, scheduledEmailStatusLabel } from '$lib/shared/format';
+  import { formatDateTime } from '$lib/shared/format';
 
   let { data } = $props();
   let dashboardReturnTo = $derived('/');
@@ -87,7 +87,6 @@
           <strong>{campaign.name}</strong>
           <p>{campaign.courseName} · {campaign.templateName} · Sends {formatDateTime(campaign.scheduledFor)}</p>
         </div>
-        <span class:good={campaign.readyToSend} class="pill">{scheduledEmailStatusLabel(campaign.readyToSend)}</span>
       </a>
     {:else}
       <p class="empty">No class emails scheduled.</p>
