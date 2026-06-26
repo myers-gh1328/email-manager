@@ -422,6 +422,7 @@ describe('operator visibility contract', () => {
     const scheduledEmailDetail = readFileSync('src/routes/scheduled-emails/[id]/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+    const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
 
     for (const source of [scheduledEmails, scheduledEmailDetail, classDetail, settings]) {
       expect(source).not.toContain('Approved');
@@ -438,6 +439,8 @@ describe('operator visibility contract', () => {
     expect(settings).not.toContain("sectionMatches('Email Sending', ['delivery controls scheduled sending email test mode schedule automation'])");
     expect(settings).not.toContain('<h3>Delivery controls</h3>');
     expect(settings).not.toContain('Save delivery controls');
+    expect(settingsServer).toContain("return { message: 'Sending settings saved.' }");
+    expect(settingsServer).not.toContain('Delivery settings saved.');
     expect(scheduledEmailDetail).not.toContain('Campaign detail');
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).not.toContain('<div class="status-row">');

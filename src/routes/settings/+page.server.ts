@@ -60,7 +60,7 @@ export const actions = {
   },
   updateDelivery: async ({ request }) => {
     updateDeliverySettings(await request.formData());
-    return { message: 'Delivery settings saved.' };
+    return { message: 'Sending settings saved.' };
   },
   updateRemoteAccess: async ({ request }) => {
     try {
