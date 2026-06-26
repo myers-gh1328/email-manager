@@ -8,6 +8,7 @@
   let recipientSearch = $derived(data.recipientPage.search ?? '');
   let currentRecipientPage = $derived(Math.floor(data.recipientPage.offset / data.recipientPage.limit) + 1);
   let totalRecipientPages = $derived(Math.max(Math.ceil(data.recipientPage.total / data.recipientPage.limit), 1));
+  let scheduledEmailDetailReturnTo = $derived(recipientPageHref(currentRecipientPage));
 
   function formatDateTime(value: string) {
     return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -44,7 +45,7 @@
         <h2>{data.campaign.name}</h2>
       </div>
       <div class="button-row compact">
-        <a class="button-link" href={`/communications?sourceId=${data.campaign.id}`}>View in History</a>
+        <a class="button-link" href={`/communications?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>View in History</a>
         <a class="button-link" href={data.returnTo || '/campaigns'}>Back</a>
       </div>
     </div>
@@ -55,11 +56,11 @@
       </div>
       <div>
         <dt>Class</dt>
-        <dd><a href={`/classes/${data.campaign.classSessionId}`}>{data.campaign.courseName}</a> · {formatClassSchedule(data.campaign)}</dd>
+        <dd><a href={`/classes/${data.campaign.classSessionId}?returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>{data.campaign.courseName}</a> · {formatClassSchedule(data.campaign)}</dd>
       </div>
       <div>
         <dt>Template</dt>
-        <dd><a href={`/templates?templateId=${data.campaign.templateId}`}>{data.campaign.templateName}</a></dd>
+        <dd><a href={`/templates?templateId=${data.campaign.templateId}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}>{data.campaign.templateName}</a></dd>
       </div>
       <div>
         <dt>Send time</dt>

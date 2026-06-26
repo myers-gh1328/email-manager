@@ -281,11 +281,12 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('<dt>Class</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Template</dt>');
     expect(scheduledEmailDetail).toContain('<dt>Send time</dt>');
-    expect(scheduledEmailDetail).toContain('href={`/classes/${data.campaign.classSessionId}`}');
-    expect(scheduledEmailDetail).toContain('href={`/templates?templateId=${data.campaign.templateId}`}');
+    expect(scheduledEmailDetail).toContain('scheduledEmailDetailReturnTo');
+    expect(scheduledEmailDetail).toContain('href={`/classes/${data.campaign.classSessionId}?returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
+    expect(scheduledEmailDetail).toContain('href={`/templates?templateId=${data.campaign.templateId}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('View in History');
-    expect(scheduledEmailDetail).toContain('/communications?sourceId=');
+    expect(scheduledEmailDetail).toContain('href={`/communications?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmails).toContain('scheduledEmailReturnTo');
     expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
     expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
