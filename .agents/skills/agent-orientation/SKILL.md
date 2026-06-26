@@ -22,7 +22,7 @@ Use this skill at the start of MCP-assisted app work and whenever you need curre
 3. Do not read or edit runtime database files.
 4. For risky actions, call `prepare_*`, show the approval packet to the user, and only call `commit_*` with the exact confirmation text returned by the app after the user provides it.
 5. Use `get_app_overview` for dashboard-style state and configured vocabulary labels.
-6. Use `get_scheduler_readiness` for scheduled sending readiness, blockers, due ready scheduled email count, and next ready scheduled email.
+6. Use `get_scheduler_readiness` for scheduled sending readiness, blockers, scheduled emails ready to send count, and next scheduled email ready to send.
 7. Summarize object ids, warnings, skipped recipients, and next actions.
 
 ## Output

@@ -45,7 +45,7 @@ export function createMcpServer() {
     'get_scheduler_readiness',
     {
       title: 'Get Scheduler Readiness',
-      description: 'Return scheduled sending readiness, blockers, due ready scheduled email count, and next ready scheduled email.'
+      description: 'Return scheduled sending readiness, blockers, scheduled emails ready to send count, and next scheduled email ready to send.'
     },
     () => asToolContent(getSchedulerReadiness())
   );

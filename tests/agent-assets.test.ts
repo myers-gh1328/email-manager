@@ -79,8 +79,8 @@ describe('agent-facing repository assets', () => {
 
   it('uses plain scheduled-email language in MCP tool descriptions', () => {
     const mcpServer = read('src/mcp/server.ts');
-    expect(mcpServer).toContain('due ready scheduled email count');
-    expect(mcpServer).toContain('next ready scheduled email');
+    expect(mcpServer).toContain('scheduled emails ready to send count');
+    expect(mcpServer).toContain('next scheduled email ready to send');
     expect(mcpServer).toContain('currently due scheduled emails');
     expect(mcpServer).toContain('Run the shared send-due scheduled-email path');
     expect(mcpServer).not.toContain('due approved count');
@@ -92,10 +92,10 @@ describe('agent-facing repository assets', () => {
   it('uses plain scheduled-email language in repo-local MCP skills', () => {
     const orientationSkill = read('.agents/skills/agent-orientation/SKILL.md');
     const scheduledEmailSkill = read('.agents/skills/agent-campaigns/SKILL.md');
-    expect(orientationSkill).toContain('due ready scheduled email count');
-    expect(orientationSkill).toContain('next ready scheduled email');
+    expect(orientationSkill).toContain('scheduled emails ready to send count');
+    expect(orientationSkill).toContain('next scheduled email ready to send');
     expect(scheduledEmailSkill).toContain('scheduled-email readiness checks');
-    expect(scheduledEmailSkill).toContain('due ready scheduled emails');
+    expect(scheduledEmailSkill).toContain('scheduled emails ready to send');
     expect(scheduledEmailSkill).not.toContain('due approved count');
     expect(scheduledEmailSkill).not.toContain('next approved send');
     expect(scheduledEmailSkill).not.toContain('due approved campaigns');
