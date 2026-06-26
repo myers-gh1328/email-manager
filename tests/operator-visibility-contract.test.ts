@@ -43,12 +43,16 @@ describe('operator visibility contract', () => {
     expect(dashboard).not.toContain('Resend failed today');
     expect(dashboard).not.toContain('approved due now');
     expect(dashboard).not.toContain('No upcoming approved sends');
+    expect(dashboard).not.toContain('failed today');
+    expect(dashboard).not.toContain('ready to send now');
+    expect(dashboard).not.toContain('<div class="status-row">');
     expect(dashboard).not.toContain('>Campaigns<');
     expect(dashboard).not.toContain('Manage campaigns');
     expect(dashboard).not.toContain("'Approved'");
     expect(dashboard).toContain('Attention needed');
     expect(dashboard).toContain('Scheduled Emails');
     expect(dashboard).toContain('Review failed emails');
+    expect(dashboard).toContain('email issue');
     expect(dashboard).toContain('data.recentScheduledEmails');
     expect(dashboard).toContain('href={`/campaigns/${campaign.id}`}');
     expect(pageData).toContain('recentScheduledEmails');

@@ -36,7 +36,7 @@
         {#if data.failedTodayCount}
           <a class="row-card" href="/communications?search=failed">
             <strong>Review failed emails</strong>
-            <p>{data.failedTodayCount} failed today. Review the affected messages before retrying.</p>
+            <p>{data.failedTodayCount} email issue{data.failedTodayCount === 1 ? '' : 's'} need review before retrying.</p>
           </a>
         {/if}
         {#if data.remoteStatus.enabled && !data.remoteStatus.ready}
@@ -51,15 +51,6 @@
     {:else}
       <p class="success">No setup or sending issues need attention.</p>
     {/if}
-    <div class="status-row">
-      <span>{data.schedulerStatus.dueReadyCount} ready to send now</span>
-      <span>{data.failedTodayCount} failed today</span>
-      {#if data.schedulerStatus.nextReady}
-        <span>Next sends {formatDateTime(data.schedulerStatus.nextReady.scheduledFor)}</span>
-      {:else}
-        <span>No upcoming scheduled sends</span>
-      {/if}
-    </div>
   </section>
 </section>
 
