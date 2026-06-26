@@ -25,6 +25,10 @@ describe('navigation visibility', () => {
     expect(scheduledEmailsPage).toContain('<p class="eyebrow">Scheduled Emails</p>');
     expect(scheduledEmailsPage).not.toContain('>Campaigns<');
     expect(scheduledEmailsPage).not.toContain('Approved after preview');
+    expect(scheduledEmailsPage).not.toContain('name="approved"');
+    expect(scheduledEmailsPage).not.toContain('Schedule after preview');
+    expect(scheduledEmailsPage).toContain('name="scheduleMode" type="hidden" value="ready"');
+    expect(scheduledEmailsPage).toContain('name="scheduleMode" type="hidden" value="draft"');
 
     expect(historyPage).toContain('<title>History · Training Communications Studio</title>');
     expect(historyPage).toContain('<p class="eyebrow">History</p>');

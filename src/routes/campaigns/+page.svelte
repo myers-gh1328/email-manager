@@ -67,9 +67,9 @@
         <input name="classSessionId" type="hidden" value={form.classSessionId} />
         <input name="templateId" type="hidden" value={form.templateId} />
         <input name="previewToken" type="hidden" value={form.previewToken} />
+        <input name="scheduleMode" type="hidden" value="ready" />
         <label>Name<input name="name" placeholder="Welcome email" required /></label>
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
-        <label class="check"><input name="approved" type="checkbox" checked /> Schedule after preview</label>
         <button type="submit">Create schedule</button>
       </form>
     {/if}
@@ -93,6 +93,7 @@
         <SearchSelect name="classSessionId" label="Class" options={classOptions} placeholder="Search classes" required />
         <SearchSelect name="templateId" label="Template" options={templateOptions} placeholder="Search templates" required />
         <label>Send at<input name="scheduledFor" type="datetime-local" required /></label>
+        <input name="scheduleMode" type="hidden" value="draft" />
         <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>
         <div class="button-row">
           <button type="submit">Create draft schedule</button>

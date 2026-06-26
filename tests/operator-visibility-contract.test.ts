@@ -86,6 +86,7 @@ describe('operator visibility contract', () => {
 
   test('uses plain scheduled-email language instead of approval campaign copy', () => {
     const scheduledEmails = readFileSync('src/routes/campaigns/+page.svelte', 'utf8');
+    const scheduledEmailsServer = readFileSync('src/routes/campaigns/+page.server.ts', 'utf8');
     const scheduledEmailDetail = readFileSync('src/routes/campaigns/[id]/+page.svelte', 'utf8');
     const classDetail = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
@@ -99,5 +100,7 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).not.toContain('· Campaign');
     expect(scheduledEmailDetail).toContain('Scheduled email detail');
     expect(scheduledEmailDetail).toContain('Ready to send');
+    expect(scheduledEmailsServer).toContain("scheduleMode === 'ready'");
+    expect(scheduledEmailsServer).not.toContain("form.get('approved') === 'on'");
   });
 });

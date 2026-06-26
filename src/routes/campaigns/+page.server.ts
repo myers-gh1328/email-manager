@@ -15,13 +15,14 @@ export const actions = {
     const form = await request.formData();
     const classSessionId = required(form, 'classSessionId');
     const templateId = required(form, 'templateId');
-    if (form.get('approved') === 'on' && textToken(form, 'previewToken') !== campaignPreviewToken(classSessionId, templateId)) {
-      return fail(400, { error: true, message: 'Preview this class and template before approving the schedule.' });
+    const scheduleMode = text(form, 'scheduleMode') === 'ready' ? 'ready' : 'draft';
+    if (scheduleMode === 'ready' && textToken(form, 'previewToken') !== campaignPreviewToken(classSessionId, templateId)) {
+      return fail(400, { error: true, message: 'Preview this class and template before creating a ready schedule.' });
     }
-    if (form.get('approved') === 'on') {
+    if (scheduleMode === 'ready') {
       const preview = buildCampaignPreviews(classSessionId, templateId);
       if (hasMissingVariables(preview)) {
-        return fail(400, { error: true, message: 'Resolve missing template variables before approving the schedule.' });
+        return fail(400, { error: true, message: 'Resolve missing template variables before creating a ready schedule.' });
       }
     }
     const campaign = repo.createCampaign({
@@ -29,7 +30,7 @@ export const actions = {
       templateId,
       name: required(form, 'name'),
       scheduledFor: required(form, 'scheduledFor'),
-      approved: form.get('approved') === 'on'
+      approved: scheduleMode === 'ready'
     });
     repo.ensurePendingDeliveries(campaign.id);
     return { message: 'Campaign schedule created.' };
