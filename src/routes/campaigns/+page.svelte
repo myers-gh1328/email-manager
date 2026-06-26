@@ -10,8 +10,10 @@
   let campaignsStatus = $derived(data.campaignsPage.status ?? '');
   let currentCampaignsPage = $derived(Math.floor(data.campaignsPage.offset / data.campaignsPage.limit) + 1);
   let totalCampaignsPages = $derived(Math.max(Math.ceil(data.campaignsPage.total / data.campaignsPage.limit), 1));
-  let campaignWorkflowReturnTo = $derived(`/campaigns${data.action ? `?action=${encodeURIComponent(data.action)}` : ''}`);
   let scheduledEmailReturnTo = $derived(campaignsPageHref(currentCampaignsPage));
+  let campaignWorkflowReturnTo = $derived(
+    `/campaigns${data.action ? `?action=${encodeURIComponent(data.action)}&returnTo=${encodeURIComponent(data.returnTo || scheduledEmailReturnTo)}` : ''}`
+  );
   let addClassHref = $derived(`/classes?action=session&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   let addTemplateHref = $derived(`/templates?action=create&returnTo=${encodeURIComponent(campaignWorkflowReturnTo)}`);
   const statusFilters = [
@@ -59,8 +61,8 @@
     </div>
     {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
     <div class="action-row">
-      <a class:active={data.action === 'preview'} class="button-link" href="/campaigns?action=preview">Preview class email</a>
-      <a class:active={data.action === 'schedule'} class="button-link" href="/campaigns?action=schedule">Schedule class email</a>
+      <a class:active={data.action === 'preview'} class="button-link" href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Preview class email</a>
+      <a class:active={data.action === 'schedule'} class="button-link" href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}>Schedule class email</a>
     </div>
     <form class="inline-filters" method="GET" action="/campaigns">
       <label>
@@ -154,7 +156,7 @@
         />
         <div class="button-row">
           <button type="submit">Preview personalization</button>
-          <a class="button-link" href="/campaigns">Cancel</a>
+          <a class="button-link" href={data.returnTo || '/campaigns'}>Cancel</a>
         </div>
       </form>
     {/if}
@@ -187,7 +189,7 @@
         <span class="help-text">Draft schedules are not sent. Preview the class email first to create a scheduled send.</span>
         <div class="button-row">
           <button type="submit">Create draft schedule</button>
-          <a class="button-link" href="/campaigns">Cancel</a>
+          <a class="button-link" href={data.returnTo || '/campaigns'}>Cancel</a>
         </div>
       </form>
     {/if}

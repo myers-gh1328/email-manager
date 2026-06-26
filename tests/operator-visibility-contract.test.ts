@@ -292,6 +292,9 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('href={`/communications?sourceId=${data.campaign.id}&returnTo=${encodeURIComponent(scheduledEmailDetailReturnTo)}`}');
     expect(scheduledEmails).toContain('scheduledEmailReturnTo');
     expect(scheduledEmails).toContain('returnTo=${encodeURIComponent(scheduledEmailReturnTo)}');
+    expect(scheduledEmails).toContain('href={`/campaigns?action=preview&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmails).toContain('href={`/campaigns?action=schedule&returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
+    expect(scheduledEmails).toContain("href={data.returnTo || '/campaigns'}");
     expect(scheduledEmails).toContain('href={`/campaigns/${campaign.id}?returnTo=${encodeURIComponent(scheduledEmailReturnTo)}`}');
     expect(scheduledEmailDetail).toContain("href={data.returnTo || '/campaigns'}");
     expect(scheduledEmailDetailServer).toContain('localReturnTo');
@@ -342,6 +345,8 @@ describe('operator visibility contract', () => {
     expect(scheduledEmailDetail).toContain('recipientPageHref');
     expect(scheduledEmailsServer).toContain('page: Number(url.searchParams.get');
     expect(scheduledEmailsServer).toContain("status: url.searchParams.get('status') ?? ''");
+    expect(scheduledEmailsServer).toContain('localReturnTo');
+    expect(scheduledEmailsServer).toContain("returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')");
     expect(pageData).toContain('campaignsPage = repo.listCampaignsPage');
     expect(scheduledEmailDetailServer).not.toContain('before approving');
     expect(scheduledEmailDetailServer).not.toContain('approving this campaign');

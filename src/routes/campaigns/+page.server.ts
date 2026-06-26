@@ -3,6 +3,7 @@ import { repo } from '$lib/server/app';
 import { text, required } from '$lib/server/form-utils';
 import { buildCampaignEmailPreviews, campaignEmailPreviewToken, hasMissingVariables } from '$lib/server/campaign-email';
 import { loadCampaignsData } from '$lib/server/page-data';
+import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
 
 export const load = ({ url }) => ({
@@ -11,7 +12,8 @@ export const load = ({ url }) => ({
     status: url.searchParams.get('status') ?? '',
     page: Number(url.searchParams.get('page') ?? '1')
   }),
-  action: url.searchParams.get('action') ?? ''
+  action: url.searchParams.get('action') ?? '',
+  returnTo: localReturnTo(url.searchParams.get('returnTo') ?? '')
 });
 
 export const actions = {
