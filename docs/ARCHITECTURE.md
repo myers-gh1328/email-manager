@@ -70,8 +70,8 @@ Required visibility:
 - Class detail must show per-student prep state using global prep tasks plus course-specific prep tasks.
 - Scheduled email detail must distinguish class time from send time and show recipient delivery status.
 - History must provide a complete outbound email history across direct and scheduled email sends, not only contact-specific history.
-- History must show imported replies as acknowledgements under the
-  outbound email they replied to. It must not act like a general inbox reader.
+- History must show imported replies under the outbound email they replied to.
+  It must not act like a general inbox reader.
 - Test audit navigation is visible only while email test mode is enabled. Direct URL access may show historical redirected test emails, but the page must clearly state when test mode is off.
 - Settings must use searchable collapsible sections and grouped forms. Changing one settings group must not resave unrelated groups.
 - AI model selection should prefer model discovery from the configured OpenAI-compatible `/models` endpoint, with manual entry only as a fallback for servers that cannot list models.
@@ -93,8 +93,8 @@ Main tables:
 - Campaign deliveries store recipient-level send status.
 - Communications store one outbound email history row per recipient for direct and scheduled email sends. The name is internal compatibility vocabulary.
 - Communication replies store IMAP messages that match an outbound
-  communication `Message-ID`. They are shown as acknowledgements, not as a
-  full mailbox archive.
+  communication `Message-ID`. They are shown under the matching outbound
+  email, not as a full mailbox archive.
 - Checklist items store global and course-specific prep requirements. The name is internal compatibility vocabulary.
 - Enrollment checklist completions store per-student prep state for a class.
 - Settings store app configuration and encrypted secrets.
