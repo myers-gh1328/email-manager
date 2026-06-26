@@ -212,6 +212,23 @@ export function listContactCommunications(db: DatabaseSync, contactId: string) {
   );
 }
 
+export function listRecentContactCommunications(db: DatabaseSync, contactId: string, limit = 3) {
+  return withReplies(
+    db,
+    db
+    .prepare(
+      `select cm.*, c.first_name, c.last_name, c.email
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       where cm.contact_id = ?
+       order by cm.created_at desc, cm.rowid desc
+       limit ?`
+    )
+    .all(contactId, Math.max(limit, 0))
+      .map((row) => row as Row)
+  );
+}
+
 export function listCommunicationMessageIds(db: DatabaseSync) {
   return db
     .prepare("select id, message_id from communications where message_id != '' and status in ('accepted', 'sent')")

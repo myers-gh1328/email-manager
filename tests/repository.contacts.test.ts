@@ -123,6 +123,24 @@ describe('repository contacts and classes', () => {
     expect(detail.communications).toMatchObject([{ contactId: contact.id, subject: 'Welcome', status: 'accepted' }]);
   });
 
+  test('limits contact detail email activity to the three most recent messages', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+
+    for (const subject of ['First', 'Second', 'Third', 'Fourth']) {
+      repo.recordCommunication({
+        contactId: contact.id,
+        channel: 'email',
+        source: 'direct',
+        subject,
+        body: `${subject} body`,
+        status: 'accepted'
+      });
+    }
+
+    expect(repo.getContactDetail(contact.id).communications.map((item) => item.subject)).toEqual(['Fourth', 'Third', 'Second']);
+  });
+
   test('updates a contact in place so history remains attached', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });

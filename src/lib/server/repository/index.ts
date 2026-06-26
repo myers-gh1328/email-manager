@@ -79,6 +79,7 @@ import {
   listCommunications,
   listCommunicationsPage,
   listContactCommunications,
+  listRecentContactCommunications,
   listEmailTestAudits,
   markCommunicationReplyReviewed,
   recordCommunication,
@@ -335,7 +336,7 @@ export class AppRepository {
     return {
       contact: this.getContact(contactId),
       classHistory: this.getContactHistory(contactId),
-      communications: this.listContactCommunications(contactId)
+      communications: this.listRecentContactCommunications(contactId)
     };
   }
 
@@ -522,6 +523,10 @@ export class AppRepository {
 
   listContactCommunications(contactId: string) {
     return listContactCommunications(this.db, contactId);
+  }
+
+  listRecentContactCommunications(contactId: string, limit?: number) {
+    return listRecentContactCommunications(this.db, contactId, limit);
   }
 
   getExternalMapping(source: string, entityType: ExternalEntityType, externalId: string) {

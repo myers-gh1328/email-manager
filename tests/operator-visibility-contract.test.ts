@@ -47,4 +47,14 @@ describe('operator visibility contract', () => {
     expect(dashboard).toContain('Scheduled Emails');
     expect(dashboard).toContain('Review failed emails');
   });
+
+  test('keeps contact detail focused on recent email activity with a filtered History link', () => {
+    const contacts = readFileSync('src/routes/contacts/+page.svelte', 'utf8');
+    expect(contacts).not.toContain('Reusable student contacts');
+    expect(contacts).toContain('<h2>Students and email recipients</h2>');
+    expect(contacts).toContain('Recent emails');
+    expect(contacts).toContain('View all in History');
+    expect(contacts).toContain('/communications?contactId=');
+    expect(contacts).not.toContain('Email activity');
+  });
 });

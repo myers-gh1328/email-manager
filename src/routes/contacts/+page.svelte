@@ -42,7 +42,7 @@
     <div class="section-heading compact">
       <div>
         <p class="eyebrow">People</p>
-        <h2>Reusable student contacts</h2>
+        <h2>Students and email recipients</h2>
       </div>
     </div>
     {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
@@ -156,14 +156,22 @@
         </section>
 
         <section class="panel-form">
-          <h3>Email activity</h3>
+          <div class="section-heading compact">
+            <div>
+              <h3>Recent emails</h3>
+              <p class="help-text">Showing the 3 most recent messages for this person.</p>
+            </div>
+            <a class="button-link" href={`/communications?contactId=${data.contactDetail.contact.id}`}>View all in History</a>
+          </div>
           <div class="list">
             {#each data.contactDetail.communications as communication}
               <article class="row-card tall">
                 <div>
                   <strong>{communication.subject}</strong>
                   <p>{activityDate(communication)} · {communication.source}</p>
-                  <p>{communication.body}</p>
+                  {#if communication.replyCount}
+                    <p>{communication.replyCount} repl{communication.replyCount === 1 ? 'y' : 'ies'}{#if communication.unreviewedReplyCount} · {communication.unreviewedReplyCount} new{/if}</p>
+                  {/if}
                   {#if communication.status === 'failed' && communication.errorMessage}
                     <p class="error">Error: {communication.errorMessage}</p>
                   {/if}
@@ -173,13 +181,13 @@
                 </span>
               </article>
             {:else}
-              <p class="empty">No email activity recorded.</p>
+              <p class="empty">No recent emails recorded.</p>
             {/each}
           </div>
         </section>
       </div>
     {:else}
-      <p class="empty spaced">Select a student to view class history and email activity.</p>
+      <p class="empty spaced">Select a student to view class history and recent emails.</p>
     {/if}
   </div>
 </section>
