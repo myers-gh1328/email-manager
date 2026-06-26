@@ -282,8 +282,12 @@ describe('operator visibility contract', () => {
 
     expect(testSendsServer).toContain('listEmailTestAuditsPage');
     expect(testSends).toContain('Search test sends');
+    expect(testSends).toContain("<p class=\"eyebrow\">Test Sends</p>");
+    expect(testSends).toContain('Redirected test emails');
     expect(testSends).toContain('testAuditPageHref');
     expect(testSends).toContain('Page {currentTestAuditPage} of {totalTestAuditPages}');
+    expect(testSends).not.toContain('Historical audit');
+    expect(testSends).not.toContain('Redirected email audit');
     expect(repository).toContain('limit ? offset ?');
   });
 

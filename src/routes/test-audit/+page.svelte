@@ -23,8 +23,8 @@
 <section class="band">
   <div class="section-heading compact">
     <div>
-      <p class="eyebrow">{data.settings.emailTestModeEnabled ? 'Email test mode' : 'Historical audit'}</p>
-      <h2>{data.settings.emailTestModeEnabled ? 'Redirected email audit' : 'Past redirected test emails'}</h2>
+      <p class="eyebrow">Test Sends</p>
+      <h2>{data.settings.emailTestModeEnabled ? 'Redirected test emails' : 'Past redirected test emails'}</h2>
     </div>
   </div>
   {#if !data.settings.emailTestModeEnabled}
