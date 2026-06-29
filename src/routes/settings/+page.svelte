@@ -572,10 +572,17 @@
     {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])}
       <details class="settings-section settings-panel" open={sectionOpen('agent-access')}>
         <summary>Agent Access</summary>
-        <form method="POST" action="?/updateAgentAccess" class="panel-form" use:enhance>
-          <label class="check with-help">
-            <span><input name="agentEnabled" type="checkbox" checked={data.settings.agentEnabled} /> Enable AI agent access</span>
-            <small>Let AI assistants like Claude Code operate this app through local tools you have enabled.</small>
+        <form method="POST" action="?/updateAgentAccess" class="panel-form agent-access-form" use:enhance>
+          <div>
+            <p class="eyebrow">Local tools</p>
+            <h3>Agent access</h3>
+          </div>
+          <label class="permission-toggle compact">
+            <input name="agentEnabled" type="checkbox" checked={data.settings.agentEnabled} />
+            <span>
+              <strong>Enable AI agent access</strong>
+              <small>Let AI assistants like Claude Code operate this app through local tools you have enabled.</small>
+            </span>
           </label>
           <p class="help-text">Risky actions like sending email still require an explicit confirmation step.</p>
           <button type="submit">Save agent access</button>
@@ -584,17 +591,106 @@
     {/if}
 
     {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings confirmation workflow risk'])}
-      <details class="settings-section settings-panel" open={sectionOpen('agent-permissions')}>
+      <details class="settings-section settings-panel wide" open={sectionOpen('agent-permissions')}>
         <summary>Agent Permissions</summary>
-        <form method="POST" action="?/updateAgentPermissions" class="panel-form" use:enhance>
-          <label class="check"><span><input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} /> Let agents view my app data</span></label>
-          <label class="check"><span><input name="editRecords" type="checkbox" checked={data.settings.agentPermissions.editRecords} /> Let agents draft and edit records</span></label>
-          <label class="check"><span><input name="importData" type="checkbox" checked={data.settings.agentPermissions.importData} /> Let agents import roster data</span></label>
-          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my confirmation</span></label>
-          <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule confirmed emails</span></label>
-          <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send confirmed emails</span></label>
-          <label class="check"><span><input name="updateSettings" type="checkbox" checked={data.settings.agentPermissions.updateSettings} /> Let agents update selected settings</span></label>
-          <label class="check"><span><input name="manageAgentAccess" type="checkbox" checked={data.settings.agentPermissions.manageAgentAccess} /> Let agents manage agent access</span></label>
+        <form method="POST" action="?/updateAgentPermissions" class="panel-form agent-permissions-form" use:enhance>
+          <div>
+            <p class="eyebrow">Local tools</p>
+            <h3>Choose what agents can do</h3>
+            <p class="help-text">These switches gate MCP and agent-tool operations. Email delivery still requires the app confirmation step.</p>
+          </div>
+
+          <section class="permission-group" aria-labelledby="agent-record-permissions">
+            <div class="permission-group-heading">
+              <div>
+                <h4 id="agent-record-permissions">Records</h4>
+                <p>Read, create, and import app data.</p>
+              </div>
+              <span class="pill">Data</span>
+            </div>
+            <div class="permission-list">
+              <label class="permission-toggle">
+                <input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} />
+                <span>
+                  <strong>View data</strong>
+                  <small>Read dashboards, contacts, classes, templates, and send readiness.</small>
+                </span>
+              </label>
+              <label class="permission-toggle">
+                <input name="editRecords" type="checkbox" checked={data.settings.agentPermissions.editRecords} />
+                <span>
+                  <strong>Draft and edit records</strong>
+                  <small>Create or update contacts, classes, enrollments, and templates.</small>
+                </span>
+              </label>
+              <label class="permission-toggle">
+                <input name="importData" type="checkbox" checked={data.settings.agentPermissions.importData} />
+                <span>
+                  <strong>Import roster data</strong>
+                  <small>Use CSV or image-assisted roster import tools.</small>
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <section class="permission-group" aria-labelledby="agent-email-permissions">
+            <div class="permission-group-heading">
+              <div>
+                <h4 id="agent-email-permissions">Email workflow</h4>
+                <p>Prepare, schedule, and send confirmed messages.</p>
+              </div>
+              <span class="pill warn">Higher risk</span>
+            </div>
+            <div class="permission-list">
+              <label class="permission-toggle">
+                <input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} />
+                <span>
+                  <strong>Let agents prepare emails for my confirmation</strong>
+                  <small>Draft direct email or campaign sends for your confirmation.</small>
+                </span>
+              </label>
+              <label class="permission-toggle">
+                <input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} />
+                <span>
+                  <strong>Let agents schedule confirmed emails</strong>
+                  <small>Create scheduled sends after confirmation.</small>
+                </span>
+              </label>
+              <label class="permission-toggle">
+                <input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} />
+                <span>
+                  <strong>Send confirmed email</strong>
+                  <small>Commit confirmed direct sends or due campaigns.</small>
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <section class="permission-group" aria-labelledby="agent-admin-permissions">
+            <div class="permission-group-heading">
+              <div>
+                <h4 id="agent-admin-permissions">Administration</h4>
+                <p>Change settings that affect future agent behavior.</p>
+              </div>
+              <span class="pill warn">Admin</span>
+            </div>
+            <div class="permission-list">
+              <label class="permission-toggle">
+                <input name="updateSettings" type="checkbox" checked={data.settings.agentPermissions.updateSettings} />
+                <span>
+                  <strong>Update selected settings</strong>
+                  <small>Change non-secret settings exposed through agent tools.</small>
+                </span>
+              </label>
+              <label class="permission-toggle">
+                <input name="manageAgentAccess" type="checkbox" checked={data.settings.agentPermissions.manageAgentAccess} />
+                <span>
+                  <strong>Manage agent access</strong>
+                  <small>Allow agents to change these access controls.</small>
+                </span>
+              </label>
+            </div>
+          </section>
           <button type="submit">Save agent permissions</button>
         </form>
       </details>
@@ -832,6 +928,92 @@
     gap: 12px;
   }
 
+  .agent-access-form,
+  .agent-permissions-form {
+    gap: 12px;
+  }
+
+  .permission-group {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    padding: 12px;
+  }
+
+  .permission-group-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .permission-group-heading h4 {
+    margin: 0 0 2px;
+    color: var(--heading);
+    font-size: 0.95rem;
+  }
+
+  .permission-group-heading p {
+    margin: 0;
+    color: var(--text-subtle);
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .permission-group-heading .pill {
+    justify-self: start;
+    white-space: nowrap;
+  }
+
+  .permission-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 8px;
+  }
+
+  .permission-toggle {
+    min-height: 92px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 11px;
+    color: var(--text);
+  }
+
+  .permission-toggle.compact {
+    min-height: 0;
+  }
+
+  .permission-toggle input {
+    width: auto;
+    margin-top: 2px;
+  }
+
+  .permission-toggle span {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+  }
+
+  .permission-toggle strong {
+    color: var(--heading);
+    font-size: 0.9rem;
+    line-height: 1.2;
+  }
+
+  .permission-toggle small {
+    color: var(--text-subtle);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
   .app-data-block {
     display: grid;
     gap: 10px;
@@ -870,6 +1052,10 @@
     .inline-edit-form,
     .inline-edit-form.compact-row {
       grid-template-columns: 1fr;
+    }
+
+    .permission-group-heading {
+      display: grid;
     }
   }
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../styles.css';
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { afterNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
@@ -14,6 +15,10 @@
   let navItems = $derived(navigationItems(data.settings));
   let themeMode = $derived(data.settings?.themeMode ?? 'system');
   let nextThemeMode = $derived(themeMode === 'dark' ? 'light' : 'dark');
+
+  $effect(() => {
+    if (browser) document.documentElement.dataset.theme = themeMode;
+  });
 
   function isActiveNav(href: string) {
     if (href === '/') return page.url.pathname === '/';
@@ -59,9 +64,6 @@
 	</script>
 
 	<svelte:head>
-	  <script>
-	    document.documentElement.dataset.theme = {JSON.stringify(themeMode)};
-	  </script>
 	  <meta name="theme-color" content={themeMode === 'dark' ? '#101513' : '#f6f8f7'} />
 	</svelte:head>
 
