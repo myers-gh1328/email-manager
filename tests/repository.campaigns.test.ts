@@ -8,6 +8,340 @@ import { sendDueCampaignsWithDependencies } from '../src/lib/server/send-due-cam
 import { baseAppSettings } from './settings-helpers';
 
 describe('repository campaigns and deliveries', () => {
+  test('summarizes ready scheduled emails for dashboard without listing every schedule', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Next ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Draft due',
+      scheduledFor: '2026-08-01T12:00:00.000Z',
+      approved: false
+    });
+
+    expect(repo.countReadyScheduledEmailsDue('2026-08-02T00:00:00.000Z')).toBe(1);
+    expect(repo.getNextReadyScheduledEmail('2026-08-02T00:00:00.000Z')).toMatchObject({
+      name: 'Next ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z'
+    });
+  });
+
+  test('lists only due ready scheduled emails for bounded send planning', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready later',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Due ready first',
+      scheduledFor: '2026-08-01T12:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Future ready',
+      scheduledFor: '2026-08-03T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Draft due',
+      scheduledFor: '2026-08-01T12:30:00.000Z',
+      approved: false
+    });
+
+    const due = repo.listReadyScheduledEmailsDue('2026-08-02T00:00:00.000Z', { limit: 1 });
+
+    expect(due).toMatchObject([{ name: 'Due ready first', scheduledFor: '2026-08-01T12:00:00.000Z' }]);
+  });
+
+  test('lists scheduled emails with pagination and search', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const reminder = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const welcome = repo.createTemplate({ name: 'Welcome', subject: 'Welcome', body: 'Hello.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: reminder.id,
+      name: 'Rescue prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: welcome.id,
+      name: 'Welcome note',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ limit: 1, offset: 0, search: 'prep' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
+  });
+
+  test('includes delivery counts on scheduled email list rows', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const preparedContact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const sentContact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const failedContact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    repo.enrollContact(session.id, preparedContact.id);
+    repo.enrollContact(session.id, sentContact.id);
+    repo.enrollContact(session.id, failedContact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Delivery summary',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const deliveries = repo.ensurePendingDeliveries(campaign.id);
+    repo.markDeliverySent(deliveries.find((delivery) => delivery.recipientId === sentContact.id)!.id, 'accepted');
+    repo.markDeliveryFailed(deliveries.find((delivery) => delivery.recipientId === failedContact.id)!.id, 'Temporary failure');
+
+    const page = repo.listCampaignsPage({ search: 'summary' });
+
+    expect(page.items).toMatchObject([
+      {
+        name: 'Delivery summary',
+        recipientCount: 3,
+        pendingCount: 1,
+        sentCount: 1,
+        failedCount: 1
+      }
+    ]);
+  });
+
+  test('lists class scheduled emails with pagination and search', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const reminder = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const welcome = repo.createTemplate({ name: 'Welcome', subject: 'Welcome', body: 'Hello.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: reminder.id,
+      name: 'Rescue prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: welcome.id,
+      name: 'Welcome note',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsForClassSession(session.id, { limit: 1, offset: 0, search: 'prep' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.search).toBe('prep');
+    expect(page.items).toMatchObject([{ name: 'Rescue prep', courseName: 'Rescue Diver' }]);
+  });
+
+  test('counts all attention delivery states on class scheduled email summaries', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const transient = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const attention = repo.createContact({ firstName: 'Jo', lastName: 'Kim', email: 'jo@example.com' });
+    repo.enrollContact(session.id, transient.id);
+    repo.enrollContact(session.id, attention.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const transientClaim = repo.claimNextEligibleDelivery(campaign.id, { source: 'automatic', subject: 'Reminder', body: 'Details.' });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: transientClaim!.id,
+      attemptId: transientClaim!.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'Temporary failure',
+      retryable: true
+    });
+    const attentionClaim = repo.claimNextEligibleDelivery(campaign.id, { source: 'automatic', subject: 'Reminder', body: 'Details.' });
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: attentionClaim!.id,
+      attemptId: attentionClaim!.attemptId!,
+      failureKind: 'permanent',
+      failureSummary: 'Recipient rejected',
+      retryable: false
+    });
+
+    const [summary] = repo.listCampaignsForClassSession(session.id);
+
+    expect(summary).toMatchObject({
+      recipientCount: 2,
+      failedCount: 2
+    });
+  });
+
+  test('filters scheduled email list by emails needing preview', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Ready email',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Needs preview',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ status: 'needs_preview' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('needs_preview');
+    expect(page.items).toMatchObject([{ name: 'Needs preview', approved: false }]);
+  });
+
+  test('filters scheduled email list to messages needing attention', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const failedContact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const sentContact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    repo.enrollContact(session.id, failedContact.id);
+    repo.enrollContact(session.id, sentContact.id);
+    const needsReview = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Review failures',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const allGood = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'All good',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: true
+    });
+    const failedDelivery = repo.ensurePendingDeliveries(needsReview.id).find((delivery) => delivery.recipientId === failedContact.id)!;
+    repo.markDeliveryFailed(failedDelivery.id, 'Temporary failure');
+    for (const delivery of repo.ensurePendingDeliveries(allGood.id)) repo.markDeliverySent(delivery.id, 'accepted');
+
+    const page = repo.listCampaignsPage({ status: 'needs_attention' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('needs_attention');
+    expect(page.items).toMatchObject([{ name: 'Review failures' }]);
+  });
+
+  test('filters scheduled email list to fully sent messages', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    repo.enrollContact(session.id, contact.id);
+    const sent = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Already sent',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Still prepared',
+      scheduledFor: '2026-07-31T13:00:00.000Z',
+      approved: true
+    });
+    for (const delivery of repo.ensurePendingDeliveries(sent.id)) repo.markDeliverySent(delivery.id, 'accepted');
+
+    const page = repo.listCampaignsPage({ status: 'sent' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('sent');
+    expect(page.items).toMatchObject([{ name: 'Already sent' }]);
+  });
+
+  test('filters scheduled email list to upcoming ready messages', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Upcoming ready',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Past ready',
+      scheduledFor: '2026-07-30T13:00:00.000Z',
+      approved: true
+    });
+    repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Upcoming draft',
+      scheduledFor: '2026-08-02T13:00:00.000Z',
+      approved: false
+    });
+
+    const page = repo.listCampaignsPage({ status: 'upcoming', nowIso: '2026-08-01T00:00:00.000Z' });
+
+    expect(page.total).toBe(1);
+    expect(page.status).toBe('upcoming');
+    expect(page.items).toMatchObject([{ name: 'Upcoming ready' }]);
+  });
+
   test('records successful campaign delivery once per contact', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
@@ -34,6 +368,87 @@ describe('repository campaigns and deliveries', () => {
     expect(first).toHaveLength(1);
     expect(second).toHaveLength(0);
     expect(repo.listDeliveries(campaign.id)[0].status).toBe('sent');
+  });
+
+  test('clears retry failure metadata when a requeued delivery is marked sent', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Retry cleanup',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'pending',
+         error_message = 'Temporary failure',
+         failure_kind = 'transient',
+         failure_summary = 'Temporary failure',
+         next_attempt_at = '2026-08-01T14:00:00.000Z',
+         claim_expires_at = '2026-08-01T13:15:00.000Z'
+       where id = ?`
+    ).run(delivery.id);
+
+    repo.markDeliverySent(delivery.id, 'accepted-after-retry');
+
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'sent',
+        providerMessage: 'accepted-after-retry',
+        errorMessage: undefined,
+        failureKind: undefined,
+        failureSummary: undefined,
+        nextAttemptAt: undefined,
+        claimExpiresAt: undefined
+      }
+    ]);
+  });
+
+  test('backfills old failed deliveries with attention wording', () => {
+    const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-')), 'app.sqlite');
+    const repo = new AppRepository(dbPath);
+    const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Retry cleanup',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
+    db.prepare(
+      `update campaign_deliveries
+       set status = 'failed',
+         attempt_count = 0,
+         failure_kind = '',
+         failure_summary = ''
+       where id = ?`
+    ).run(delivery.id);
+
+    const migratedRepo = new AppRepository(dbPath);
+
+    expect(migratedRepo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'needs_attention',
+        failureKind: 'unknown',
+        failureSummary: 'Previous failed delivery needs attention before retrying.'
+      }
+    ]);
   });
 
   test('returns existing pending deliveries when a campaign was planned earlier', () => {
@@ -103,6 +518,49 @@ describe('repository campaigns and deliveries', () => {
 
     expect(retry).toHaveLength(0);
     expect(repo.listDeliveries(campaign.id)).toMatchObject([{ id: delivery.id, status: 'failed', errorMessage: 'temporary SMTP error' }]);
+  });
+
+  test('clears visible failure details when a failed delivery is queued for retry', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Lee', lastName: 'Morgan', email: 'lee@example.com' });
+    const course = repo.createCourseType({ name: 'Divemaster' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-10-01', location: 'Dock' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Prep', body: 'Details.' });
+    repo.enrollContact(session.id, contact.id);
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-09-30T13:00:00.000Z',
+      approved: true
+    });
+    const [delivery] = repo.ensurePendingDeliveries(campaign.id);
+    const claim = repo.claimNextEligibleDelivery(campaign.id, {
+      source: 'manual',
+      subject: 'Prep',
+      body: 'Details.'
+    });
+
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: delivery.id,
+      attemptId: claim!.attemptId!,
+      failureKind: 'permanent',
+      failureSummary: 'Mailbox does not exist.',
+      retryable: false
+    });
+    repo.retryCampaignDeliveries(campaign.id, [contact.id]);
+
+    expect(repo.listDeliveries(campaign.id)).toMatchObject([
+      {
+        id: delivery.id,
+        status: 'pending',
+        errorMessage: undefined,
+        failureKind: undefined,
+        failureSummary: undefined,
+        nextAttemptAt: undefined,
+        claimExpiresAt: undefined
+      }
+    ]);
   });
 
   test('claims each pending delivery once across repository instances', () => {
@@ -465,6 +923,43 @@ describe('repository campaigns and deliveries', () => {
     ]);
   });
 
+  test('paginates scheduled email detail recipients', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Rescue Diver' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Prep', subject: 'Hi {{firstName}}', body: 'Class: {{courseName}}' });
+    for (const firstName of ['Ari', 'Blair', 'Casey']) {
+      const contact = repo.createContact({ firstName, lastName: 'Student', email: `${firstName.toLowerCase()}@example.com` });
+      repo.enrollContact(session.id, contact.id);
+    }
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Prep',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.ensurePendingDeliveries(campaign.id);
+    const db = (repo as unknown as { db: { prepare: (sql: string) => unknown } }).db;
+    const originalPrepare = db.prepare.bind(db);
+    db.prepare = ((sql: string) => {
+      if (sql.includes('from contacts c') && sql.includes('join enrollments e') && !sql.includes('limit ? offset ?')) {
+        throw new Error('Scheduled email detail must not load the full roster before paging recipients.');
+      }
+      return originalPrepare(sql);
+    }) as typeof db.prepare;
+
+    const detail = repo.getCampaignDetail(campaign.id, { limit: 2, offset: 0, search: 'student' });
+
+    expect(detail.recipients).toHaveLength(2);
+    expect(detail.recipientPage).toMatchObject({
+      total: 3,
+      limit: 2,
+      offset: 0,
+      search: 'student'
+    });
+  });
+
   test('updates campaign lifecycle fields while protecting sent campaigns from deletion', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Sam', lastName: 'Rivera', email: 'sam@example.com' });
@@ -491,7 +986,7 @@ describe('repository campaigns and deliveries', () => {
     const [delivery] = repo.ensurePendingDeliveries(campaign.id);
     repo.markDeliverySent(delivery.id, 'accepted');
 
-    expect(() => repo.deleteCampaign(campaign.id)).toThrow('Campaign has sent deliveries and cannot be deleted.');
+    expect(() => repo.deleteCampaign(campaign.id)).toThrow('Scheduled email has sent deliveries and cannot be deleted.');
   });
 
   test('stores course default source metadata with campaigns', () => {

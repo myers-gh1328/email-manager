@@ -34,14 +34,14 @@ export function getSchedulerReadiness() {
     {
       ready: status.ready,
       blockedReasons: status.blockedReasons,
-      dueApprovedCount: status.dueApprovedCount,
-      nextApproved: status.nextApproved
+      dueReadyCount: status.dueReadyCount,
+      nextReady: status.nextReady
         ? {
-            id: status.nextApproved.id,
-            classSessionId: status.nextApproved.classSessionId,
-            templateId: status.nextApproved.templateId,
-            scheduledFor: status.nextApproved.scheduledFor,
-            approved: status.nextApproved.approved
+            id: status.nextReady.id,
+            classSessionId: status.nextReady.classSessionId,
+            templateId: status.nextReady.templateId,
+            scheduledFor: status.nextReady.scheduledFor,
+            ready: status.nextReady.readyToSend
           }
         : null,
       schedulerEnabled: dashboard.settings.schedulerEnabled,

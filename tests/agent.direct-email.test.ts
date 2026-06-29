@@ -31,10 +31,12 @@ describe('agent direct email tools', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('agent_permission_denied');
+    expect(result.error.message).toBe('Agents are not allowed to prepare emails for confirmation.');
+    expect(result.error.message).not.toContain('approval');
     expect(result.error.details).toEqual({ permission: 'prepareEmail' });
   });
 
-  it('requires exact approval confirmation and sendEmail permission to commit', async () => {
+  it('requires exact confirmation and sendEmail permission to commit', async () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.test' });
     const prepared = prepareDirectEmailTool(
@@ -59,7 +61,46 @@ describe('agent direct email tools', () => {
       agentSettings({ sendEmail: false })
     );
     expect(denied.ok).toBe(false);
-    if (!denied.ok) expect(denied.error.code).toBe('agent_permission_denied');
+    if (!denied.ok) {
+      expect(denied.error.code).toBe('agent_permission_denied');
+      expect(denied.error.message).toBe('Agents are not allowed to send emails after confirmation.');
+      expect(denied.error.message).not.toContain('approved emails');
+    }
+  });
+
+  it('uses confirmation wording when prepared direct email confirmation is missing or mismatched', async () => {
+    const repo = createTestRepository();
+    const wrongTool = repo.createAgentApproval({
+      toolName: 'commit_send_due_campaigns',
+      risk: 'sends_email',
+      summary: 'Prepared scheduled email',
+      operationJson: '{}',
+      reviewJson: '{}',
+      confirmationText: 'CONFIRM SEND appr_test',
+      expiresAt: '2030-01-01T00:00:00.000Z'
+    });
+
+    const missing = await commitDirectEmailTool(
+      repo,
+      { approvalId: 'appr_missing', confirmationText: 'CONFIRM SEND appr_missing' },
+      agentSettings({ sendEmail: true })
+    );
+    const mismatched = await commitDirectEmailTool(
+      repo,
+      { approvalId: wrongTool.id, confirmationText: wrongTool.confirmationText },
+      agentSettings({ sendEmail: true })
+    );
+
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) {
+      expect(missing.error.message).toBe('Confirmation was not found.');
+      expect(missing.error.message).not.toContain('Approval');
+    }
+    expect(mismatched.ok).toBe(false);
+    if (!mismatched.ok) {
+      expect(mismatched.error.message).toBe('Confirmation does not match this tool.');
+      expect(mismatched.error.message).not.toContain('Approval');
+    }
   });
 
   it('preserves do-not-email and missing-variable protections during prepare', () => {
@@ -172,7 +213,11 @@ describe('agent direct email tools', () => {
     );
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('approval_changed');
+    if (!result.ok) {
+      expect(result.error.code).toBe('approval_changed');
+      expect(result.error.message).toBe('Direct email recipients or rendered content changed after confirmation was prepared.');
+      expect(result.error.message).not.toContain('approval');
+    }
     expect(sendOutboundEmail).not.toHaveBeenCalled();
     expect(repo.listCommunications()).toHaveLength(0);
     expect(repo.listCommunications()).not.toEqual(expect.arrayContaining([expect.objectContaining({ originalRecipient: 'changed@example.test' })]));
@@ -195,10 +240,10 @@ describe('agent direct email tools', () => {
       _registeredTools: Record<string, { handler: (input: { approvalId: string; confirmationText: string }) => Promise<{ content: Array<{ text: string }> }> }>;
     };
 
-    const direct = await server._registeredTools.commit_direct_email.handler({ approvalId: 'appr_1', confirmationText: 'APPROVE SEND appr_1' });
+    const direct = await server._registeredTools.commit_direct_email.handler({ approvalId: 'appr_1', confirmationText: 'CONFIRM SEND appr_1' });
     const campaigns = await server._registeredTools.commit_send_due_campaigns.handler({
       approvalId: 'appr_2',
-      confirmationText: 'APPROVE SEND appr_2'
+      confirmationText: 'CONFIRM SEND appr_2'
     });
 
     expect(JSON.parse(direct.content[0].text)).toMatchObject({ ok: true, data: { sent: 1 } });

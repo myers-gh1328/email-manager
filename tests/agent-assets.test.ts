@@ -77,6 +77,45 @@ describe('agent-facing repository assets', () => {
     expect(operatingModel).toContain('must not expose raw SQL');
   });
 
+  it('uses plain scheduled-email language in MCP tool descriptions', () => {
+    const mcpServer = read('src/mcp/server.ts');
+    expect(mcpServer).toContain('scheduled emails ready to send count');
+    expect(mcpServer).toContain('next scheduled email ready to send');
+    expect(mcpServer).toContain("title: 'Prepare Due Scheduled Emails'");
+    expect(mcpServer).toContain("title: 'Send Due Scheduled Emails'");
+    expect(mcpServer).toContain('Create a confirmation packet for currently due scheduled emails.');
+    expect(mcpServer).toContain('Run the shared send-due scheduled-email path after exact confirmation.');
+    expect(mcpServer).toContain('currently due scheduled emails');
+    expect(mcpServer).not.toContain('due approved count');
+    expect(mcpServer).not.toContain('next approved send');
+    expect(mcpServer).not.toContain("title: 'Prepare Send Due Campaigns'");
+    expect(mcpServer).not.toContain("title: 'Commit Send Due Campaigns'");
+    expect(mcpServer).not.toContain('approved campaign sends');
+    expect(mcpServer).not.toContain('send-due campaign path');
+    expect(mcpServer).not.toContain('Create an approval packet for currently due scheduled emails.');
+    expect(mcpServer).not.toContain('after exact human approval confirmation.');
+  });
+
+  it('uses confirmation language for direct email MCP tools', () => {
+    const mcpServer = read('src/mcp/server.ts');
+    expect(mcpServer).toContain('Preview and create a confirmation packet for a direct email send.');
+    expect(mcpServer).toContain('Send a prepared direct email after exact confirmation.');
+    expect(mcpServer).not.toContain('Preview and create an approval packet for a direct email send.');
+    expect(mcpServer).not.toContain('Send a prepared direct email after exact human approval confirmation.');
+  });
+
+  it('uses plain scheduled-email language in repo-local MCP skills', () => {
+    const orientationSkill = read('.agents/skills/agent-orientation/SKILL.md');
+    const scheduledEmailSkill = read('.agents/skills/agent-campaigns/SKILL.md');
+    expect(orientationSkill).toContain('scheduled emails ready to send count');
+    expect(orientationSkill).toContain('next scheduled email ready to send');
+    expect(scheduledEmailSkill).toContain('scheduled-email readiness checks');
+    expect(scheduledEmailSkill).toContain('scheduled emails ready to send');
+    expect(scheduledEmailSkill).not.toContain('due approved count');
+    expect(scheduledEmailSkill).not.toContain('next approved send');
+    expect(scheduledEmailSkill).not.toContain('due approved campaigns');
+  });
+
   it('defines a single full validation script for agents', () => {
     const packageJson = read('package.json');
     const standardsCheck = read('scripts/agent/standards-check.mjs');

@@ -1,5 +1,6 @@
 import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { assertOutboundBatchAllowed, paceOutboundAttempt, reserveOutboundAttempt, resetOutboundGateForTests } from '../src/lib/server/outbound-gate';
+import { classifyOutboundFailure, safeErrorSummary } from '../src/lib/server/outbound-errors';
 import { createTestRepository } from './repository-helpers';
 
 describe('outbound gate', () => {
@@ -62,5 +63,15 @@ describe('outbound gate', () => {
     vi.stubEnv('NODE_ENV', 'test');
     expect(paceOutboundAttempt({ surface: 'direct_email', settings: { outboundPacingSeconds: 5 } })).toBeUndefined();
     vi.unstubAllEnvs();
+  });
+
+  test('unknown send failures avoid review workflow wording', () => {
+    const classified = classifyOutboundFailure({});
+    const summary = safeErrorSummary({});
+
+    expect(classified.summary).toBe('The mail server response was unclear. Check the failed send before retrying.');
+    expect(summary).toBe('The mail server response was unclear. Check the failed send before retrying.');
+    expect(classified.summary).not.toContain('Review before retrying');
+    expect(summary).not.toContain('Review before retrying');
   });
 });

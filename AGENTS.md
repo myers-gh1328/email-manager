@@ -55,8 +55,9 @@ Runtime data lives under `data/` by default and must not be committed. The SQLit
   - `/contacts`
   - `/classes`
   - `/templates`
-  - `/campaigns`
-  - `/communications`
+  - `/scheduled-emails`
+  - `/history`
+  - `/new-email`
   - `/test-audit`
   - `/settings`
 - Keep server-only code under `src/lib/server`.

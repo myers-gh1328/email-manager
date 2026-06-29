@@ -20,18 +20,17 @@ export function prepareSendDueCampaignsTool(repo: AppRepository, _input: Record<
   const denied = requireAgentPermission(settings, 'prepareEmail');
   if (denied) return denied;
 
-  const dueCampaigns = dueApprovedCampaigns(repo);
+  const dueScheduledEmails = dueScheduledEmailsReadyToSend(repo);
   const prepared = prepareAgentApproval(repo, {
     toolName: 'commit_send_due_campaigns',
     risk: 'sends_email',
-    summary: `Send due approved campaigns (${dueCampaigns.length}).`,
-    operation: { preparedAt: new Date().toISOString(), campaignIds: dueCampaigns.map((campaign) => campaign.id) },
+    summary: `Send due scheduled emails (${dueScheduledEmails.length}).`,
+    operation: { preparedAt: new Date().toISOString(), campaignIds: dueScheduledEmails.map((scheduledEmail) => scheduledEmail.id) },
     review: {
-      dueCampaigns: dueCampaigns.map((campaign) => ({
-        campaignId: campaign.id,
-        name: campaign.name,
-        scheduledFor: campaign.scheduledFor,
-        approved: campaign.approved
+      dueScheduledEmails: dueScheduledEmails.map((scheduledEmail) => ({
+        scheduledEmailId: scheduledEmail.id,
+        name: scheduledEmail.name,
+        scheduledFor: scheduledEmail.scheduledFor
       })),
       schedulerEnabled: settings.schedulerEnabled,
       emailTestModeEnabled: settings.emailTestModeEnabled
@@ -48,9 +47,9 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (denied) return denied;
 
   const approval = repo.getAgentApproval(input.approvalId);
-  if (!approval) return agentError('not_found', 'Approval was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+  if (!approval) return agentError('not_found', 'Confirmation was not found.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   if (approval.toolName !== 'commit_send_due_campaigns') {
-    return agentError('approval_changed', 'Approval does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
+    return agentError('approval_changed', 'Confirmation does not match this tool.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
   }
   if (approval.confirmationText !== input.confirmationText) {
     return agentError('approval_required', 'Exact confirmation text is required.', { approvalId: input.approvalId }, { labels: settings.vocabulary });
@@ -58,20 +57,20 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   if (settings.emailTestModeEnabled) {
     return agentError(
       'test_mode_blocks_automatic_send',
-      'Email test mode blocks automatic and send-due campaign sends.',
+      'Email test mode blocks automatic and send-due scheduled email sends.',
       { approvalId: input.approvalId },
       { labels: settings.vocabulary }
     );
   }
   const operation = JSON.parse(approval.operationJson) as SendDueCampaignsOperation;
   const preparedIds = [...operation.campaignIds].sort((left, right) => left.localeCompare(right));
-  const currentIds = dueApprovedCampaigns(repo)
-    .map((campaign) => campaign.id)
+  const currentIds = dueScheduledEmailsReadyToSend(repo)
+    .map((scheduledEmail) => scheduledEmail.id)
     .sort((left, right) => left.localeCompare(right));
   if (!sameStringSet(preparedIds, currentIds)) {
     return agentError(
       'approval_changed',
-      'Due approved campaigns changed after approval was prepared.',
+      'Due scheduled emails changed after confirmation was prepared.',
       { approvalId: input.approvalId, preparedCampaignIds: preparedIds, currentCampaignIds: currentIds },
       { labels: settings.vocabulary }
     );
@@ -83,10 +82,8 @@ export async function commitSendDueCampaignsTool(repo: AppRepository, input: Com
   });
 }
 
-function dueApprovedCampaigns(repo: AppRepository) {
-  return repo
-    .listCampaigns()
-    .filter((campaign) => campaign.approved && new Date(campaign.scheduledFor).getTime() <= Date.now());
+function dueScheduledEmailsReadyToSend(repo: AppRepository) {
+  return repo.listReadyScheduledEmailsDue(new Date().toISOString(), { limit: 100 });
 }
 
 function sameStringSet(left: string[], right: string[]) {
@@ -101,8 +98,8 @@ function requireAgentPermission(settings: AppSettings, permission: 'prepareEmail
     return agentError(
       'agent_permission_denied',
       permission === 'prepareEmail'
-        ? 'Agents are not allowed to prepare emails for approval.'
-        : 'Agents are not allowed to send approved emails.',
+        ? 'Agents are not allowed to prepare emails for confirmation.'
+        : 'Agents are not allowed to send emails after confirmation.',
       { permission },
       { labels: settings.vocabulary }
     );

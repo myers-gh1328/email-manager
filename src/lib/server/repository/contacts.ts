@@ -3,12 +3,20 @@ import { newId, now } from './ids';
 import { mapClassSession, mapContact, mapCourseType, mapLocation, rowString } from './mappers';
 import type {
   ClassSessionInput,
+  ClassSessionPage,
+  ClassSessionPageInput,
   ContactHistoryItem,
   ContactInput,
+  ContactPage,
+  ContactPageInput,
   CourseTypeInput,
+  CourseTypePage,
+  CourseTypePageInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
   LocationInput,
+  LocationPage,
+  LocationPageInput,
   Row
 } from './types';
 
@@ -37,6 +45,59 @@ export function listContacts(db: DatabaseSync) {
     .prepare('select * from contacts order by last_name, first_name')
     .all()
     .map(mapContact);
+}
+
+export function listContactsPage(db: DatabaseSync, input: ContactPageInput = {}): ContactPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(first_name || ' ' || last_name) like ?
+        or lower(email) like ?
+        or lower(phone) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from contacts ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from contacts
+       ${whereSql}
+       order by last_name, first_name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapContact(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
+}
+
+export function findContactsByEmails(db: DatabaseSync, emails: string[]) {
+  const normalizedEmails = [...new Set(emails.map(normalizeEmail).filter(Boolean))];
+  if (!normalizedEmails.length) return [];
+  const placeholders = normalizedEmails.map(() => '?').join(', ');
+  return db
+    .prepare(
+      `select *
+       from contacts
+       where lower(trim(email)) in (${placeholders})
+       order by last_name, first_name`
+    )
+    .all(...normalizedEmails)
+    .map((row) => mapContact(row as Row));
 }
 
 export function findDuplicateContact(db: DatabaseSync, input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {
@@ -98,10 +159,59 @@ export function listCourseTypes(db: DatabaseSync) {
     .map(mapCourseType);
 }
 
+export function listCourseTypesPage(db: DatabaseSync, input: CourseTypePageInput = {}): CourseTypePage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(name) like ? or lower(description) like ?)');
+    params.push(pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from course_types ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from course_types
+       ${whereSql}
+       order by name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapCourseType(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
+}
+
 export function getCourseType(db: DatabaseSync, id: string) {
   const row = db.prepare('select * from course_types where id = ?').get(id) as Row | undefined;
   if (!row) throw new Error(`Course type not found: ${id}`);
   return mapCourseType(row);
+}
+
+export function findCourseTypeByName(db: DatabaseSync, name: string) {
+  const normalizedName = name.trim().toLowerCase();
+  if (!normalizedName) return undefined;
+  const row = db
+    .prepare(
+      `select *
+       from course_types
+       where lower(trim(name)) = ?
+       order by created_at
+       limit 1`
+    )
+    .get(normalizedName) as Row | undefined;
+  return row ? mapCourseType(row) : undefined;
 }
 
 export function updateCourseType(db: DatabaseSync, id: string, input: CourseTypeInput) {
@@ -150,6 +260,45 @@ export function updateLocation(db: DatabaseSync, id: string, input: LocationInpu
 
 export function listLocations(db: DatabaseSync) {
   return db.prepare('select * from locations order by name').all().map(mapLocation);
+}
+
+export function listLocationsPage(db: DatabaseSync, input: LocationPageInput = {}): LocationPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(name) like ?
+        or lower(address) like ?
+        or lower(phone) like ?
+        or lower(website) like ?)`
+    );
+    params.push(pattern, pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from locations ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from locations
+       ${whereSql}
+       order by name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapLocation(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function getLocation(db: DatabaseSync, id: string) {
@@ -254,6 +403,79 @@ export function listClassSessions(db: DatabaseSync) {
     .map(mapClassSession);
 }
 
+export function listClassSessionsForCourseType(db: DatabaseSync, courseTypeId: string) {
+  return db
+    .prepare(
+      `select cs.*, ct.name as course_name,
+        l.name as location_name,
+        l.address as location_address,
+        l.phone as location_phone,
+        l.website as location_website,
+        l.parking_notes as location_parking_notes,
+        l.meeting_instructions as location_meeting_instructions,
+        l.notes as location_notes
+       from class_sessions cs
+       join course_types ct on ct.id = cs.course_type_id
+       left join locations l on l.id = cs.location_id
+       where cs.course_type_id = ?
+       order by cs.starts_on desc`
+    )
+    .all(courseTypeId)
+    .map((row) => mapClassSession(row as Row));
+}
+
+export function listClassSessionsPage(db: DatabaseSync, input: ClassSessionPageInput = {}): ClassSessionPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(ct.name) like ?
+        or lower(coalesce(l.name, cs.location)) like ?
+        or lower(cs.starts_on) like ?
+        or lower(cs.ends_on) like ?)`
+    );
+    params.push(pattern, pattern, pattern, pattern);
+  }
+
+  const fromSql = `
+    from class_sessions cs
+    join course_types ct on ct.id = cs.course_type_id
+    left join locations l on l.id = cs.location_id
+  `;
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select cs.*, ct.name as course_name,
+        l.name as location_name,
+        l.address as location_address,
+        l.phone as location_phone,
+        l.website as location_website,
+        l.parking_notes as location_parking_notes,
+        l.meeting_instructions as location_meeting_instructions,
+        l.notes as location_notes
+       ${fromSql}
+       ${whereSql}
+       order by cs.starts_on desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapClassSession(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
+}
+
 export function getClassSession(db: DatabaseSync, id: string) {
   const row = db
     .prepare(
@@ -297,10 +519,51 @@ export function listEnrollments(db: DatabaseSync, classSessionId: string) {
     .map(mapContact);
 }
 
-export function getClassSessionDetail(db: DatabaseSync, classSessionId: string) {
+export function getClassSessionDetail(db: DatabaseSync, classSessionId: string, rosterPageInput: { limit?: number; offset?: number; search?: string } = {}) {
+  const rosterPage = listEnrollmentsPage(db, classSessionId, rosterPageInput);
   return {
     session: getClassSession(db, classSessionId),
-    roster: listEnrollments(db, classSessionId)
+    roster: rosterPage.items,
+    rosterPage
+  };
+}
+
+function listEnrollmentsPage(db: DatabaseSync, classSessionId: string, input: { limit?: number; offset?: number; search?: string } = {}) {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = ['e.class_session_id = ?'];
+  const params: Array<string | number> = [classSessionId];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('(lower(c.first_name || \' \' || c.last_name) like ? or lower(c.email) like ? or lower(c.phone) like ?)');
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = `where ${where.join(' and ')}`;
+  const fromSql = `
+    from contacts c
+    join enrollments e on e.contact_id = c.id
+  `;
+  const totalRow = db.prepare(`select count(*) as value ${fromSql} ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select c.*
+       ${fromSql}
+       ${whereSql}
+       order by c.last_name, c.first_name
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapContact(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
   };
 }
 

@@ -7,6 +7,41 @@ import { AppRepository } from '../src/lib/server/repository';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository contacts and classes', () => {
+  test('lists class sessions with pagination and search', () => {
+    const repo = createTestRepository();
+    const openWater = repo.createCourseType({ name: 'Open Water' });
+    const rescue = repo.createCourseType({ name: 'Rescue Diver' });
+    repo.createClassSession({ courseTypeId: openWater.id, startsOn: '2026-08-02', location: 'Pool' });
+    repo.createClassSession({ courseTypeId: rescue.id, startsOn: '2026-09-10', location: 'Dock' });
+
+    const page = repo.listClassSessionsPage({ limit: 1, offset: 0, search: 'rescue' });
+
+    expect(page.total).toBe(1);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([{ courseName: 'Rescue Diver', location: 'Dock' }]);
+  });
+
+  test('lists contacts with pagination and search', () => {
+    const repo = createTestRepository();
+    repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    repo.createContact({ firstName: 'Jo', lastName: 'Rivera', email: 'jo@example.com' });
+    repo.createContact({ firstName: 'Maya', lastName: 'Chen', email: 'maya.chen@example.com' });
+
+    const page = repo.listContactsPage({ limit: 1, offset: 0, search: 'maya' });
+
+    expect(page.total).toBe(2);
+    expect(page.limit).toBe(1);
+    expect(page.offset).toBe(0);
+    expect(page.items).toMatchObject([
+      {
+        firstName: 'Maya',
+        lastName: 'Chen',
+        email: 'maya.chen@example.com'
+      }
+    ]);
+  });
+
   test('reports legacy duplicate contact emails before creating unique indexes', () => {
     const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-')), 'app.sqlite');
     const db = new DatabaseSync(dbPath);
@@ -123,6 +158,24 @@ describe('repository contacts and classes', () => {
     expect(detail.communications).toMatchObject([{ contactId: contact.id, subject: 'Welcome', status: 'accepted' }]);
   });
 
+  test('limits contact detail email activity to the three most recent messages', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+
+    for (const subject of ['First', 'Second', 'Third', 'Fourth']) {
+      repo.recordCommunication({
+        contactId: contact.id,
+        channel: 'email',
+        source: 'direct',
+        subject,
+        body: `${subject} body`,
+        status: 'accepted'
+      });
+    }
+
+    expect(repo.getContactDetail(contact.id).communications.map((item) => item.subject)).toEqual(['Fourth', 'Third', 'Second']);
+  });
+
   test('updates a contact in place so history remains attached', () => {
     const repo = createTestRepository();
     const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
@@ -202,6 +255,32 @@ describe('repository contacts and classes', () => {
     expect(repo.listCourseTypes()).toMatchObject([{ id: course.id, name: 'Open Water Diver' }]);
   });
 
+  test('lists app setup data with pagination and search', () => {
+    const repo = createTestRepository();
+    repo.createCourseType({ name: 'Open Water', description: 'Entry-level' });
+    repo.createCourseType({ name: 'Rescue Diver', description: 'Rescue course' });
+    repo.createLocation({ name: 'Blue Quarry', address: '123 Quarry Road' });
+    repo.createLocation({ name: 'Training Pool', address: '456 Pool Lane' });
+    repo.createChecklistItem({ label: 'Medical form complete' });
+    repo.createChecklistItem({ label: 'Academics complete' });
+
+    expect(repo.listCourseTypesPage({ limit: 1, offset: 0, search: 'rescue' })).toMatchObject({
+      total: 1,
+      limit: 1,
+      offset: 0,
+      search: 'rescue',
+      items: [{ name: 'Rescue Diver' }]
+    });
+    expect(repo.listLocationsPage({ limit: 1, offset: 0, search: 'pool' })).toMatchObject({
+      total: 1,
+      items: [{ name: 'Training Pool' }]
+    });
+    expect(repo.listChecklistItemsPage({ limit: 1, offset: 0, search: 'medical' })).toMatchObject({
+      total: 1,
+      items: [{ label: 'Medical form complete' }]
+    });
+  });
+
   test('stores managed locations for classes', () => {
     const repo = createTestRepository();
     const course = repo.createCourseType({ name: 'Open Water' });
@@ -270,6 +349,34 @@ describe('repository contacts and classes', () => {
       location: 'Training Pool'
     });
     expect(repo.getClassSessionDetail(session.id).roster).toEqual([]);
+  });
+
+  test('paginates class detail roster with search', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-07-12', location: 'Blue Quarry' });
+    for (const firstName of ['Ari', 'Blair', 'Casey']) {
+      const contact = repo.createContact({ firstName, lastName: 'Student', email: `${firstName.toLowerCase()}@example.com` });
+      repo.enrollContact(session.id, contact.id);
+    }
+    const db = (repo as unknown as { db: { prepare: (sql: string) => unknown } }).db;
+    const originalPrepare = db.prepare.bind(db);
+    db.prepare = ((sql: string) => {
+      if (sql.includes('select c.*') && sql.includes('from contacts c') && sql.includes('join enrollments e') && !sql.includes('limit ? offset ?')) {
+        throw new Error('Class detail must not load the full roster before paging students.');
+      }
+      return originalPrepare(sql);
+    }) as typeof db.prepare;
+
+    const detail = repo.getClassSessionDetail(session.id, { limit: 2, offset: 0, search: 'student' });
+
+    expect(detail.roster).toHaveLength(2);
+    expect(detail.rosterPage).toMatchObject({
+      total: 3,
+      limit: 2,
+      offset: 0,
+      search: 'student'
+    });
   });
 
   test('detects and rejects duplicate class sessions during normal create and update', () => {
@@ -445,6 +552,29 @@ describe('repository contacts and classes', () => {
     ]);
     expect(repo.listEnrollmentChecklistState(secondClass.id)).toMatchObject([
       { contactId: maya.id, itemId: item.id, itemScope: 'global', completed: false }
+    ]);
+  });
+
+  test('limits checklist state to visible roster contacts when contact ids are supplied', () => {
+    const repo = createTestRepository();
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-07-12', location: 'Blue Quarry' });
+    const maya = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const jordan = repo.createContact({ firstName: 'Jordan', lastName: 'Lee', email: 'jordan@example.com' });
+    repo.enrollContact(session.id, maya.id);
+    repo.enrollContact(session.id, jordan.id);
+    const item = repo.createChecklistItem({ label: 'Medical form complete' });
+
+    repo.setEnrollmentChecklistCompletion({
+      classSessionId: session.id,
+      contactId: maya.id,
+      itemScope: 'global',
+      itemId: item.id,
+      completed: true
+    });
+
+    expect(repo.listEnrollmentChecklistState(session.id, [maya.id])).toMatchObject([
+      { contactId: maya.id, itemId: item.id, itemScope: 'global', completed: true }
     ]);
   });
 

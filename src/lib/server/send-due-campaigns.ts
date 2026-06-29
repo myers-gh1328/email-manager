@@ -10,7 +10,7 @@ import type { AppSettings } from './settings';
 export async function sendDueCampaignsWithDependencies(
   repository: Pick<
     AppRepository,
-    | 'listCampaigns'
+    | 'listReadyScheduledEmailsDue'
     | 'getClassSession'
     | 'getTemplate'
     | 'ensurePendingDeliveries'
@@ -45,8 +45,7 @@ export async function sendDueCampaignsWithDependencies(
   assertOutboundBatchAllowed({ surface, settings });
   let sent = 0;
 
-  for (const campaign of repository.listCampaigns()) {
-    if (!campaign.approved || new Date(campaign.scheduledFor).getTime() > Date.now()) continue;
+  for (const campaign of repository.listReadyScheduledEmailsDue(new Date().toISOString(), { limit: 100 })) {
     const classSession = repository.getClassSession(campaign.classSessionId);
     const template = repository.getTemplate(campaign.templateId);
     repository.ensurePendingDeliveries(campaign.id);

@@ -4,6 +4,8 @@ import { rowString } from './mappers';
 import type {
   ChecklistItem,
   ChecklistItemInput,
+  ChecklistItemPage,
+  ChecklistItemPageInput,
   ChecklistItemScope,
   CourseTypeChecklistItemInput,
   EnrollmentChecklistCompletionInput,
@@ -30,6 +32,40 @@ export function deleteChecklistItem(db: DatabaseSync, id: string) {
 
 export function listChecklistItems(db: DatabaseSync): ChecklistItem[] {
   return db.prepare('select * from checklist_items order by sort_order, created_at, label').all().map(mapGlobalChecklistItem);
+}
+
+export function listChecklistItemsPage(db: DatabaseSync, input: ChecklistItemPageInput = {}): ChecklistItemPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push('lower(label) like ?');
+    params.push(pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from checklist_items ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from checklist_items
+       ${whereSql}
+       order by sort_order, created_at, label
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapGlobalChecklistItem(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
 }
 
 export function createCourseTypeChecklistItem(db: DatabaseSync, input: CourseTypeChecklistItemInput) {
@@ -62,9 +98,11 @@ export function listChecklistForClassSession(db: DatabaseSync, classSessionId: s
   return [...listChecklistItems(db), ...listCourseTypeChecklistItems(db, rowString(courseRow.course_type_id))];
 }
 
-export function listEnrollmentChecklistState(db: DatabaseSync, classSessionId: string): EnrollmentChecklistState[] {
+export function listEnrollmentChecklistState(db: DatabaseSync, classSessionId: string, contactIds: string[] = []): EnrollmentChecklistState[] {
   const items = listChecklistForClassSession(db, classSessionId);
   if (items.length === 0) return [];
+  const scopedContactIds = [...new Set(contactIds.map((id) => id.trim()).filter(Boolean))];
+  const contactWhere = scopedContactIds.length ? `and c.id in (${scopedContactIds.map(() => '?').join(', ')})` : '';
 
   const roster = db
     .prepare(
@@ -72,12 +110,15 @@ export function listEnrollmentChecklistState(db: DatabaseSync, classSessionId: s
        from contacts c
        join enrollments e on e.contact_id = c.id
        where e.class_session_id = ?
+         ${contactWhere}
        order by c.last_name, c.first_name`
     )
-    .all(classSessionId) as Row[];
+    .all(classSessionId, ...scopedContactIds) as Row[];
+  if (roster.length === 0) return [];
+  const completionWhere = scopedContactIds.length ? `and contact_id in (${scopedContactIds.map(() => '?').join(', ')})` : '';
   const completionRows = db
-    .prepare('select contact_id, item_scope, item_id from enrollment_checklist_completions where class_session_id = ?')
-    .all(classSessionId) as Row[];
+    .prepare(`select contact_id, item_scope, item_id from enrollment_checklist_completions where class_session_id = ? ${completionWhere}`)
+    .all(classSessionId, ...scopedContactIds) as Row[];
   const completed = new Set(
     completionRows.map((row) => completionKey(rowString(row.contact_id), rowString(row.item_scope), rowString(row.item_id)))
   );

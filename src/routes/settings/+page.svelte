@@ -1,5 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import SearchSelect from '$lib/SearchSelect.svelte';
 
   let { data, form } = $props();
   let smtpAuthMethod = $state('');
@@ -17,6 +18,12 @@
   let replySyncUsername = $state('');
   let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
+  let aiModelOptions = $derived((form?.aiModels ?? []).map((model: string) => ({ value: model, label: model })));
+  let appDataSearch = $derived(data.courseTypesPage.search ?? '');
+  let appDataTotal = $derived(Math.max(data.courseTypesPage.total, data.locationsPage.total, data.checklistItemsPage.total));
+  let currentAppDataPage = $derived(Math.floor(data.courseTypesPage.offset / data.courseTypesPage.limit) + 1);
+  let totalAppDataPages = $derived(Math.max(Math.ceil(appDataTotal / data.courseTypesPage.limit), 1));
+  let appDataClearHref = $derived(data.returnTo ? `/settings?section=app-data&returnTo=${encodeURIComponent(data.returnTo)}` : '/settings?section=app-data');
 
   $effect(() => {
     if (!initialized) {
@@ -74,10 +81,23 @@
     return [title, ...terms].join(' ').toLowerCase().includes(query);
   }
 
+  function sectionOpen(section: string) {
+    return Boolean(settingsSearch.trim()) || data.openSection === section;
+  }
+
   function externalSignOnRedirectUri() {
     return externalSignOnProvider === 'entra'
       ? data.externalSignOnRedirectUris.entra
       : data.externalSignOnRedirectUris.google;
+  }
+
+  function appDataPageHref(page: number) {
+    const params = new URLSearchParams();
+    params.set('section', 'app-data');
+    if (data.returnTo) params.set('returnTo', data.returnTo);
+    if (data.courseTypesPage.search) params.set('appDataSearch', data.courseTypesPage.search);
+    if (page > 1) params.set('appDataPage', String(page));
+    return `/settings?${params.toString()}`;
   }
 </script>
 
@@ -103,7 +123,7 @@
 
   <div class="settings-grid">
     {#if sectionMatches('Profile and signature', ['identity instructor name email signature template'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('profile')}>
       <summary>Profile and Signature</summary>
     <form method="POST" action="?/updateProfile" class="panel-form" use:enhance>
       <div>
@@ -125,22 +145,22 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Email Sending', ['delivery controls scheduled sending email test mode schedule automation'])}
-    <details class="settings-section settings-panel" open>
+    {#if sectionMatches('Email Sending', ['sending controls scheduled sending email test mode schedule automation'])}
+    <details class="settings-section settings-panel" open={sectionOpen('email-sending')}>
       <summary>Email Sending</summary>
     <form method="POST" action="?/updateDelivery" class="panel-form" use:enhance>
       <div>
         <p class="eyebrow">Sending</p>
-        <h3>Delivery controls</h3>
+        <h3>Sending controls</h3>
       </div>
       <div class="toggle-grid">
         <label class="check with-help">
           <span><input name="outboundKillSwitchEnabled" type="checkbox" checked={data.settings.outboundKillSwitchEnabled} /> Pause all outbound email</span>
-          <small>Blocks campaign sends, direct email, SMTP tests, and test-mode reroutes until turned off.</small>
+          <small>Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.</small>
         </label>
         <label class="check with-help">
           <span><input name="schedulerEnabled" type="checkbox" checked={data.settings.schedulerEnabled} /> Scheduled sending</span>
-          <small>When on, approved scheduled campaigns can send automatically while the app server is running.</small>
+          <small>When on, scheduled emails marked ready can send automatically while the app server is running.</small>
         </label>
         <label class="check with-help">
           <span><input name="emailTestModeEnabled" type="checkbox" checked={data.settings.emailTestModeEnabled} /> Email test mode</span>
@@ -171,13 +191,138 @@
           <span class="help-text">Default 50. Hard maximum 300.</span>
         </label>
       </div>
-      <button type="submit">Save delivery controls</button>
+      <button type="submit">Save sending controls</button>
     </form>
     </details>
     {/if}
 
+    {#if sectionMatches('Courses, Locations, and Prep Tasks', ['course types locations prep tasks setup checklist class data app data'])}
+    <details class="settings-section settings-panel wide" open={sectionOpen('app-data')}>
+      <summary>Courses, Locations, and Prep Tasks</summary>
+      <div class="panel-form">
+        <div>
+          <p class="eyebrow">Class setup</p>
+          <h3>Course types, locations, and class prep</h3>
+          <p class="help-text">Manage the lists used when creating classes. Scheduled email setup stays with the selected class workflow.</p>
+        </div>
+        <form class="inline-filters" method="GET" action="/settings">
+          <input type="hidden" name="section" value="app-data" />
+          {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+          <label>
+            Search class setup
+            <input name="appDataSearch" value={appDataSearch} placeholder="Course, location, or prep task" />
+          </label>
+          <button type="submit">Search</button>
+          {#if data.courseTypesPage.search}<a class="button-link" href={appDataClearHref}>Clear</a>{/if}
+        </form>
+        <p class="help-text">
+          Showing {data.courseTypes.length} course type{data.courseTypes.length === 1 ? '' : 's'},
+          {data.locations.length} location{data.locations.length === 1 ? '' : 's'}, and
+          {data.checklistItems.length} prep task{data.checklistItems.length === 1 ? '' : 's'}.
+        </p>
+
+        <section class="app-data-block">
+          <h3>Course types</h3>
+          <div class="app-data-list">
+            {#each data.courseTypes as course}
+              <form method="POST" action="?/updateCourse" class="inline-edit-form" use:enhance>
+                <input type="hidden" name="courseId" value={course.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+                <label>Name<input name="name" value={course.name} required /></label>
+                <label>Description<textarea name="description" rows="2">{course.description}</textarea></label>
+                <button type="submit">Save</button>
+              </form>
+            {/each}
+            {#if data.courseTypes.length === 0}<p class="muted">No course types yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createCourse" class="inline-edit-form add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+            <label>New course type<input name="name" required /></label>
+            <label>Description<textarea name="description" rows="2"></textarea></label>
+            <button type="submit">Add course type</button>
+          </form>
+        </section>
+
+        <section class="app-data-block">
+          <h3>Locations</h3>
+          <div class="app-data-list">
+            {#each data.locations as location}
+              <form method="POST" action="?/updateLocation" class="inline-edit-form" use:enhance>
+                <input type="hidden" name="locationId" value={location.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+                <label>Name<input name="name" value={location.name} required /></label>
+                <label>Address<textarea name="address" rows="2">{location.address}</textarea></label>
+                <input type="hidden" name="phone" value={location.phone} />
+                <input type="hidden" name="website" value={location.website} />
+                <input type="hidden" name="parkingNotes" value={location.parkingNotes} />
+                <input type="hidden" name="meetingInstructions" value={location.meetingInstructions} />
+                <input type="hidden" name="notes" value={location.notes} />
+                <button type="submit">Save</button>
+              </form>
+            {/each}
+            {#if data.locations.length === 0}<p class="muted">No locations yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createLocation" class="inline-edit-form add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+            <label>New location<input name="name" required /></label>
+            <label>Address<textarea name="address" rows="2"></textarea></label>
+            <button type="submit">Add location</button>
+          </form>
+        </section>
+
+        <section class="app-data-block">
+          <h3>Prep tasks</h3>
+          <div class="app-data-list">
+            {#each data.checklistItems as item}
+              <form method="POST" action="?/updateChecklistItem" class="inline-edit-form compact-row" use:enhance>
+                <input type="hidden" name="itemId" value={item.id} />
+                {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+                {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+                {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+                <label>Task<input name="label" value={item.label} required /></label>
+                <div class="button-row">
+                  <button type="submit">Save</button>
+                  <button class="danger" type="submit" formaction="?/deleteChecklistItem">Delete</button>
+                </div>
+              </form>
+            {/each}
+            {#if data.checklistItems.length === 0}<p class="muted">No prep tasks yet.</p>{/if}
+          </div>
+          <form method="POST" action="?/createChecklistItem" class="inline-edit-form compact-row add-row" use:enhance>
+            {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
+            {#if appDataSearch}<input type="hidden" name="appDataSearch" value={appDataSearch} />{/if}
+            {#if currentAppDataPage > 1}<input type="hidden" name="appDataPage" value={currentAppDataPage} />{/if}
+            <label>New prep task<input name="label" required /></label>
+            <button type="submit">Add prep task</button>
+          </form>
+        </section>
+        {#if totalAppDataPages > 1}
+          <nav class="pagination" aria-label="App data pages">
+            <a class="button-link" aria-disabled={currentAppDataPage === 1} href={appDataPageHref(Math.max(currentAppDataPage - 1, 1))}>Previous</a>
+            <span>Page {currentAppDataPage} of {totalAppDataPages}</span>
+            <a
+              class="button-link"
+              aria-disabled={currentAppDataPage >= totalAppDataPages}
+              href={appDataPageHref(Math.min(currentAppDataPage + 1, totalAppDataPages))}
+            >
+              Next
+            </a>
+          </nav>
+        {/if}
+      </div>
+    </details>
+    {/if}
+
     {#if sectionMatches('SMTP and provider authentication', ['smtp email account provider authentication microsoft outlook gmail fastmail password test send'])}
-    <details class="settings-section settings-panel wide" open>
+    <details class="settings-section settings-panel wide" open={sectionOpen('smtp')}>
       <summary>SMTP and Provider Authentication</summary>
     <form method="POST" action="?/updateSmtp" class="panel-form" use:enhance>
       <div class="panel-title-row">
@@ -274,7 +419,7 @@
     {/if}
 
     {#if sectionMatches('Remote Access', ['network public base url tunnel cloudflare tailscale proxy secure cookies'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('remote-access')}>
       <summary>Remote Access</summary>
     <form method="POST" action="?/updateRemoteAccess" class="panel-form" use:enhance>
       <div>
@@ -318,7 +463,7 @@
     {/if}
 
     {#if sectionMatches('Automation', ['optional tools ai endpoint model vision schedule automation local server'])}
-    <details class="settings-section settings-panel" open>
+    <details class="settings-section settings-panel" open={sectionOpen('automation')}>
       <summary>Automation</summary>
     <form method="POST" action="?/updateAi" class="panel-form" use:enhance>
       <div>
@@ -328,7 +473,7 @@
       <div class="toggle-grid">
         <label class="check with-help">
           <span><input name="aiEnabled" type="checkbox" checked={data.settings.aiEnabled} /> AI assistance</span>
-          <small>Enables template drafting with your local AI endpoint. Email sending still requires your approval.</small>
+          <small>Enables template drafting with your local AI endpoint. Email sending still requires your explicit action.</small>
         </label>
         <label class="check with-help">
           <span><input name="aiVisionEnabled" type="checkbox" checked={data.settings.aiVisionEnabled} /> AI model supports vision</span>
@@ -341,16 +486,17 @@
         <span class="help-text">The local AI server address. It should look like an OpenAI-compatible <code>/v1</code> endpoint.</span>
       </label>
       {#if form?.aiModels?.length}
-        <label>
-          Model
-          <select name="aiModel" bind:value={selectedAiModel} required>
-            <option value="">Choose a model</option>
-            {#each form.aiModels as model}
-              <option value={model}>{model}</option>
-            {/each}
-          </select>
+        <div>
+          <SearchSelect
+            name="aiModel"
+            label="Model"
+            options={aiModelOptions}
+            value={selectedAiModel}
+            placeholder="Search models"
+            required
+          />
           <span class="help-text">Loaded from the configured AI endpoint.</span>
-        </label>
+        </div>
       {:else}
         <label>
           Model
@@ -371,12 +517,12 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])}
-    <details class="settings-section settings-panel" open>
+    {#if sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])}
+    <details class="settings-section settings-panel" open={sectionOpen('reply-sync')}>
       <summary>Reply Sync</summary>
       <form method="POST" action="?/updateReplySync" class="panel-form" use:enhance>
         <div>
-          <p class="eyebrow">Acknowledgements</p>
+          <p class="eyebrow">Replies</p>
           <h3>Show replies to sent email</h3>
           <p class="help-text">Connect the inbox for the same address you send from. The app only imports messages that reply to emails it already sent.</p>
         </div>
@@ -423,30 +569,30 @@
     </details>
     {/if}
 
-    {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token approval'])}
-      <details class="settings-section settings-panel" open>
+    {#if sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])}
+      <details class="settings-section settings-panel" open={sectionOpen('agent-access')}>
         <summary>Agent Access</summary>
         <form method="POST" action="?/updateAgentAccess" class="panel-form" use:enhance>
           <label class="check with-help">
             <span><input name="agentEnabled" type="checkbox" checked={data.settings.agentEnabled} /> Enable AI agent access</span>
-            <small>Let AI assistants like Claude Code operate this app through approved local tools.</small>
+            <small>Let AI assistants like Claude Code operate this app through local tools you have enabled.</small>
           </label>
-          <p class="help-text">Risky actions like sending email still require explicit approval.</p>
+          <p class="help-text">Risky actions like sending email still require an explicit confirmation step.</p>
           <button type="submit">Save agent access</button>
         </form>
       </details>
     {/if}
 
-    {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings approval workflow risk'])}
-      <details class="settings-section settings-panel" open>
+    {#if sectionMatches('Agent Permissions', ['view edit import prepare schedule send settings confirmation workflow risk'])}
+      <details class="settings-section settings-panel" open={sectionOpen('agent-permissions')}>
         <summary>Agent Permissions</summary>
         <form method="POST" action="?/updateAgentPermissions" class="panel-form" use:enhance>
           <label class="check"><span><input name="viewData" type="checkbox" checked={data.settings.agentPermissions.viewData} /> Let agents view my app data</span></label>
           <label class="check"><span><input name="editRecords" type="checkbox" checked={data.settings.agentPermissions.editRecords} /> Let agents draft and edit records</span></label>
           <label class="check"><span><input name="importData" type="checkbox" checked={data.settings.agentPermissions.importData} /> Let agents import roster data</span></label>
-          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my approval</span></label>
-          <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule approved emails</span></label>
-          <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send approved emails</span></label>
+          <label class="check"><span><input name="prepareEmail" type="checkbox" checked={data.settings.agentPermissions.prepareEmail} /> Let agents prepare emails for my confirmation</span></label>
+          <label class="check"><span><input name="scheduleEmail" type="checkbox" checked={data.settings.agentPermissions.scheduleEmail} /> Let agents schedule confirmed emails</span></label>
+          <label class="check"><span><input name="sendEmail" type="checkbox" checked={data.settings.agentPermissions.sendEmail} /> Let agents send confirmed emails</span></label>
           <label class="check"><span><input name="updateSettings" type="checkbox" checked={data.settings.agentPermissions.updateSettings} /> Let agents update selected settings</span></label>
           <label class="check"><span><input name="manageAgentAccess" type="checkbox" checked={data.settings.agentPermissions.manageAgentAccess} /> Let agents manage agent access</span></label>
           <button type="submit">Save agent permissions</button>
@@ -455,7 +601,7 @@
     {/if}
 
     {#if sectionMatches('Vocabulary', ['labels course class student instructor participant workshop terminology'])}
-      <details class="settings-section settings-panel wide" open>
+      <details class="settings-section settings-panel wide" open={sectionOpen('vocabulary')}>
         <summary>Vocabulary</summary>
         <form method="POST" action="?/updateVocabulary" class="panel-form" use:enhance>
           <div class="split">
@@ -480,7 +626,7 @@
     {/if}
 
     {#if sectionMatches('Security', ['change admin password app secret login credentials external sign-on sso google microsoft entra identity'])}
-    <details class="settings-section settings-panel wide" open={data.openSection === 'security'}>
+    <details class="settings-section settings-panel wide" open={sectionOpen('security')}>
       <summary>Security</summary>
       <form method="POST" action="?/changePassword" class="panel-form" use:enhance>
         <div>
@@ -608,23 +754,26 @@
         </form>
       {/if}
     </details>
-    {/if}
+     {/if}
 
-    {#if sectionMatches('Test SMTP', ['send test email smtp accepted provider'])}
-    <details class="settings-section settings-panel">
-      <summary>Test SMTP</summary>
-      <form method="POST" action="?/testSmtp" class="panel-form" use:enhance>
-        <label>
-          Send test to
-          <input name="testEmail" type="email" value={data.settings.smtpFrom} required />
-          <span class="help-text">Sends a small test message and reports whether the SMTP server accepted it.</span>
-        </label>
-        <button type="submit">Send test email</button>
-      </form>
-    </details>
-    {/if}
-  </div>
-</section>
+     {#if sectionMatches('Test SMTP', ['send test email smtp accepted provider'])}
+     <section class="settings-section settings-panel visible-panel">
+       <form method="POST" action="?/testSmtp" class="panel-form" use:enhance>
+         <div>
+           <p class="eyebrow">SMTP test</p>
+           <h3>Test SMTP</h3>
+         </div>
+         <label>
+           Send test to
+           <input name="testEmail" type="email" value={data.settings.smtpFrom} required />
+           <span class="help-text">Sends a small test message and reports whether the SMTP server accepted it.</span>
+         </label>
+         <button type="submit">Send test email</button>
+       </form>
+     </section>
+     {/if}
+   </div>
+ </section>
 
 <style>
   .settings-page {
@@ -683,8 +832,43 @@
     gap: 12px;
   }
 
+  .app-data-block {
+    display: grid;
+    gap: 10px;
+    padding-top: 8px;
+  }
+
+  .app-data-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .inline-edit-form {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(220px, 2fr) auto;
+    gap: 10px;
+    align-items: end;
+    padding: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.72);
+  }
+
+  .inline-edit-form.compact-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .inline-edit-form.add-row {
+    border-style: dashed;
+  }
+
   @media (max-width: 720px) {
     .split {
+      grid-template-columns: 1fr;
+    }
+
+    .inline-edit-form,
+    .inline-edit-form.compact-row {
       grid-template-columns: 1fr;
     }
   }

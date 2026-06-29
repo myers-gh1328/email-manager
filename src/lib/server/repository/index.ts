@@ -8,6 +8,8 @@ import {
   createLocation,
   deleteContact,
   enrollContact,
+  findContactsByEmails,
+  findCourseTypeByName,
   findDuplicateClassSession,
   findDuplicateContact,
   getClassSession,
@@ -17,10 +19,15 @@ import {
   getCourseType,
   getLocation,
   listClassSessions,
+  listClassSessionsForCourseType,
+  listClassSessionsPage,
   listContacts,
+  listContactsPage,
   listCourseTypes,
+  listCourseTypesPage,
   listEnrollments,
   listLocations,
+  listLocationsPage,
   updateClassSession,
   updateContact,
   updateCourseType,
@@ -30,6 +37,7 @@ import {
 import {
   createCampaign,
   claimNextEligibleDelivery,
+  countReadyScheduledEmailsDue,
   countFailedCampaignDeliveriesBetween,
   claimNextPendingDelivery,
   deleteCampaign,
@@ -38,9 +46,12 @@ import {
   finalizeDeliveryAttemptFailed,
   getCampaign,
   getCampaignDetail,
+  getNextReadyScheduledEmail,
   hasSentDeliveries,
   listCampaigns,
+  listCampaignsPage,
   listCampaignsForClassSession,
+  listReadyScheduledEmailsDue,
   listDeliveries,
   listPendingDeliveries,
   markAcceptedAttemptAuditIncomplete,
@@ -53,7 +64,7 @@ import {
   updateDefaultCampaign,
   updateCampaign
 } from './campaigns';
-import { createTemplate, deleteTemplate, getTemplate, listTemplates, updateTemplate } from './templates';
+import { createTemplate, deleteTemplate, getTemplate, listTemplates, listTemplatesPage, updateTemplate } from './templates';
 import {
   listCourseTypeDefaultTemplates,
   listDefaultTemplatesForClassSession,
@@ -68,6 +79,7 @@ import {
   deleteCourseTypeChecklistItem,
   listChecklistForClassSession,
   listChecklistItems,
+  listChecklistItemsPage,
   listCourseTypeChecklistItems,
   listEnrollmentChecklistState,
   setEnrollmentChecklistCompletion,
@@ -75,11 +87,16 @@ import {
   updateCourseTypeChecklistItem
 } from './checklists';
 import {
+  getCommunication,
   listCommunicationMessageIds,
   listCommunications,
+  listCommunicationsPage,
   listContactCommunications,
+  listRecentCommunicationMessageIds,
+  listRecentContactCommunications,
   listEmailTestAudits,
-  markCommunicationReplyReviewed,
+  listEmailTestAuditsPage,
+  markCommunicationReplyHandled,
   recordCommunication,
   recordCommunicationReply,
   recordEmailTestAudit
@@ -104,23 +121,34 @@ import type {
   AgentApprovalInput,
   AgentAuditEventInput,
   CampaignInput,
+  CampaignPage,
+  CampaignPageInput,
+  CampaignRecord,
   ChecklistItemInput,
+  ChecklistItemPageInput,
   ClassSessionInput,
+  ClassSessionPageInput,
+  ContactPageInput,
   CommunicationInput,
+  CommunicationHistoryPageInput,
   CommunicationReplyInput,
   ContactInput,
   CourseTypeInput,
+  CourseTypePageInput,
   CourseTypeChecklistItemInput,
   CourseTypeDefaultTemplateInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
   EmailTestAuditInput,
+  EmailTestAuditPageInput,
   EnrollmentChecklistCompletionInput,
   ExternalEntityType,
   ExternalEventIngestion,
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  LocationPageInput,
+  TemplatePageInput,
   TemplateInput
 } from './types';
 
@@ -133,11 +161,24 @@ export type {
   AgentAuditEventInput,
   AgentRisk,
   CampaignInput,
+  CampaignPage,
+  CampaignPageInput,
+  CampaignRecord,
   ChecklistItem,
+  ChecklistItemPage,
+  ChecklistItemPageInput,
   ChecklistItemInput,
   ChecklistItemScope,
   ClassSessionInput,
+  ClassSessionPage,
+  ClassSessionPageInput,
+  ClassSessionRecord,
+  ContactPage,
+  ContactPageInput,
+  ContactRecord,
   CommunicationHistoryItem,
+  CommunicationHistoryPage,
+  CommunicationHistoryPageInput,
   CommunicationInput,
   CommunicationReply,
   CommunicationReplyInput,
@@ -146,11 +187,16 @@ export type {
   ContactInput,
   CourseTypeChecklistItemInput,
   CourseTypeInput,
+  CourseTypePage,
+  CourseTypePageInput,
+  CourseTypeRecord,
   CourseTypeDefaultTemplateInput,
   DuplicateClassSessionMatch,
   DuplicateContactMatch,
   EmailTestAuditInput,
   EmailTestAuditItem,
+  EmailTestAuditPage,
+  EmailTestAuditPageInput,
   EnrollmentChecklistCompletionInput,
   EnrollmentChecklistState,
   ExternalEntityType,
@@ -158,6 +204,12 @@ export type {
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,
+  LocationPage,
+  LocationPageInput,
+  LocationRecord,
+  TemplatePage,
+  TemplatePageInput,
+  TemplateRecord,
   TemplateInput
 } from './types';
 
@@ -177,6 +229,14 @@ export class AppRepository {
 
   listContacts() {
     return listContacts(this.db);
+  }
+
+  listContactsPage(input?: ContactPageInput) {
+    return listContactsPage(this.db, input);
+  }
+
+  findContactsByEmails(emails: string[]) {
+    return findContactsByEmails(this.db, emails);
   }
 
   findDuplicateContact(input: Pick<ContactInput, 'email'>, excludeId?: string): DuplicateContactMatch | undefined {
@@ -203,8 +263,16 @@ export class AppRepository {
     return listCourseTypes(this.db);
   }
 
+  listCourseTypesPage(input?: CourseTypePageInput) {
+    return listCourseTypesPage(this.db, input);
+  }
+
   getCourseType(id: string) {
     return getCourseType(this.db, id);
+  }
+
+  findCourseTypeByName(name: string) {
+    return findCourseTypeByName(this.db, name);
   }
 
   updateCourseType(id: string, input: CourseTypeInput) {
@@ -243,6 +311,10 @@ export class AppRepository {
     return listChecklistItems(this.db);
   }
 
+  listChecklistItemsPage(input?: ChecklistItemPageInput) {
+    return listChecklistItemsPage(this.db, input);
+  }
+
   createCourseTypeChecklistItem(input: CourseTypeChecklistItemInput) {
     return createCourseTypeChecklistItem(this.db, input);
   }
@@ -263,8 +335,8 @@ export class AppRepository {
     return listChecklistForClassSession(this.db, classSessionId);
   }
 
-  listEnrollmentChecklistState(classSessionId: string) {
-    return listEnrollmentChecklistState(this.db, classSessionId);
+  listEnrollmentChecklistState(classSessionId: string, contactIds?: string[]) {
+    return listEnrollmentChecklistState(this.db, classSessionId, contactIds);
   }
 
   setEnrollmentChecklistCompletion(input: EnrollmentChecklistCompletionInput) {
@@ -277,6 +349,10 @@ export class AppRepository {
 
   listLocations() {
     return listLocations(this.db);
+  }
+
+  listLocationsPage(input?: LocationPageInput) {
+    return listLocationsPage(this.db, input);
   }
 
   getLocation(id: string) {
@@ -303,12 +379,20 @@ export class AppRepository {
     return listClassSessions(this.db);
   }
 
+  listClassSessionsForCourseType(courseTypeId: string) {
+    return listClassSessionsForCourseType(this.db, courseTypeId);
+  }
+
+  listClassSessionsPage(input?: ClassSessionPageInput) {
+    return listClassSessionsPage(this.db, input);
+  }
+
   getClassSession(id: string) {
     return getClassSession(this.db, id);
   }
 
-  getClassSessionDetail(classSessionId: string) {
-    return getClassSessionDetail(this.db, classSessionId);
+  getClassSessionDetail(classSessionId: string, rosterPageInput?: { limit?: number; offset?: number; search?: string }) {
+    return getClassSessionDetail(this.db, classSessionId, rosterPageInput);
   }
 
   enrollContact(classSessionId: string, contactId: string) {
@@ -331,7 +415,7 @@ export class AppRepository {
     return {
       contact: this.getContact(contactId),
       classHistory: this.getContactHistory(contactId),
-      communications: this.listContactCommunications(contactId)
+      communications: this.listRecentContactCommunications(contactId)
     };
   }
 
@@ -341,6 +425,10 @@ export class AppRepository {
 
   listTemplates() {
     return listTemplates(this.db);
+  }
+
+  listTemplatesPage(input?: TemplatePageInput) {
+    return listTemplatesPage(this.db, input);
   }
 
   getTemplate(id: string) {
@@ -363,19 +451,37 @@ export class AppRepository {
     return listCampaigns(this.db);
   }
 
-  listCampaignsForClassSession(classSessionId: string) {
-    return listCampaignsForClassSession(this.db, classSessionId);
+  listCampaignsPage(input?: CampaignPageInput) {
+    return listCampaignsPage(this.db, input);
+  }
+
+  countReadyScheduledEmailsDue(nowIso: string) {
+    return countReadyScheduledEmailsDue(this.db, nowIso);
+  }
+
+  listReadyScheduledEmailsDue(nowIso: string, input?: { limit?: number }) {
+    return listReadyScheduledEmailsDue(this.db, nowIso, input);
+  }
+
+  getNextReadyScheduledEmail(nowIso: string) {
+    return getNextReadyScheduledEmail(this.db, nowIso);
+  }
+
+  listCampaignsForClassSession(classSessionId: string): CampaignRecord[];
+  listCampaignsForClassSession(classSessionId: string, input: Omit<CampaignPageInput, 'status' | 'nowIso'>): CampaignPage;
+  listCampaignsForClassSession(classSessionId: string, input?: Omit<CampaignPageInput, 'status' | 'nowIso'>) {
+    return input ? listCampaignsForClassSession(this.db, classSessionId, input) : listCampaignsForClassSession(this.db, classSessionId);
   }
 
   getCampaign(id: string) {
     return getCampaign(this.db, id);
   }
 
-  getCampaignDetail(id: string) {
-    return getCampaignDetail(this.db, id);
+  getCampaignDetail(id: string, recipientPageInput?: { limit?: number; offset?: number; search?: string }) {
+    return getCampaignDetail(this.db, id, recipientPageInput);
   }
 
-  updateCampaign(id: string, input: { name: string; scheduledFor: string; approved: boolean }) {
+  updateCampaign(id: string, input: { name: string; scheduledFor: string; readyToSend?: boolean; approved?: boolean }) {
     return updateCampaign(this.db, id, input);
   }
 
@@ -468,16 +574,24 @@ export class AppRepository {
     return recordCommunication(this.db, input);
   }
 
+  getCommunication(id: string) {
+    return getCommunication(this.db, id);
+  }
+
   recordCommunicationReply(input: CommunicationReplyInput) {
     return recordCommunicationReply(this.db, input);
   }
 
-  markCommunicationReplyReviewed(id: string) {
-    return markCommunicationReplyReviewed(this.db, id);
+  markCommunicationReplyHandled(id: string) {
+    return markCommunicationReplyHandled(this.db, id);
   }
 
   listCommunicationMessageIds() {
     return listCommunicationMessageIds(this.db);
+  }
+
+  listRecentCommunicationMessageIds(limit?: number) {
+    return listRecentCommunicationMessageIds(this.db, limit);
   }
 
   recordEmailTestAudit(input: EmailTestAuditInput) {
@@ -508,12 +622,24 @@ export class AppRepository {
     return listEmailTestAudits(this.db);
   }
 
+  listEmailTestAuditsPage(input?: EmailTestAuditPageInput) {
+    return listEmailTestAuditsPage(this.db, input);
+  }
+
   listCommunications() {
     return listCommunications(this.db);
   }
 
+  listCommunicationsPage(input?: CommunicationHistoryPageInput) {
+    return listCommunicationsPage(this.db, input);
+  }
+
   listContactCommunications(contactId: string) {
     return listContactCommunications(this.db, contactId);
+  }
+
+  listRecentContactCommunications(contactId: string, limit?: number) {
+    return listRecentContactCommunications(this.db, contactId, limit);
   }
 
   getExternalMapping(source: string, entityType: ExternalEntityType, externalId: string) {

@@ -83,7 +83,11 @@ export function mapCampaign(row: Row) {
     courseName: rowString(row.course_name),
     startsOn: rowString(row.starts_on),
     endsOn: rowString(row.ends_on || row.starts_on),
-    startTime: rowString(row.start_time)
+    startTime: rowString(row.start_time),
+    recipientCount: Number(row.recipient_count ?? 0),
+    pendingCount: Number(row.pending_count ?? 0),
+    sentCount: Number(row.sent_count ?? 0),
+    failedCount: Number(row.failed_count ?? 0)
   };
 }
 
@@ -109,7 +113,7 @@ export function mapDelivery(row: Row): CampaignDelivery {
     lastAttemptAt: row.last_attempt_at ? rowString(row.last_attempt_at) : undefined,
     nextAttemptAt: row.next_attempt_at ? rowString(row.next_attempt_at) : undefined,
     claimExpiresAt: row.claim_expires_at ? rowString(row.claim_expires_at) : undefined,
-    failureKind: failureKind as CampaignDelivery['failureKind'],
+    failureKind: failureKind ? (failureKind as CampaignDelivery['failureKind']) : undefined,
     failureSummary: row.failure_summary ? rowString(row.failure_summary) : undefined,
     needsAuditRepair: Boolean(row.needs_audit_repair),
     retryPolicyMaxAutoRetries: Number(row.retry_policy_max_auto_retries ?? 3),

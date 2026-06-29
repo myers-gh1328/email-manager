@@ -48,7 +48,7 @@ export function getSendOperation(db: DatabaseSync, sendOperationId: string): Sen
     db.prepare(
       `update send_operations
        set status = 'needs_attention',
-         failure_summary = 'This send was interrupted before it finished. Review before sending again.',
+         failure_summary = 'This send was interrupted before it finished. It needs attention before sending again.',
          updated_at = ?
        where id = ? and status = 'sending'`
     ).run(now(), rowString(row.id));

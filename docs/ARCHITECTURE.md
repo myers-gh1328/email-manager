@@ -13,8 +13,8 @@ The core workflow is:
 3. Create dated class sessions.
 4. Enroll contacts into class sessions.
 5. Create templates with variables.
-6. Preview a campaign for every recipient.
-7. Approve and schedule the campaign.
+6. Preview a scheduled class email for every recipient.
+7. Mark the scheduled email ready to send.
 8. Send each recipient exactly once after the scheduled time.
 
 ## Runtime Architecture
@@ -31,7 +31,7 @@ The app is a SvelteKit Node application.
 - Optional AI drafting calls an OpenAI-compatible endpoint from server-side code.
 - Optional external event ingestion may import contacts, classes, and class
   enrollments from a user-configured source.
-- Optional local MCP agent access exposes workflow-shaped tools for AI assistants. MCP must stay local-only, settings-governed, approval-gated for schedule/send actions, and must not expose SQL, database file paths, generic filesystem access, or decrypted secrets.
+- Optional local MCP agent access exposes workflow-shaped tools for AI assistants. MCP must stay local-only, settings-governed, confirmation-gated for send actions, and must not expose SQL, database file paths, generic filesystem access, or decrypted secrets.
 - Optional Electron desktop packaging wraps the existing SvelteKit Node server. The desktop shell starts the local server on `127.0.0.1`, opens an app window, and stores packaged-app runtime data under the user's OS app-data directory unless environment variables override it.
 
 Keep server-only modules under the server library area. Browser components should receive data from page loads and submit forms to server actions.
@@ -42,12 +42,13 @@ The useful boundary test is: if behavior needs secrets, persistence, SMTP, AI, s
 
 Routes are split by user workflow:
 
-- Dashboard: operational overview and manual "send due now".
+- Dashboard: operational overview and scheduled-send readiness.
 - Contacts: reusable student records.
 - Classes: course types, sessions, and enrollments.
 - Templates: template creation and AI drafting.
-- Campaigns: preview and scheduling.
-- Communications: direct email composer and contact-centered outbound history.
+- Scheduled Emails: class email preview, scheduling, delivery detail, and retry.
+- New Email: direct email composer.
+- History: searchable outbound history across direct and scheduled emails.
 - Settings: searchable collapsible SMTP, reply sync, AI, scheduler, remote access, agent access, vocabulary, and password controls.
 - Setup and login: first-run password setup and authentication.
 
@@ -63,14 +64,14 @@ The app must answer the instructor's operational questions directly in the UI. D
 
 Required visibility:
 
-- Dashboard must show whether automatic scheduled sending is ready, blocked, or paused, including scheduler enabled state, SMTP completeness, email test mode, due approved campaign count, and the next approved send.
-- Course type email defaults define automatic schedules. Saving course defaults must create, update, or remove unsent default campaign records across existing classes of that course type, while preserving already-sent campaign history.
-- Class detail must show both course-type email defaults and concrete scheduled campaign records for that class. The instructor must be able to see what will send, when it will send, approval state, source, template, and recipient/delivery counts.
-- Class detail must show per-student checklist state using global checklist items plus course-type checklist items.
-- Campaign detail must distinguish class time from send time and show recipient delivery status.
-- Communications must provide a complete outbound email history across direct and campaign sends, not only contact-specific history.
-- Communications must show imported replies as acknowledgements under the
-  outbound email they replied to. It must not act like a general inbox reader.
+- Dashboard must show whether automatic scheduled sending is ready, blocked, or paused, including scheduler enabled state, SMTP completeness, email test mode, due scheduled-email count, and the next scheduled send.
+- Course email schedules define automatic class emails. Saving course emails must create, update, or remove unsent scheduled email records across existing classes of that course type, while preserving already-sent history.
+- Class detail must show both automatic course emails and concrete scheduled email records for that class. The instructor must be able to see what will send, when it will send, ready/draft state, source, template, and recipient/send counts.
+- Class detail must show per-student prep state using global prep tasks plus course-specific prep tasks.
+- Scheduled email detail must distinguish class time from send time and show recipient send status.
+- History must provide a complete outbound email history across direct and scheduled email sends, not only contact-specific history.
+- History must show imported replies under the outbound email they replied to.
+  It must not act like a general inbox reader.
 - Test audit navigation is visible only while email test mode is enabled. Direct URL access may show historical redirected test emails, but the page must clearly state when test mode is off.
 - Settings must use searchable collapsible sections and grouped forms. Changing one settings group must not resave unrelated groups.
 - AI model selection should prefer model discovery from the configured OpenAI-compatible `/models` endpoint, with manual entry only as a fallback for servers that cannot list models.
@@ -88,14 +89,14 @@ Main tables:
 - Class sessions store dated course instances.
 - Enrollments connect contacts to class sessions.
 - Templates store subject and body text.
-- Campaigns store one scheduled send for one class/template pair.
+- Campaigns store one scheduled email for one class/template pair. The name is internal compatibility vocabulary.
 - Campaign deliveries store recipient-level send status.
-- Communications store one outbound email history row per recipient for direct and campaign sends.
+- Communications store one outbound email history row per recipient for direct and scheduled email sends. The name is internal compatibility vocabulary.
 - Communication replies store IMAP messages that match an outbound
-  communication `Message-ID`. They are shown as acknowledgements, not as a
-  full mailbox archive.
-- Checklist items store global and course-type class preparation requirements.
-- Enrollment checklist completions store per-student checklist state for a class.
+  communication `Message-ID`. They are shown under the matching outbound
+  email, not as a full mailbox archive.
+- Checklist items store global and course-specific prep requirements. The name is internal compatibility vocabulary.
+- Enrollment checklist completions store per-student prep state for a class.
 - Settings store app configuration and encrypted secrets.
 
 The repository creates tables on startup if they do not exist. Schema changes should be made deliberately and covered by repository tests.
@@ -103,7 +104,7 @@ The repository creates tables on startup if they do not exist. Schema changes sh
 Repository responsibilities are split by role:
 
 - The schema module creates tables and performs additive migrations.
-- Repository domain modules hold SQL for contacts/classes, templates, campaigns, communications, course defaults, and settings.
+- Repository domain modules hold SQL for contacts/classes, templates, scheduled emails, communication history, course email schedules, and settings.
 - Row mappers translate SQLite rows into app objects.
 - The repository index exposes the public repository surface used by routes and server helpers.
 
@@ -150,15 +151,15 @@ Keep rendering deterministic. Do not add AI behavior or network calls to templat
 
 ## Background Scheduler
 
-The scheduler starts with the SvelteKit server unless disabled by environment variable. It checks for due campaigns once per minute.
+The scheduler starts with the SvelteKit server unless disabled by environment variable. It checks for due scheduled emails once per minute.
 
-A campaign is eligible only when:
+A scheduled email is eligible only when:
 
 - Scheduled sending is enabled.
 - Outbound email is not paused by the kill switch.
-- The campaign is approved.
+- The scheduled email is marked ready to send.
 - The scheduled time is now or in the past.
-- The recipient does not have a successful delivery record for that campaign.
+- The recipient does not have a successful delivery record for that scheduled email.
 - The delivery is a pending first attempt, or a retry-scheduled transient
   failure whose next retry time is due and whose attempt count is still under
   the automatic retry limit.
@@ -207,7 +208,7 @@ the user back to IMAP settings.
 
 AI assistance is optional and must remain optional.
 
-The app expects an OpenAI-compatible chat completions endpoint. AI can draft template text, but it must not approve campaigns, schedule campaigns, or send email.
+The app expects an OpenAI-compatible chat completions endpoint. AI can draft template text, but it must not mark scheduled emails ready, schedule emails, or send email.
 
 Do not make the app depend on a remote AI service for core workflows.
 
@@ -217,7 +218,7 @@ AI response parsing should fail closed with a user-visible error rather than sil
 
 Agent access is optional and local-only. It is an app workflow interface for trusted local assistants, not a security boundary around the filesystem. App permissions can deny MCP tools, but they do not protect against runtime database or file access already granted to a coding agent by the operating environment.
 
-The MCP surface currently includes orientation, scheduler readiness, navigation, agent capabilities, contacts, classes, templates, direct email prepare/commit, and send-due campaign prepare/commit tools. Campaign approval and campaign schedule tools are intentionally deferred.
+The MCP surface currently includes orientation, scheduler readiness, navigation, agent capabilities, contacts, classes, templates, direct email prepare/commit, and send-due scheduled email prepare/commit tools. Scheduled-email creation tools are intentionally deferred.
 
 Schedule and send actions must return an approval packet from `prepare_*` and require exact confirmation text in the matching `commit_*` tool. Commit tools must revalidate state and call existing server helpers rather than duplicate send loops.
 
@@ -233,7 +234,7 @@ configuration.
 
 The first supported event types are `contact.upsert`, `class.upsert`, and
 `class_user.upsert`. They are inbound data-entry suggestions only. They must not
-send email, approve campaigns, schedule campaigns without instructor review, or
+send email, mark scheduled emails ready, create scheduled emails without instructor review, or
 change SMTP, Microsoft OAuth, AI, admin, or security settings.
 
 Implement ingestion behind a server-side adapter boundary. Route and repository
@@ -305,7 +306,7 @@ Packaged desktop defaults:
 - Linux installers: `.AppImage` and `.deb`.
 - Runtime data directory: the app's OS-specific user-data directory, with `SCUBA_EMAIL_DATA_DIR` and `SCUBA_EMAIL_DB` still taking precedence.
 
-Scheduled sending works while the desktop app is running. If a future change adds tray or background-service behavior, it must preserve send-once delivery, test-mode blocking, and explicit approval requirements.
+Scheduled sending works while the desktop app is running. If a future change adds tray or background-service behavior, it must preserve send-once delivery, test-mode blocking, and explicit ready-to-send requirements.
 
 ## Testing Strategy
 
@@ -324,7 +325,7 @@ Current important coverage:
 Add tests when changing:
 
 - Template variable behavior.
-- Campaign eligibility.
+- Scheduled email eligibility.
 - Delivery retry behavior.
 - SQLite schema or repository methods.
 - Secret handling.
@@ -357,8 +358,8 @@ Use these defaults when adding features:
 - Sending the same successful campaign delivery twice.
 - Exposing decrypted secrets through load data sent to the browser.
 - Making scheduled sending depend on the browser being open.
-- Adding a route action that bypasses preview or approval for scheduled campaigns.
+- Adding a route action that bypasses preview or ready-to-send checks for scheduled emails.
 - Letting AI-generated text send without user review.
 - Committing local SQLite data.
 
-When in doubt, protect student data and require explicit instructor approval before sending email.
+When in doubt, protect student data and require explicit instructor review before sending email.

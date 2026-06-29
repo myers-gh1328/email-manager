@@ -2,20 +2,24 @@ import type { DatabaseSync } from 'node:sqlite';
 import { newId, now } from './ids';
 import type {
   CommunicationHistoryItem,
+  CommunicationHistoryPage,
+  CommunicationHistoryPageInput,
   CommunicationInput,
   CommunicationReply,
   CommunicationReplyInput,
   RecordedCommunicationReply,
   EmailTestAuditInput,
   EmailTestAuditItem,
+  EmailTestAuditPage,
+  EmailTestAuditPageInput,
   Row
 } from './types';
 
 function mapCommunication(row: Row, replies: CommunicationReply[] = []): CommunicationHistoryItem {
-  const acknowledgedAt = replies.reduce<string | undefined>(
-    (earliest, reply) => (!earliest || reply.receivedAt < earliest ? reply.receivedAt : earliest),
-    undefined
-  );
+  const acknowledgedAt = row.first_reply_at
+    ? text(row.first_reply_at)
+    : replies.reduce<string | undefined>((earliest, reply) => (!earliest || reply.receivedAt < earliest ? reply.receivedAt : earliest), undefined);
+  const unhandledReplyCount = Number(row.unreviewed_reply_count ?? replies.filter((reply) => !reply.handledAt).length);
   return {
     id: text(row.id),
     contactId: text(row.contact_id),
@@ -24,6 +28,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     channel: text(row.channel) as CommunicationHistoryItem['channel'],
     source: text(row.source) as CommunicationHistoryItem['source'],
     sourceId: row.source_id ? text(row.source_id) : undefined,
+    classSessionId: row.class_session_id ? text(row.class_session_id) : undefined,
+    className: row.class_name ? text(row.class_name) : undefined,
     originalRecipient: text(row.original_recipient),
     effectiveRecipient: text(row.effective_recipient),
     testMode: Boolean(row.test_mode),
@@ -36,8 +42,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     errorMessage: row.error_message ? text(row.error_message) : undefined,
     createdAt: text(row.created_at),
     replies,
-    replyCount: replies.length,
-    unreviewedReplyCount: replies.filter((reply) => !reply.reviewedAt).length,
+    replyCount: Number(row.reply_count ?? replies.length),
+    unhandledReplyCount,
     acknowledgedAt
   };
 }
@@ -55,7 +61,7 @@ function mapReply(row: Row): CommunicationReply {
     htmlBody: text(row.html_body),
     snippet: text(row.snippet),
     receivedAt: text(row.received_at),
-    reviewedAt: text(row.reviewed_at),
+    handledAt: text(row.reviewed_at),
     createdAt: text(row.created_at)
   };
 }
@@ -108,6 +114,44 @@ export function listEmailTestAudits(db: DatabaseSync): EmailTestAuditItem[] {
     .map(mapEmailTestAudit);
 }
 
+export function listEmailTestAuditsPage(db: DatabaseSync, input: EmailTestAuditPageInput = {}): EmailTestAuditPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(original_recipient) like ?
+        or lower(effective_recipient) like ?
+        or lower(subject) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db.prepare(`select count(*) as value from email_test_audits ${whereSql}`).get(...params) as Row;
+  const items = db
+    .prepare(
+      `select * from email_test_audits
+       ${whereSql}
+       order by created_at desc, rowid desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => mapEmailTestAudit(row as Row));
+
+  return {
+    items,
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search
+  };
+}
+
 function getEmailTestAudit(db: DatabaseSync, id: string): EmailTestAuditItem {
   const row = db.prepare('select * from email_test_audits where id = ?').get(id) as Row | undefined;
   if (!row) throw new Error(`Email test audit not found: ${id}`);
@@ -131,9 +175,13 @@ export function listCommunications(db: DatabaseSync) {
     db,
     db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        order by cm.created_at desc, cm.rowid desc`
     )
     .all()
@@ -141,18 +189,144 @@ export function listCommunications(db: DatabaseSync) {
   );
 }
 
+export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHistoryPageInput = {}): CommunicationHistoryPage {
+  const limit = Math.min(Math.max(input.limit ?? 25, 1), 100);
+  const offset = Math.max(input.offset ?? 0, 0);
+  const search = input.search?.trim() ?? '';
+  const contactId = input.contactId?.trim() ?? '';
+  const sourceId = input.sourceId?.trim() ?? '';
+  const replyStatus = input.replyStatus === 'needs_reply' ? input.replyStatus : '';
+  const requestedStatus = input.status?.trim() ?? '';
+  const status = ['sent', 'failed'].includes(requestedStatus) ? requestedStatus : '';
+  const requestedType = input.type?.trim() ?? '';
+  const type = ['direct', 'scheduled'].includes(requestedType) ? requestedType : '';
+  const where: string[] = [];
+  const params: Array<string | number> = [];
+
+  if (contactId) {
+    where.push('cm.contact_id = ?');
+    params.push(contactId);
+  }
+  if (sourceId) {
+    where.push('cm.source_id = ?');
+    params.push(sourceId);
+  }
+  if (replyStatus === 'needs_reply') {
+    where.push("exists (select 1 from communication_replies cr where cr.communication_id = cm.id and cr.reviewed_at = '')");
+  }
+  if (status === 'sent') {
+    where.push("cm.status in ('accepted', 'sent')");
+  }
+  if (status === 'failed') {
+    where.push("cm.status = 'failed'");
+  }
+  if (type === 'direct') {
+    where.push("cm.source = 'direct'");
+  }
+  if (type === 'scheduled') {
+    where.push("cm.source = 'campaign'");
+  }
+  if (search) {
+    const pattern = `%${search.toLowerCase()}%`;
+    where.push(
+      `(lower(c.first_name || ' ' || c.last_name) like ?
+        or lower(c.email) like ?
+        or lower(cm.subject) like ?)`
+    );
+    params.push(pattern, pattern, pattern);
+  }
+
+  const whereSql = where.length ? `where ${where.join(' and ')}` : '';
+  const totalRow = db
+    .prepare(
+      `select count(*) as value
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       ${whereSql}`
+    )
+    .get(...params) as Row;
+  const rows = db
+    .prepare(
+      `select cm.id, cm.contact_id, cm.channel, cm.source, cm.source_id,
+         cm.original_recipient, cm.effective_recipient, cm.test_mode, cm.subject,
+         '' as body, cm.status, cm.sent_at, cm.message_id, cm.provider_message,
+         cm.error_message, cm.created_at,
+         coalesce(replies.reply_count, 0) as reply_count,
+         coalesce(replies.unreviewed_reply_count, 0) as unreviewed_reply_count,
+         replies.first_reply_at,
+         cs.id as class_session_id, ct.name as class_name,
+         c.first_name, c.last_name, c.email
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
+       left join (
+         select communication_id,
+           count(*) as reply_count,
+           sum(case when reviewed_at = '' then 1 else 0 end) as unreviewed_reply_count,
+           min(received_at) as first_reply_at
+         from communication_replies
+         group by communication_id
+       ) replies on replies.communication_id = cm.id
+       ${whereSql}
+       order by cm.created_at desc, cm.rowid desc
+       limit ? offset ?`
+    )
+    .all(...params, limit, offset)
+    .map((row) => row as Row);
+
+  return {
+    items: rows.map((row) => mapCommunication(row)),
+    total: Number(totalRow.value ?? 0),
+    limit,
+    offset,
+    search,
+    contactId,
+    sourceId,
+    replyStatus,
+    status,
+    type
+  };
+}
+
 export function listContactCommunications(db: DatabaseSync, contactId: string) {
   return withReplies(
     db,
     db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        where cm.contact_id = ?
        order by cm.created_at desc, cm.rowid desc`
     )
     .all(contactId)
+      .map((row) => row as Row)
+  );
+}
+
+export function listRecentContactCommunications(db: DatabaseSync, contactId: string, limit = 3) {
+  return withReplies(
+    db,
+    db
+    .prepare(
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
+       from communications cm
+       join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
+       where cm.contact_id = ?
+       order by cm.created_at desc, cm.rowid desc
+       limit ?`
+    )
+    .all(contactId, Math.max(limit, 0))
       .map((row) => row as Row)
   );
 }
@@ -162,6 +336,24 @@ export function listCommunicationMessageIds(db: DatabaseSync) {
     .prepare("select id, message_id from communications where message_id != '' and status in ('accepted', 'sent')")
     .all()
     .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
+}
+
+export function listRecentCommunicationMessageIds(db: DatabaseSync, limit = 1000) {
+  const boundedLimit = Math.min(Math.max(limit, 1), 5000);
+  return db
+    .prepare(
+      `select id, message_id
+       from communications
+       where message_id != '' and status in ('accepted', 'sent')
+       order by coalesce(sent_at, created_at) desc, rowid desc
+       limit ?`
+    )
+    .all(boundedLimit)
+    .map((row) => ({ id: text((row as Row).id), messageId: text((row as Row).message_id) }));
+}
+
+export function getCommunication(db: DatabaseSync, id: string) {
+  return listCommunicationById(db, id);
 }
 
 export function recordCommunicationReply(db: DatabaseSync, input: CommunicationReplyInput): RecordedCommunicationReply {
@@ -192,7 +384,7 @@ export function recordCommunicationReply(db: DatabaseSync, input: CommunicationR
   return { ...getCommunicationReply(db, id), created: true };
 }
 
-export function markCommunicationReplyReviewed(db: DatabaseSync, id: string) {
+export function markCommunicationReplyHandled(db: DatabaseSync, id: string) {
   db.prepare("update communication_replies set reviewed_at = ? where id = ? and reviewed_at = ''").run(now(), id);
   return getCommunicationReply(db, id);
 }
@@ -206,9 +398,13 @@ function getCommunicationReply(db: DatabaseSync, id: string) {
 function listCommunicationById(db: DatabaseSync, id: string) {
   const row = db
     .prepare(
-      `select cm.*, c.first_name, c.last_name, c.email
+      `select cm.*, c.first_name, c.last_name, c.email,
+         cs.id as class_session_id, ct.name as class_name
        from communications cm
        join contacts c on c.id = cm.contact_id
+       left join campaigns cp on cp.id = cm.source_id and cm.source = 'campaign'
+       left join class_sessions cs on cs.id = cp.class_session_id
+       left join course_types ct on ct.id = cs.course_type_id
        where cm.id = ?`
     )
     .get(id) as Row | undefined;

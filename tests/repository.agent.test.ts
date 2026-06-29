@@ -8,7 +8,7 @@ function createApproval(repo: ReturnType<typeof createTestRepository>, summary =
     summary,
     operationJson: '{}',
     reviewJson: '{}',
-    confirmationText: 'APPROVE SEND',
+    confirmationText: 'CONFIRM SEND',
     expiresAt: '2030-01-01T00:00:00.000Z'
   });
 }
@@ -32,7 +32,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Send email to one participant',
       operationJson: JSON.stringify({ contactIds: ['c1'] }),
       reviewJson: JSON.stringify({ recipients: 1 }),
-      confirmationText: 'APPROVE SEND appr_test',
+      confirmationText: 'CONFIRM SEND appr_test',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
 
@@ -42,7 +42,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Send email to one participant',
       operationJson: JSON.stringify({ contactIds: ['c1'] }),
       reviewJson: JSON.stringify({ recipients: 1 }),
-      confirmationText: 'APPROVE SEND appr_test',
+      confirmationText: 'CONFIRM SEND appr_test',
       status: 'pending',
       expiresAt: '2030-01-01T00:00:00.000Z',
       committedAt: '',
@@ -63,7 +63,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Schedule campaign',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE schedule',
+      confirmationText: 'CONFIRM schedule',
       expiresAt: '2029-01-01T00:00:00.000Z'
     });
     const pending = repo.createAgentApproval({
@@ -72,7 +72,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Send email',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE SEND',
+      confirmationText: 'CONFIRM SEND',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
     const committed = repo.createAgentApproval({
@@ -81,7 +81,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Import roster',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE import',
+      confirmationText: 'CONFIRM import',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
     expect(repo.markAgentApprovalCommitting(committed.id)).toBe(1);
@@ -101,7 +101,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Send email',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE SEND',
+      confirmationText: 'CONFIRM SEND',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
     const failed = repo.createAgentApproval({
@@ -110,7 +110,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Approve campaign',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE campaign',
+      confirmationText: 'CONFIRM campaign',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
     const rejected = repo.createAgentApproval({
@@ -119,7 +119,7 @@ describe('agent approval and audit repository', () => {
       summary: 'Import roster',
       operationJson: '{}',
       reviewJson: '{}',
-      confirmationText: 'APPROVE import',
+      confirmationText: 'CONFIRM import',
       expiresAt: '2030-01-01T00:00:00.000Z'
     });
 

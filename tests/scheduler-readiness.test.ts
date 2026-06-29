@@ -17,6 +17,10 @@ describe('scheduler readiness', () => {
 
     expect(status.ready).toBe(false);
     expect(status.blockedReasons).toContain('SMTP authentication is incomplete');
+    expect(status).toHaveProperty('dueReadyCount');
+    expect(status).toHaveProperty('nextReady');
+    expect(status).not.toHaveProperty('dueApprovedCount');
+    expect(status).not.toHaveProperty('nextApproved');
   });
 
   test('blocks Microsoft SMTP when refresh token is missing', () => {

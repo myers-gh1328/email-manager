@@ -7,9 +7,53 @@ export interface ContactInput {
   doNotEmail?: boolean;
 }
 
+export interface ContactPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ContactPage {
+  items: ContactRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
+export interface ContactRecord {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  notes: string;
+  doNotEmail: boolean;
+}
+
 export interface CourseTypeInput {
   name: string;
   description?: string;
+}
+
+export interface CourseTypeRecord {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface CourseTypePageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface CourseTypePage {
+  items: CourseTypeRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
 }
 
 export interface ClassSessionInput {
@@ -20,6 +64,38 @@ export interface ClassSessionInput {
   startTime?: string;
   location: string;
   notes?: string;
+}
+
+export interface ClassSessionRecord {
+  id: string;
+  courseTypeId: string;
+  locationId: string;
+  courseName: string;
+  startsOn: string;
+  endsOn: string;
+  startTime: string;
+  location: string;
+  locationAddress: string;
+  locationPhone: string;
+  locationWebsite: string;
+  locationParkingNotes: string;
+  locationMeetingInstructions: string;
+  locationNotes: string;
+  notes: string;
+}
+
+export interface ClassSessionPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ClassSessionPage {
+  items: ClassSessionRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
 }
 
 export interface DuplicateContactMatch {
@@ -46,10 +122,56 @@ export interface LocationInput {
   notes?: string;
 }
 
+export interface LocationRecord {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  website: string;
+  parkingNotes: string;
+  meetingInstructions: string;
+  notes: string;
+}
+
+export interface LocationPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface LocationPage {
+  items: LocationRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface TemplateInput {
   name: string;
   subject: string;
   body: string;
+}
+
+export interface TemplateRecord {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+}
+
+export interface TemplatePageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface TemplatePage {
+  items: TemplateRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
 }
 
 export interface CourseTypeDefaultTemplateInput {
@@ -81,6 +203,20 @@ export interface ChecklistItem {
   createdAt: string;
 }
 
+export interface ChecklistItemPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface ChecklistItemPage {
+  items: ChecklistItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+}
+
 export interface EnrollmentChecklistCompletionInput {
   classSessionId: string;
   contactId: string;
@@ -106,11 +242,51 @@ export interface CampaignInput {
   templateId: string;
   name: string;
   scheduledFor: string;
-  approved: boolean;
+  readyToSend?: boolean;
+  approved?: boolean;
   source?: 'manual' | 'course_default';
   defaultPurpose?: string;
   defaultLabel?: string;
   sendOffsetMinutes?: number;
+}
+
+export interface CampaignRecord {
+  id: string;
+  classSessionId: string;
+  templateId: string;
+  name: string;
+  scheduledFor: string;
+  approved: boolean;
+  source: string;
+  defaultPurpose: string;
+  defaultLabel: string;
+  sendOffsetMinutes: number;
+  templateName: string;
+  courseName: string;
+  startsOn: string;
+  endsOn: string;
+  startTime: string;
+  recipientCount: number;
+  pendingCount: number;
+  sentCount: number;
+  failedCount: number;
+}
+
+export interface CampaignPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  status?: string;
+  nowIso?: string;
+}
+
+export interface CampaignPage {
+  items: CampaignRecord[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+  status: string;
 }
 
 export interface CommunicationInput {
@@ -155,7 +331,7 @@ export interface CommunicationReply {
   htmlBody: string;
   snippet: string;
   receivedAt: string;
-  reviewedAt: string;
+  handledAt: string;
   createdAt: string;
 }
 
@@ -171,6 +347,8 @@ export interface CommunicationHistoryItem {
   channel: 'email';
   source: 'direct' | 'campaign';
   sourceId?: string;
+  classSessionId?: string;
+  className?: string;
   originalRecipient: string;
   effectiveRecipient: string;
   testMode: boolean;
@@ -184,8 +362,32 @@ export interface CommunicationHistoryItem {
   createdAt: string;
   replies: CommunicationReply[];
   replyCount: number;
-  unreviewedReplyCount: number;
+  unhandledReplyCount: number;
   acknowledgedAt?: string;
+}
+
+export interface CommunicationHistoryPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  contactId?: string;
+  sourceId?: string;
+  replyStatus?: string;
+  status?: string;
+  type?: string;
+}
+
+export interface CommunicationHistoryPage {
+  items: CommunicationHistoryItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
+  contactId: string;
+  sourceId: string;
+  replyStatus: string;
+  status: string;
+  type: string;
 }
 
 export interface EmailTestAuditInput {
@@ -204,6 +406,20 @@ export interface EmailTestAuditItem {
   body: string;
   providerMessage?: string;
   createdAt: string;
+}
+
+export interface EmailTestAuditPageInput {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
+export interface EmailTestAuditPage {
+  items: EmailTestAuditItem[];
+  total: number;
+  limit: number;
+  offset: number;
+  search: string;
 }
 
 export type ExternalEntityType = 'contact' | 'class_session' | 'enrollment';

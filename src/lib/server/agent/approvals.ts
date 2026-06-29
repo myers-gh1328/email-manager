@@ -12,7 +12,7 @@ export interface PrepareAgentApprovalInput {
 }
 
 function confirmationTextFor(risk: AgentRisk, approvalId: string) {
-  return `${risk === 'sends_email' ? 'APPROVE SEND' : 'APPROVE'} ${approvalId}`;
+  return `${risk === 'sends_email' ? 'CONFIRM SEND' : 'CONFIRM'} ${approvalId}`;
 }
 
 function safeFailureJson() {
@@ -75,9 +75,9 @@ export async function commitPreparedApproval<T>(
   commit: () => T | Promise<T>
 ): Promise<AgentEnvelope<T | typeof safeCommitSuccessFallback>> {
   const approval = repo.getAgentApproval(approvalId);
-  if (!approval) return agentError('not_found', 'Approval was not found.', { approvalId });
+  if (!approval) return agentError('not_found', 'Confirmation was not found.', { approvalId });
   if (approval.status !== 'pending') {
-    return agentError('conflict', 'Approval is no longer pending.', { approvalId, status: approval.status });
+    return agentError('conflict', 'Confirmation is no longer pending.', { approvalId, status: approval.status });
   }
   if (approval.confirmationText !== confirmationText) {
     return agentError('approval_required', 'Exact confirmation text is required.', { approvalId });
@@ -93,17 +93,17 @@ export async function commitPreparedApproval<T>(
       summary: approval.summary,
       status: 'expired'
     });
-    return agentError('approval_expired', 'Approval has expired.', { approvalId });
+    return agentError('approval_expired', 'Confirmation has expired.', { approvalId });
   }
 
   const claimed = repo.markAgentApprovalCommitting(approvalId);
-  if (claimed !== 1) return agentError('conflict', 'Approval is no longer pending.', { approvalId });
+  if (claimed !== 1) return agentError('conflict', 'Confirmation is no longer pending.', { approvalId });
 
   try {
     const result = await commit();
     const safeResult = safeCommitSuccessResult(result);
     const committed = repo.markAgentApprovalCommitted(approvalId, safeResult.resultJson);
-    if (committed !== 1) return agentError('conflict', 'Approval is no longer pending.', { approvalId });
+    if (committed !== 1) return agentError('conflict', 'Confirmation is no longer pending.', { approvalId });
     recordAgentAudit(repo, {
       toolName: approval.toolName,
       risk: approval.risk,

@@ -1,9 +1,19 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
+  import { messageStatusLabel, replySummary } from '$lib/shared/format';
 
   let { data, form } = $props();
   let importingImage = $state(false);
+  let contactsSearch = $derived(data.contactsPage.search ?? '');
+  let currentContactsPage = $derived(Math.floor(data.contactsPage.offset / data.contactsPage.limit) + 1);
+  let totalContactsPages = $derived(Math.max(Math.ceil(data.contactsPage.total / data.contactsPage.limit), 1));
+  let contactsListReturnTo = $derived(contactsPageHref(currentContactsPage));
+  let contactsClearHref = $derived(data.returnTo ? `/contacts?returnTo=${encodeURIComponent(data.returnTo)}` : '/contacts');
+  let contactDetailReturnTo = $derived(
+    data.contactDetail ? `/contacts?contactId=${data.contactDetail.contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}` : '/contacts'
+  );
+  let contactHistoryHref = $derived(data.contactDetail ? `/history?contactId=${data.contactDetail.contact.id}` : '/history');
 
   function showImageImportBusy() {
     importingImage = true;
@@ -31,30 +41,78 @@
   function confirmDelete() {
     return confirm('Delete this contact and its local history? This cannot be undone.');
   }
+
+  function contactsPageHref(page: number) {
+    const params = new URLSearchParams();
+    if (data.returnTo) params.set('returnTo', data.returnTo);
+    if (data.contactsPage.search) params.set('search', data.contactsPage.search);
+    if (page > 1) params.set('page', String(page));
+    const query = params.toString();
+    return query ? `/contacts?${query}` : '/contacts';
+  }
 </script>
 
 <svelte:head>
   <title>Contacts · Training Communications Studio</title>
 </svelte:head>
 
-<section class="band two-column">
+<section class="band">
   <div>
     <div class="section-heading compact">
       <div>
-        <p class="eyebrow">People</p>
-        <h2>Reusable student contacts</h2>
+        <p class="eyebrow">Contacts</p>
+        <h2>Students and email recipients</h2>
       </div>
     </div>
-    {#if form?.message}<p class={form.error ? 'error spaced' : 'success spaced'}>{form.message}</p>{/if}
+    {#if form?.message || data.actionMessage}
+      <p class={form?.error ? 'error spaced' : 'success spaced'}>{form?.message || data.actionMessage}</p>
+    {/if}
     <div class="action-row">
-      <a class:active={data.action === 'add'} class="button-link" href="/contacts?action=add">Add contact</a>
-      <a class:active={data.action === 'import'} class="button-link" href="/contacts?action=import">Import contacts</a>
-      <a class:active={data.action === 'image'} class="button-link" href="/contacts?action=image">Import screenshot</a>
+      <a class:active={data.action === 'add'} class="button-link" href={`/contacts?action=add&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Add contact</a>
+      <a class:active={data.action === 'import'} class="button-link" href={`/contacts?action=import&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import contacts</a>
+      <a class:active={data.action === 'image'} class="button-link" href={`/contacts?action=image&returnTo=${encodeURIComponent(contactsListReturnTo)}`}>Import screenshot</a>
     </div>
+    <form class="inline-filters" method="GET" action="/contacts">
+      {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+      <label>
+        Search contacts
+        <input name="search" value={contactsSearch} placeholder="Name, email, or phone" />
+      </label>
+      <button type="submit">Search</button>
+      {#if data.contactsPage.search}<a class="button-link" href={contactsClearHref}>Clear</a>{/if}
+    </form>
+    <p class="help-text">Showing {data.contacts.length} of {data.contactsPage.total} contacts.</p>
+    <div class="list">
+      {#each data.contacts as contact}
+        <article class="row-card tall">
+          <div>
+            <a href={`/contacts?contactId=${contact.id}&returnTo=${encodeURIComponent(contactsListReturnTo)}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
+            <p>{contact.email}{contact.phone ? ` · ${contact.phone}` : ''}</p>
+          </div>
+          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
+        </article>
+      {:else}
+        <p class="empty">No contacts yet.</p>
+      {/each}
+    </div>
+    {#if totalContactsPages > 1}
+      <nav class="pagination" aria-label="Contact pages">
+        <a class="button-link" aria-disabled={currentContactsPage === 1} href={contactsPageHref(Math.max(currentContactsPage - 1, 1))}>Previous</a>
+        <span>Page {currentContactsPage} of {totalContactsPages}</span>
+        <a
+          class="button-link"
+          aria-disabled={currentContactsPage >= totalContactsPages}
+          href={contactsPageHref(Math.min(currentContactsPage + 1, totalContactsPages))}
+        >
+          Next
+        </a>
+      </nav>
+    {/if}
     <div class="form-stack task-stack">
       {#if data.action === 'add'}
         <form method="POST" action="?/createContact" class="panel-form" use:enhance>
           <h3>Add contact</h3>
+          {#if data.returnTo}<input type="hidden" name="returnTo" value={data.returnTo} />{/if}
           <div class="split">
             <label>First name<input name="firstName" required /></label>
             <label>Last name<input name="lastName" required /></label>
@@ -65,7 +123,7 @@
           <label class="check"><input name="doNotEmail" type="checkbox" /> Do not email</label>
           <div class="button-row">
             <button type="submit">Add contact</button>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </div>
         </form>
       {/if}
@@ -73,11 +131,14 @@
       {#if data.action === 'import'}
         <form method="POST" action="?/importCsv" class="panel-form" enctype="multipart/form-data" use:enhance>
           <h3>Import contacts</h3>
+          {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+          {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+          {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
           <a class="button-link" href="/classes/roster-template.csv">Download CSV template</a>
           <label>CSV file<input name="csvFile" type="file" accept=".csv,text/csv" required /></label>
           <div class="button-row">
             <button type="submit">Upload CSV</button>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </div>
         </form>
       {/if}
@@ -86,44 +147,37 @@
           {#if importingImage}<BusyOverlay message="Importing screenshot..." />{/if}
           <form method="POST" action="?action=image&/importImage" class="panel-form" enctype="multipart/form-data" data-local-busy use:enhance={showImageImportBusy}>
             <h3>Import screenshot</h3>
+            {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+            {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+            {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
             <label>Image file<input name="imageFile" type="file" accept="image/*" required /></label>
             <div class="button-row">
               <button type="submit" disabled={importingImage}>Upload image</button>
-              <a class="button-link" href="/contacts">Cancel</a>
+              <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
             </div>
           </form>
       {:else if data.action === 'image'}
           <section class="panel-form">
             <h3>Import screenshot</h3>
             <p class="empty">Enable AI assistance and mark the model as vision-capable in settings to import students from an image.</p>
-            <a class="button-link" href="/contacts">Cancel</a>
+            <a class="button-link" href={data.returnTo || '/contacts'}>Cancel</a>
           </section>
       {/if}
-    </div>
-    <div class="list">
-      {#each data.contacts as contact}
-        <article class="row-card tall">
-          <div>
-            <a href={`/contacts?contactId=${contact.id}`}><strong>{contact.firstName} {contact.lastName}</strong></a>
-            <p>{contact.email}{contact.phone ? ` · ${contact.phone}` : ''}</p>
-          </div>
-          {#if contact.doNotEmail}<span class="pill warn">Do not email</span>{/if}
-        </article>
-      {:else}
-        <p class="empty">No contacts yet.</p>
-      {/each}
     </div>
 
     {#if data.contactDetail}
       <div class="preview-list">
         <div class="section-heading compact">
           <div>
-            <p class="eyebrow">Student record</p>
+            <p class="eyebrow">Contact record</p>
             <h3>{data.contactDetail.contact.firstName} {data.contactDetail.contact.lastName}</h3>
           </div>
         </div>
 
         <form method="POST" action="?/updateContact" class="panel-form" use:enhance>
+          {#if data.returnTo}<input name="returnTo" type="hidden" value={data.returnTo} />{/if}
+          {#if contactsSearch}<input name="search" type="hidden" value={contactsSearch} />{/if}
+          {#if currentContactsPage > 1}<input name="page" type="hidden" value={currentContactsPage} />{/if}
           <input name="contactId" type="hidden" value={data.contactDetail.contact.id} />
           <div class="split">
             <label>First name<input name="firstName" value={data.contactDetail.contact.firstName} required /></label>
@@ -145,7 +199,7 @@
             {#each data.contactDetail.classHistory as item}
               <article class="row-card">
                 <div>
-                  <strong>{item.courseName}</strong>
+                  <a href={`/classes/${item.classSessionId}?returnTo=${encodeURIComponent(contactDetailReturnTo)}`}><strong>{item.courseName}</strong></a>
                   <p>{formatClassSchedule(item)} · {item.location}</p>
                 </div>
               </article>
@@ -156,30 +210,38 @@
         </section>
 
         <section class="panel-form">
-          <h3>Email activity</h3>
+          <div class="section-heading compact">
+            <div>
+              <h3>Recent emails</h3>
+              <p class="help-text">Showing the 3 most recent messages for this person.</p>
+            </div>
+            <a class="button-link" href={`${contactHistoryHref}&returnTo=${encodeURIComponent(contactDetailReturnTo)}`}>View all in History</a>
+          </div>
           <div class="list">
             {#each data.contactDetail.communications as communication}
               <article class="row-card tall">
                 <div>
-                  <strong>{communication.subject}</strong>
-                  <p>{activityDate(communication)} · {communication.source}</p>
-                  <p>{communication.body}</p>
+                  <a href={`/history/${communication.id}?returnTo=${encodeURIComponent(contactHistoryHref)}`}><strong>{communication.subject}</strong></a>
+                  <p>{activityDate(communication)} · {communication.source === 'campaign' ? 'Scheduled email' : 'Direct email'}</p>
+                  {#if communication.replyCount}
+                    <p>
+                      {replySummary({ replyCount: communication.replyCount, unhandledReplyCount: communication.unhandledReplyCount })}
+                    </p>
+                  {/if}
                   {#if communication.status === 'failed' && communication.errorMessage}
                     <p class="error">Error: {communication.errorMessage}</p>
                   {/if}
                 </div>
                 <span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">
-                  {communication.status === 'accepted' ? 'Accepted by mail server' : communication.status}
+                  {messageStatusLabel(communication.status)}
                 </span>
               </article>
             {:else}
-              <p class="empty">No email activity recorded.</p>
+              <p class="empty">No recent emails recorded.</p>
             {/each}
           </div>
         </section>
       </div>
-    {:else}
-      <p class="empty spaced">Select a student to view class history and email activity.</p>
     {/if}
   </div>
 </section>

@@ -20,6 +20,22 @@ describe('agent contact tools', () => {
     expect(result.labels.studentLabel).toBe('Student');
   });
 
+  it('searches contacts through the paged repository query', () => {
+    const repo = createTestRepository();
+    repo.createContact({ firstName: 'Jane', lastName: 'Diver', email: 'jane@example.test' });
+    const listAll = repo.listContacts.bind(repo);
+    repo.listContacts = () => {
+      throw new Error('agent contact search should not list every contact');
+    };
+
+    const result = searchContactsTool(repo, { query: 'jane', limit: 5 }, agentSettings({ viewData: true }));
+
+    repo.listContacts = listAll;
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.contacts).toMatchObject([{ email: 'jane@example.test' }]);
+  });
+
   it('denies contact reads when agent access or viewData are disabled', () => {
     const repo = createTestRepository();
 

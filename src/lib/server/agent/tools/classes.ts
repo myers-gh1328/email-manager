@@ -59,15 +59,9 @@ function requireEditAccess(settings: AppSettings = getSettings()) {
 export function listClassSessionsTool(repo: AppRepository, input: { query?: string; limit?: number }, settingsOverride?: AppSettings) {
   const { settings, denied } = requireReadAccess(settingsOverride);
   if (denied) return denied;
-  const query = (input.query ?? '').trim().toLowerCase();
+  const query = (input.query ?? '').trim();
   const limit = clampLimit(input.limit);
-  const classSessions = repo
-    .listClassSessions()
-    .filter((session) => {
-      if (!query) return true;
-      return [session.courseName, session.startsOn, session.startTime, session.location, session.notes].join(' ').toLowerCase().includes(query);
-    })
-    .slice(0, limit);
+  const classSessions = repo.listClassSessionsPage({ search: query, limit }).items;
   return agentOk(
     { classSessions },
     { labels: settings.vocabulary, nextActions: ['create_class_session', 'update_class_session', 'enroll_contact'] }

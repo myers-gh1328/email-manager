@@ -22,3 +22,52 @@ export function timingLabel(minutes: number) {
   const unit = absolute % (24 * 60) === 0 ? 'day' : 'hour';
   return `${value} ${unit}${value === 1 ? '' : 's'} ${minutes < 0 ? 'before' : 'after'}`;
 }
+
+export function deliveryStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pending: 'Ready to send',
+    sending: 'Sending',
+    sent: 'Sent',
+    failed: 'Failed',
+    retry_scheduled: 'Will retry',
+    needs_attention: 'Needs attention',
+    skipped: 'Skipped',
+    'not planned': 'Not prepared'
+  };
+  return labels[status] ?? status;
+}
+
+export function messageStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    accepted: 'Accepted by mail server',
+    sent: 'Sent',
+    failed: 'Failed'
+  };
+  return labels[status] ?? status;
+}
+
+export function scheduledEmailStatusLabel(readyToSend: boolean) {
+  return readyToSend ? 'Ready to send' : 'Needs preview';
+}
+
+export function scheduledEmailSendSummary(counts: {
+  recipientCount: number;
+  pendingCount?: number;
+  sentCount?: number;
+  failedCount?: number;
+}) {
+  const parts = [`${counts.recipientCount} recipient${counts.recipientCount === 1 ? '' : 's'}`];
+  if (counts.pendingCount) parts.push(`${counts.pendingCount} prepared`);
+  if (counts.sentCount) parts.push(`${counts.sentCount} sent`);
+  if (counts.failedCount) parts.push(`${counts.failedCount} needs attention`);
+  return parts.join(' · ');
+}
+
+export function replySummary(counts: { replyCount: number; unhandledReplyCount?: number }) {
+  if (!counts.replyCount) return 'No replies';
+  const replyText = `${counts.replyCount} repl${counts.replyCount === 1 ? 'y' : 'ies'}`;
+  const unhandled = counts.unhandledReplyCount ?? 0;
+  if (!unhandled) return `${replyText} handled`;
+  if (counts.replyCount === unhandled) return `${replyText} need${unhandled === 1 ? 's' : ''} response`;
+  return `${replyText} · ${unhandled} need${unhandled === 1 ? 's' : ''} response`;
+}

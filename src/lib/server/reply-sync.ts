@@ -50,12 +50,12 @@ export async function syncRepliesNow() {
 }
 
 export async function syncRepliesWithMailbox(
-  repository: Pick<AppRepository, 'listCommunicationMessageIds' | 'recordCommunicationReply'>,
+  repository: Pick<AppRepository, 'listRecentCommunicationMessageIds' | 'recordCommunicationReply'>,
   mailbox: ReplySyncMailbox,
   limit = 200
 ): Promise<ReplySyncResult> {
   const outbound = new Map(
-    repository.listCommunicationMessageIds().map((item) => [normalizeMessageId(item.messageId), item.id])
+    repository.listRecentCommunicationMessageIds(limit * 5).map((item) => [normalizeMessageId(item.messageId), item.id])
   );
   if (!outbound.size) return { ...emptyResult('synced'), skipped: 0 };
 

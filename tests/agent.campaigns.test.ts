@@ -34,6 +34,8 @@ describe('agent campaign send-due tools', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe('agent_permission_denied');
+    expect(result.error.message).toBe('Agents are not allowed to prepare emails for confirmation.');
+    expect(result.error.message).not.toContain('approval');
     expect(result.error.details).toEqual({ permission: 'prepareEmail' });
   });
 
@@ -46,6 +48,12 @@ describe('agent campaign send-due tools', () => {
     const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
+    expect(prepared.data.summary).toBe('Send due scheduled emails (1).');
+    expect(prepared.data.summary).not.toContain('approved campaigns');
+    expect(prepared.data.review).toHaveProperty('dueScheduledEmails');
+    expect(prepared.data.review).not.toHaveProperty('dueCampaigns');
+    expect(JSON.stringify(prepared.data.review)).not.toContain('approved');
+    expect(JSON.stringify(prepared.data.review)).toContain('scheduledEmailId');
     const result = await commitSendDueCampaignsTool(
       repo,
       { approvalId: prepared.data.approvalId, confirmationText: prepared.data.confirmationText },
@@ -112,7 +120,46 @@ describe('agent campaign send-due tools', () => {
     expect(wrong.ok).toBe(false);
     if (!wrong.ok) expect(wrong.error.code).toBe('approval_required');
     expect(denied.ok).toBe(false);
-    if (!denied.ok) expect(denied.error.code).toBe('agent_permission_denied');
+    if (!denied.ok) {
+      expect(denied.error.code).toBe('agent_permission_denied');
+      expect(denied.error.message).toBe('Agents are not allowed to send emails after confirmation.');
+      expect(denied.error.message).not.toContain('approved emails');
+    }
+  });
+
+  it('uses confirmation wording when prepared send-due confirmation is missing or mismatched', async () => {
+    const repo = createTestRepository();
+    const wrongTool = repo.createAgentApproval({
+      toolName: 'commit_direct_email',
+      risk: 'sends_email',
+      summary: 'Prepared direct email',
+      operationJson: '{}',
+      reviewJson: '{}',
+      confirmationText: 'CONFIRM SEND appr_test',
+      expiresAt: '2030-01-01T00:00:00.000Z'
+    });
+
+    const missing = await commitSendDueCampaignsTool(
+      repo,
+      { approvalId: 'appr_missing', confirmationText: 'CONFIRM SEND appr_missing' },
+      agentSettings({ sendEmail: true })
+    );
+    const mismatched = await commitSendDueCampaignsTool(
+      repo,
+      { approvalId: wrongTool.id, confirmationText: wrongTool.confirmationText },
+      agentSettings({ sendEmail: true })
+    );
+
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) {
+      expect(missing.error.message).toBe('Confirmation was not found.');
+      expect(missing.error.message).not.toContain('Approval');
+    }
+    expect(mismatched.ok).toBe(false);
+    if (!mismatched.ok) {
+      expect(mismatched.error.message).toBe('Confirmation does not match this tool.');
+      expect(mismatched.error.message).not.toContain('Approval');
+    }
   });
 
   it('fails closed when due campaign IDs change after prepare', async () => {
@@ -130,7 +177,12 @@ describe('agent campaign send-due tools', () => {
     );
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('approval_changed');
+    if (!result.ok) {
+      expect(result.error.code).toBe('approval_changed');
+      expect(result.error.message).toBe('Due scheduled emails changed after confirmation was prepared.');
+      expect(result.error.message).not.toContain('approval');
+      expect(result.error.message).not.toContain('approved campaigns');
+    }
     expect(sendOutboundEmail).not.toHaveBeenCalled();
   });
 
@@ -145,7 +197,11 @@ describe('agent campaign send-due tools', () => {
     const result = await commitSendDueCampaignsTool(repo, { approvalId: prepared.data.approvalId, confirmationText: prepared.data.confirmationText }, settings);
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe('test_mode_blocks_automatic_send');
+    if (!result.ok) {
+      expect(result.error.code).toBe('test_mode_blocks_automatic_send');
+      expect(result.error.message).toBe('Email test mode blocks automatic and send-due scheduled email sends.');
+      expect(result.error.message).not.toContain('campaign');
+    }
     expect(sendOutboundEmail).not.toHaveBeenCalled();
   });
 });

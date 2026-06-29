@@ -200,6 +200,32 @@ describe('external event ingestion', () => {
     expect(repo.listCampaigns()).toEqual([]);
   });
 
+  test('matches class course type through a targeted lookup', () => {
+    const repo = createTestRepository();
+    const existing = repo.createCourseType({ name: 'Open Water Diver' });
+    const listAll = repo.listCourseTypes.bind(repo);
+    repo.listCourseTypes = () => {
+      throw new Error('class event import should not list every course type');
+    };
+
+    const result = applyExternalEvent(repo, {
+      type: 'class.upsert',
+      id: 'evt_targeted_course_lookup',
+      occurredAt,
+      source: 'external',
+      data: {
+        externalId: 'ow-2026-07-10',
+        courseName: 'Open Water Diver',
+        startsOn: '2026-07-10',
+        location: 'Dive Shop'
+      }
+    });
+
+    repo.listCourseTypes = listAll;
+    expect(result).toMatchObject({ status: 'applied' });
+    expect(repo.getClassSession(result.localId!)).toMatchObject({ courseTypeId: existing.id });
+  });
+
   test('links class users only through same-source external mappings', () => {
     const repo = createTestRepository();
     applyExternalEvent(repo, {

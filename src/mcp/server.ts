@@ -45,7 +45,7 @@ export function createMcpServer() {
     'get_scheduler_readiness',
     {
       title: 'Get Scheduler Readiness',
-      description: 'Return scheduled sending readiness, blockers, due approved count, and next approved send.'
+      description: 'Return scheduled sending readiness, blockers, scheduled emails ready to send count, and next scheduled email ready to send.'
     },
     () => asToolContent(getSchedulerReadiness())
   );
@@ -212,7 +212,7 @@ export function createMcpServer() {
     'prepare_direct_email',
     {
       title: 'Prepare Direct Email',
-      description: 'Preview and create an approval packet for a direct email send.',
+      description: 'Preview and create a confirmation packet for a direct email send.',
       inputSchema: directEmailInputSchema
     },
     (input) => asToolContent(prepareDirectEmailTool(repo, input))
@@ -222,7 +222,7 @@ export function createMcpServer() {
     'commit_direct_email',
     {
       title: 'Commit Direct Email',
-      description: 'Send a prepared direct email after exact human approval confirmation.',
+      description: 'Send a prepared direct email after exact confirmation.',
       inputSchema: approvalCommitInputSchema
     },
     async (input) => asToolContent(await commitDirectEmailTool(repo, input))
@@ -231,8 +231,8 @@ export function createMcpServer() {
   server.registerTool(
     'prepare_send_due_campaigns',
     {
-      title: 'Prepare Send Due Campaigns',
-      description: 'Create an approval packet for currently due approved campaign sends.',
+      title: 'Prepare Due Scheduled Emails',
+      description: 'Create a confirmation packet for currently due scheduled emails.',
       inputSchema: {}
     },
     () => asToolContent(prepareSendDueCampaignsTool(repo))
@@ -241,8 +241,8 @@ export function createMcpServer() {
   server.registerTool(
     'commit_send_due_campaigns',
     {
-      title: 'Commit Send Due Campaigns',
-      description: 'Run the shared send-due campaign path after exact human approval confirmation.',
+      title: 'Send Due Scheduled Emails',
+      description: 'Run the shared send-due scheduled-email path after exact confirmation.',
       inputSchema: approvalCommitInputSchema
     },
     async (input) => asToolContent(await commitSendDueCampaignsTool(repo, input))

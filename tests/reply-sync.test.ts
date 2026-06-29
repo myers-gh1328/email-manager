@@ -13,7 +13,7 @@ describe('reply sync', () => {
   test('does not fetch the mailbox when there are no outbound message ids', async () => {
     const mailbox = fakeMailbox([]);
     const repo = {
-      listCommunicationMessageIds: () => [],
+      listRecentCommunicationMessageIds: () => [],
       recordCommunicationReply: () => {
         throw new Error('should not record replies');
       }
@@ -26,6 +26,43 @@ describe('reply sync', () => {
       matched: 0,
       skipped: 0
     });
+  });
+
+  test('matches replies through a bounded recent message-id lookup', async () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const communication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'direct',
+      subject: 'Please confirm',
+      body: 'Can you confirm?',
+      status: 'accepted',
+      messageId: '<recent-message@example.com>'
+    });
+    const listAll = repo.listCommunicationMessageIds.bind(repo);
+    repo.listCommunicationMessageIds = () => {
+      throw new Error('reply sync should not load every sent message id');
+    };
+
+    const result = await syncRepliesWithMailbox(
+      repo,
+      fakeMailbox([
+        {
+          providerKey: 'inbox:recent',
+          providerMessageId: '<reply-recent@example.com>',
+          inReplyTo: '<recent-message@example.com>',
+          fromEmail: 'maya@example.com',
+          subject: 'Re: Please confirm',
+          textBody: 'Confirmed.',
+          receivedAt: '2026-06-22T13:00:00.000Z'
+        }
+      ])
+    );
+
+    repo.listCommunicationMessageIds = listAll;
+    expect(result).toMatchObject({ checked: 1, imported: 1, matched: 1 });
+    expect(repo.listContactCommunications(contact.id)[0]).toMatchObject({ id: communication.id, replyCount: 1 });
   });
 
   test('imports only inbox messages that reply to app-sent email', async () => {

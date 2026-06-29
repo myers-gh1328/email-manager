@@ -3,6 +3,14 @@ import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
 import { errorText, required, text } from '$lib/server/form-utils';
 import {
+  loadContactOptions,
+  loadCourseTypeOptions,
+  loadLocationOptions,
+  loadTemplateOptions,
+  withReadyToSend,
+  withVisibleScheduledEmailsPage
+} from '$lib/server/page-data';
+import {
   buildCampaignEmailPreviews,
   campaignEmailPreviewToken,
   hasMissingVariables,
@@ -10,19 +18,37 @@ import {
 } from '$lib/server/campaign-email';
 import { extractRosterFromImage } from '$lib/server/llm';
 import { importRosterRows, parseRosterCsv } from '$lib/server/roster-import';
+import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
 
-export const load = ({ params }) => ({
-  ...repo.getClassSessionDetail(params.id),
-  contacts: repo.listContacts(),
-  courseTypes: repo.listCourseTypes(),
-  locations: repo.listLocations(),
-  templates: repo.listTemplates(),
-  defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
-  scheduledCampaigns: repo.listCampaignsForClassSession(params.id),
-  checklistState: repo.listEnrollmentChecklistState(params.id),
-  settings: getSettings()
-});
+export const load = ({ params, url }) => {
+  const page = Math.max(Number(url.searchParams.get('page') ?? '1'), 1);
+  const emailPage = Math.max(Number(url.searchParams.get('emailPage') ?? '1'), 1);
+  const detail = repo.getClassSessionDetail(params.id, {
+    limit: 25,
+    offset: (page - 1) * 25,
+    search: url.searchParams.get('search') ?? ''
+  });
+  const scheduledCampaignsPage = repo.listCampaignsForClassSession(params.id, {
+    limit: 10,
+    offset: (emailPage - 1) * 10,
+    search: url.searchParams.get('emailSearch') ?? ''
+  });
+  return {
+    ...detail,
+    contactOptions: loadContactOptions(),
+    courseTypes: loadCourseTypeOptions([detail.session.courseTypeId]),
+    locations: loadLocationOptions([detail.session.locationId]),
+    templateOptions: loadTemplateOptions(),
+    defaultTemplates: repo.listDefaultTemplatesForClassSession(params.id),
+    scheduledCampaigns: scheduledCampaignsPage.items.map(withReadyToSend),
+    scheduledCampaignsPage: withVisibleScheduledEmailsPage(scheduledCampaignsPage),
+    checklistState: repo.listEnrollmentChecklistState(params.id, detail.roster.map((contact) => contact.id)),
+    returnTo: localReturnTo(url.searchParams.get('returnTo') ?? ''),
+    actionMessage: url.searchParams.get('message') ?? '',
+    settings: getSettings()
+  };
+};
 
 export const actions = {
 	  updateClassSession: async ({ params, request }) => {
@@ -38,19 +64,17 @@ export const actions = {
 	      notes: text(form, 'notes')
 	    });
 	    const createdDefaults = syncDefaultCampaignsForClass(repo, params.id);
-	    return {
-	      message: classUpdatedMessage(createdDefaults.length)
-	    };
+	    throw redirect(303, classDetailActionReturn(params.id, form, classUpdatedMessage(createdDefaults.length)));
 	  },
   enrollContact: async ({ params, request }) => {
     const form = await request.formData();
     repo.enrollContact(params.id, required(form, 'contactId'));
-    return { message: 'Student enrolled.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Student enrolled.'));
   },
   unenrollContact: async ({ params, request }) => {
     const form = await request.formData();
     repo.unenrollContact(params.id, required(form, 'contactId'));
-    return { message: 'Student removed from roster.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Student removed from roster.'));
   },
   toggleChecklistItem: async ({ params, request }) => {
     const form = await request.formData();
@@ -61,32 +85,27 @@ export const actions = {
       itemId: required(form, 'itemId'),
       completed: text(form, 'completed') === 'true'
     });
-    return { message: 'Checklist updated.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Prep item updated.'));
   },
   importCsv: async ({ params, request }) => {
     const form = await request.formData();
     const file = form.get('csvFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose a CSV file to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose a CSV file to import.'));
     const result = importRosterRows(repo, params.id, parseRosterCsv(await file.text()));
-    return {
-      message: `Imported roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
-    };
+    throw redirect(303, classDetailActionReturn(params.id, form, `Imported roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
   },
   importImage: async ({ params, request }) => {
+    const form = await request.formData();
     const settings = getSettings();
     if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-      return { message: 'Connect AI assistance and choose a vision-capable model before importing roster images.' };
+      throw redirect(303, classDetailActionReturn(params.id, form, 'Connect AI assistance and choose a vision-capable model before importing roster images.'));
     }
-    const form = await request.formData();
     const file = form.get('imageFile');
-    if (!(file instanceof File) || file.size === 0) return { message: 'Choose an image to import.' };
+    if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose an image to import.'));
     const dataUrl = `data:${file.type || 'image/png'};base64,${Buffer.from(await file.arrayBuffer()).toString('base64')}`;
     try {
       const result = importRosterRows(repo, params.id, await extractRosterFromImage(dataUrl));
-      return {
-        panel: 'image',
-        message: `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`
-      };
+      throw redirect(303, classDetailActionReturn(params.id, form, `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
     } catch (error) {
       return fail(400, { error: true, panel: 'image', message: errorText(error) });
     }
@@ -104,18 +123,23 @@ export const actions = {
       defaultLabel: choice.defaultLabel,
       sendOffsetMinutes: choice.sendOffsetMinutes,
       suggestedScheduledFor: suggestedScheduledFor(params.id, choice.sendOffsetMinutes),
-      previewToken: classEmailPreviewToken(params.id, choice.templateId)
+      previewToken: classEmailPreviewToken(params.id, choice.templateId),
+      returnTo: text(form, 'returnTo'),
+      search: text(form, 'search'),
+      page: text(form, 'page'),
+      emailSearch: text(form, 'emailSearch'),
+      emailPage: text(form, 'emailPage')
     };
   },
   scheduleClassEmail: async ({ params, request }) => {
     const form = await request.formData();
     const templateId = required(form, 'templateId');
     if (text(form, 'previewToken') !== classEmailPreviewToken(params.id, templateId)) {
-      return fail(400, { panel: 'email', message: 'Preview this class email before scheduling it.' });
+      return fail(400, { panel: 'email', message: 'Preview this scheduled email before creating it.' });
     }
     const previews = buildClassEmailPreviews(params.id, templateId);
     if (hasMissingVariables(previews)) {
-      return fail(400, { panel: 'email', previews, templateId, previewToken: classEmailPreviewToken(params.id, templateId), message: 'Resolve missing template variables before scheduling.' });
+      return fail(400, { panel: 'email', previews, templateId, previewToken: classEmailPreviewToken(params.id, templateId), message: 'Resolve missing template variables before creating this scheduled email.' });
     }
     const template = repo.getTemplate(templateId);
     const defaultPurpose = text(form, 'defaultPurpose');
@@ -125,14 +149,14 @@ export const actions = {
       templateId,
       name: classEmailCampaignName(defaultPurpose, template.name),
       scheduledFor: required(form, 'scheduledFor'),
-      approved: true,
+      readyToSend: true,
       source: defaultPurpose ? 'course_default' : 'manual',
       defaultPurpose,
       defaultLabel: text(form, 'defaultLabel'),
       sendOffsetMinutes: sendOffsetMinutes ? Number(sendOffsetMinutes) : 0
     });
     repo.ensurePendingDeliveries(campaign.id);
-    return { panel: 'email', message: 'Class email scheduled.' };
+    throw redirect(303, classDetailActionReturn(params.id, form, 'Scheduled email created.'));
   },
   back: async () => {
     throw redirect(303, '/classes');
@@ -151,7 +175,23 @@ function suggestedScheduledFor(classSessionId: string, sendOffsetMinutes: number
 function classUpdatedMessage(defaultCampaignCount: number) {
   if (defaultCampaignCount === 0) return 'Class updated.';
   const plural = defaultCampaignCount === 1 ? '' : 's';
-  return `Class updated. Scheduled ${defaultCampaignCount} default email${plural}.`;
+  return `Class updated. Created ${defaultCampaignCount} scheduled email${plural}.`;
+}
+
+function classDetailActionReturn(classSessionId: string, form: FormData, message: string) {
+  const params = new URLSearchParams();
+  const returnTo = localReturnTo(text(form, 'returnTo'));
+  const search = text(form, 'search');
+  const page = Math.max(Number(text(form, 'page') || '1'), 1);
+  const emailSearch = text(form, 'emailSearch');
+  const emailPage = Math.max(Number(text(form, 'emailPage') || '1'), 1);
+  if (returnTo) params.set('returnTo', returnTo);
+  if (search) params.set('search', search);
+  if (page > 1) params.set('page', String(page));
+  if (emailSearch) params.set('emailSearch', emailSearch);
+  if (emailPage > 1) params.set('emailPage', String(emailPage));
+  params.set('message', message);
+  return `/classes/${classSessionId}?${params.toString()}`;
 }
 
 function classEmailPreviewToken(classSessionId: string, templateId: string) {
@@ -179,7 +219,7 @@ function emailChoice(classSessionId: string, value: string) {
 }
 
 function classEmailCampaignName(defaultPurpose: string, templateName: string) {
-  if (!defaultPurpose) return `${templateName} class email`;
+  if (!defaultPurpose) return `${templateName} scheduled email`;
   return `${purposeLabel(defaultPurpose)} · ${templateName}`;
 }
 

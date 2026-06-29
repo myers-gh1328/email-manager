@@ -20,6 +20,10 @@ describe('app accessibility contracts', () => {
 
     expect(source).toContain('Search settings');
     expect(source).toContain('<details');
+    expect(source).toContain('function sectionOpen');
+    expect(source).toContain("Boolean(settingsSearch.trim())");
+    expect(source).not.toContain('<details class="settings-section settings-panel" open>');
+    expect(source).not.toContain('<details class="settings-section settings-panel wide" open>');
     expect(source).toContain('<summary>Agent Access</summary>');
     expect(source).toContain('<summary>Agent Permissions</summary>');
     expect(source).toContain('<summary>Vocabulary</summary>');

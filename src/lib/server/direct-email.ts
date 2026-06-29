@@ -19,6 +19,7 @@ interface DirectEmailRepository {
     contactId: string;
     channel: 'email';
     source: 'direct';
+    sourceId?: string;
     originalRecipient?: string;
     effectiveRecipient?: string;
     testMode?: boolean;
@@ -119,7 +120,7 @@ export async function sendDirectEmail(
   let sent = 0;
   let failed = 0;
   for (const preview of previews) {
-    const accepted = await sendDirectEmailPreview(repo, sendEmail, input, operation?.id ?? '', preview);
+    const accepted = await sendDirectEmailPreview(repo, sendEmail, input, operation?.id ?? '', operationId, preview);
     if (accepted) sent += 1;
     else failed += 1;
   }
@@ -137,7 +138,7 @@ function assertDirectEmailReady(repo: DirectEmailRepository, input: DirectEmailI
     throw new Error('This send is already in progress.');
   }
   if (existingOperation?.status === 'needs_attention') {
-    throw new Error(existingOperation.failureSummary || 'This send needs review before sending again.');
+    throw new Error(existingOperation.failureSummary || 'This send needs attention before sending again.');
   }
 }
 
@@ -171,6 +172,7 @@ async function sendDirectEmailPreview(
   sendEmail: SendEmail,
   input: DirectEmailInput,
   operationId: string,
+  sourceId: string,
   preview: DirectEmailPreview
 ) {
   let result: Awaited<ReturnType<SendEmail>>;
@@ -181,14 +183,14 @@ async function sendDirectEmailPreview(
     }
     result = await sendEmail(preview.contact.email, preview.subject, preview.body);
   } catch (error) {
-    recordFailedDirectEmail(repo, operationId, preview, error);
+    recordFailedDirectEmail(repo, operationId, sourceId, preview, error);
     return false;
   }
-  recordAcceptedDirectEmail(repo, operationId, preview, result);
+  recordAcceptedDirectEmail(repo, operationId, sourceId, preview, result);
   return true;
 }
 
-function recordFailedDirectEmail(repo: DirectEmailRepository, operationId: string, preview: DirectEmailPreview, error: unknown) {
+function recordFailedDirectEmail(repo: DirectEmailRepository, operationId: string, sourceId: string, preview: DirectEmailPreview, error: unknown) {
   const classified = classifyOutboundFailure(error);
   repo.markSendOperationRecipient?.(operationId, preview.contact.id, {
     status: 'failed',
@@ -199,6 +201,7 @@ function recordFailedDirectEmail(repo: DirectEmailRepository, operationId: strin
     contactId: preview.contact.id,
     channel: 'email',
     source: 'direct',
+    sourceId,
     originalRecipient: preview.contact.email,
     effectiveRecipient: preview.contact.email,
     testMode: false,
@@ -212,6 +215,7 @@ function recordFailedDirectEmail(repo: DirectEmailRepository, operationId: strin
 function recordAcceptedDirectEmail(
   repo: DirectEmailRepository,
   operationId: string,
+  sourceId: string,
   preview: DirectEmailPreview,
   result: Awaited<ReturnType<SendEmail>>
 ) {
@@ -221,6 +225,7 @@ function recordAcceptedDirectEmail(
     contactId: preview.contact.id,
     channel: 'email',
     source: 'direct',
+    sourceId,
     originalRecipient: preview.contact.email,
     effectiveRecipient: 'effectiveRecipient' in normalized ? normalized.effectiveRecipient : preview.contact.email,
     testMode: normalized.testMode,

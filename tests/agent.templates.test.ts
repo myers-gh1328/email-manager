@@ -20,6 +20,22 @@ describe('agent template tools', () => {
     expect(result.labels.studentLabel).toBe('Student');
   });
 
+  it('lists templates through the paged repository query', () => {
+    const repo = createTestRepository();
+    repo.createTemplate({ name: 'Welcome', subject: 'Welcome', body: 'Hello {{firstName}}' });
+    const listAll = repo.listTemplates.bind(repo);
+    repo.listTemplates = () => {
+      throw new Error('agent template search should not list every template');
+    };
+
+    const result = listTemplatesTool(repo, { query: 'welcome', limit: 5 }, agentSettings({ viewData: true }));
+
+    repo.listTemplates = listAll;
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.templates).toMatchObject([{ name: 'Welcome' }]);
+  });
+
   it('denies template reads when agent access or viewData are disabled', () => {
     const repo = createTestRepository();
 

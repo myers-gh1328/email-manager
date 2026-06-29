@@ -1,60 +1,7 @@
-import { fail, redirect } from '@sveltejs/kit';
-import { sendDueCampaigns } from '$lib/server/background';
-import { repo } from '$lib/server/app';
-import { errorText, formText, required } from '$lib/server/form-utils';
-import { buildCampaignEmailPreviews, hasMissingVariables, normalizeDateTimeLocal } from '$lib/server/campaign-email';
-import { OutboundGateError } from '$lib/server/outbound-errors';
-import { getSettings } from '$lib/server/settings';
+import { redirect } from '@sveltejs/kit';
 
-export const load = ({ params }) => {
-  const detail = repo.getCampaignDetail(params.id);
-  return { ...detail, scheduledForInput: normalizeDateTimeLocal(detail.campaign.scheduledFor) };
-};
+import type { PageServerLoad } from './$types';
 
-export const actions = {
-  updateCampaign: async ({ params, request }) => {
-    const form = await request.formData();
-    const current = repo.getCampaign(params.id);
-    const approved = form.get('approved') === 'on';
-    if (approved && !current.approved) {
-      return fail(400, { error: true, message: 'Preview this campaign before approving it.' });
-    }
-    if (approved) {
-      const previews = buildCampaignEmailPreviews(repo, current.classSessionId, current.templateId, getSettings().instructorName);
-      if (hasMissingVariables(previews)) {
-        return fail(400, { error: true, message: 'Resolve missing template variables before approving this campaign.' });
-      }
-    }
-    repo.updateCampaign(params.id, {
-      name: required(form, 'name'),
-      scheduledFor: required(form, 'scheduledFor'),
-      approved
-    });
-    if (approved) repo.ensurePendingDeliveries(params.id);
-    return { message: 'Campaign updated.' };
-  },
-  deleteCampaign: async ({ params }) => {
-    try {
-      repo.deleteCampaign(params.id);
-    } catch (error) {
-      return fail(400, { message: errorText(error) });
-    }
-    throw redirect(303, '/campaigns');
-  },
-  sendDueNow: async () => {
-    try {
-      const sent = await sendDueCampaigns({ surface: 'manual_send_due' });
-      return { message: `Mail server accepted ${sent} due email${sent === 1 ? '' : 's'}.` };
-    } catch (error) {
-      if (error instanceof OutboundGateError) return fail(error.retryAfterSeconds ? 429 : 400, { message: error.message });
-      throw error;
-    }
-  },
-  retrySelected: async ({ params, request }) => {
-    const form = await request.formData();
-    const recipientIds = form.getAll('recipientIds').map(formText).filter(Boolean);
-    if (!recipientIds.length) return fail(400, { message: 'Select at least one recipient to retry.' });
-    const updated = repo.retryCampaignDeliveries(params.id, recipientIds);
-    return { message: `${updated} recipient${updated === 1 ? '' : 's'} queued for retry. Sent recipients are always excluded.` };
-  }
+export const load: PageServerLoad = ({ params, url }) => {
+  throw redirect(308, `/scheduled-emails/${params.id}${url.search}`);
 };

@@ -23,12 +23,12 @@ export function classifyOutboundFailure(error: unknown): ClassifiedFailure {
   if (code && code >= 500) return { kind: 'permanent', retryable: false, summary: 'Mail server rejected the message. Check the recipient or SMTP settings.' };
   if (isTemporaryNetworkError(error)) return { kind: 'transient', retryable: true, summary: 'Temporary network problem while sending. The app will retry.' };
   if (isPermanentAuthError(error)) return { kind: 'permanent', retryable: false, summary: 'SMTP sign-in failed. Check settings.' };
-  return { kind: 'unknown', retryable: false, summary: message || 'The mail server response was unclear. Review before retrying.' };
+  return { kind: 'unknown', retryable: false, summary: message || 'The mail server response was unclear. Check the failed send before retrying.' };
 }
 
 export function safeErrorSummary(error: unknown) {
   const raw = error instanceof Error ? error.message : stringValue(error);
-  return sanitizeOutboundText(raw) || 'The mail server response was unclear. Review before retrying.';
+  return sanitizeOutboundText(raw) || 'The mail server response was unclear. Check the failed send before retrying.';
 }
 
 export function sanitizeOutboundText(value: string) {
