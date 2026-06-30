@@ -43,6 +43,15 @@
         <dd><span class:good={communication.status === 'accepted' || communication.status === 'sent'} class="pill">{messageStatusLabel(communication.status)}</span></dd>
       </div>
       <div>
+        <dt>Send attempts</dt>
+        <dd>
+          {communication.deliveryAttemptCount}
+          {#if communication.failedAttemptCount > 0}
+            <span class="pill warn">{communication.failedAttemptCount} failed</span>
+          {/if}
+        </dd>
+      </div>
+      <div>
         <dt>Sent</dt>
         <dd>{formatDateTime(communication.sentAt || communication.createdAt)}</dd>
       </div>

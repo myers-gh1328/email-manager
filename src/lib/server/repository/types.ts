@@ -359,6 +359,8 @@ export interface CommunicationHistoryItem {
   messageId?: string;
   providerMessage?: string;
   errorMessage?: string;
+  deliveryAttemptCount: number;
+  failedAttemptCount: number;
   createdAt: string;
   replies: CommunicationReply[];
   replyCount: number;

@@ -170,7 +170,12 @@ If the app process is not running, scheduled emails cannot send. This is expecte
 
 SMTP settings are configured by the user. The app sends individual messages, one recipient at a time.
 
-All outbound email attempts should be recorded as communications tied to the recipient contact. Store the rendered subject and body snapshot so the contact history shows what the student actually received or what failed to send.
+Outbound email history is tied to the recipient contact. Direct-email sends
+record one communication per accepted or failed send. Scheduled-email retries
+record one canonical communication for the campaign delivery, keeping the
+rendered subject/body snapshot once and updating attempt and failed-send counts
+as retry attempts finish. Do not duplicate the full rendered body for every
+scheduled retry.
 
 Every SMTP path goes through the outbound safety gate before provider delivery.
 The gate enforces the operator-visible kill switch, direct-email recipient cap,

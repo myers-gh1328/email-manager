@@ -165,7 +165,10 @@ export function migrate(db: DatabaseSync) {
       message_id text not null default '',
       provider_message text,
       error_message text,
+      delivery_id text references campaign_deliveries(id) on delete set null,
       delivery_attempt_id text references delivery_attempts(id) on delete set null,
+      delivery_attempt_count integer not null default 1,
+      failed_attempt_count integer not null default 0,
       created_at text not null
     );
 
@@ -306,7 +309,12 @@ export function migrate(db: DatabaseSync) {
   addColumnIfMissing(db, 'campaign_deliveries', 'needs_audit_repair', 'integer not null default 0');
   addColumnIfMissing(db, 'campaign_deliveries', 'retry_policy_max_auto_retries', 'integer not null default 3');
   addColumnIfMissing(db, 'campaign_deliveries', 'retry_policy_backoff', "text not null default '[300,1800,7200]'");
+  addColumnIfMissing(db, 'communications', 'delivery_id', 'text references campaign_deliveries(id) on delete set null');
   addColumnIfMissing(db, 'communications', 'delivery_attempt_id', 'text references delivery_attempts(id) on delete set null');
+  addColumnIfMissing(db, 'communications', 'delivery_attempt_count', 'integer not null default 1');
+  addColumnIfMissing(db, 'communications', 'failed_attempt_count', 'integer not null default 0');
+
+  backfillCommunicationAttemptCounts(db);
 
   backfillCampaignRetryState(db);
 
@@ -336,6 +344,9 @@ export function migrate(db: DatabaseSync) {
     create unique index if not exists idx_communications_message_id_unique
       on communications(message_id)
       where message_id != '';
+    create unique index if not exists idx_communications_campaign_delivery_unique
+      on communications(delivery_id)
+      where source = 'campaign' and delivery_id is not null;
     create index if not exists idx_communications_created
       on communications(created_at);
     create index if not exists idx_communications_contact_created
@@ -359,6 +370,100 @@ export function migrate(db: DatabaseSync) {
     create index if not exists idx_outbound_rate_events_occurred_at
       on outbound_rate_events(occurred_at);
   `);
+}
+
+function backfillCommunicationAttemptCounts(db: DatabaseSync) {
+  db.prepare(
+    `update communications
+     set delivery_id = (
+       select da.delivery_id
+       from delivery_attempts da
+       where da.id = communications.delivery_attempt_id
+     )
+     where delivery_id is null and delivery_attempt_id is not null`
+  ).run();
+
+  collapseDuplicateScheduledCommunications(db);
+
+  db.prepare(
+    `update communications
+     set delivery_attempt_count = 1
+     where delivery_attempt_count < 1`
+  ).run();
+  db.prepare(
+    `update communications
+     set failed_attempt_count = case when status = 'failed' then 1 else 0 end
+     where failed_attempt_count < 1 and status = 'failed'`
+  ).run();
+}
+
+function collapseDuplicateScheduledCommunications(db: DatabaseSync) {
+  const duplicateDeliveries = db
+    .prepare(
+      `select delivery_id
+       from communications
+       where source = 'campaign' and delivery_id is not null
+       group by delivery_id
+       having count(*) > 1`
+    )
+    .all() as Array<{ delivery_id: string }>;
+
+  for (const duplicate of duplicateDeliveries) {
+    const rows = db
+      .prepare(
+        `select id, status, sent_at, message_id, provider_message, error_message, delivery_attempt_id, created_at, rowid
+         from communications
+         where source = 'campaign' and delivery_id = ?
+         order by created_at, rowid`
+      )
+      .all(duplicate.delivery_id) as Array<{
+        id: string;
+        status: string;
+        sent_at: string | null;
+        message_id: string;
+        provider_message: string | null;
+        error_message: string | null;
+        delivery_attempt_id: string | null;
+      }>;
+    const [canonical, ...duplicates] = rows;
+    const latest = rows[rows.length - 1];
+    if (!canonical || !latest) continue;
+
+    const attemptCountRow = db
+      .prepare('select count(*) as value from delivery_attempts where delivery_id = ?')
+      .get(duplicate.delivery_id) as { value?: number };
+    const failedCountRow = db
+      .prepare("select count(*) as value from delivery_attempts where delivery_id = ? and status in ('failed', 'unknown')")
+      .get(duplicate.delivery_id) as { value?: number };
+
+    db.prepare(
+      `update communications
+       set status = ?,
+         sent_at = ?,
+         message_id = ?,
+         provider_message = ?,
+         error_message = ?,
+         delivery_attempt_id = ?,
+         delivery_attempt_count = ?,
+         failed_attempt_count = ?
+       where id = ?`
+    ).run(
+      latest.status,
+      latest.sent_at,
+      latest.message_id,
+      latest.provider_message,
+      latest.error_message,
+      latest.delivery_attempt_id,
+      Math.max(Number(attemptCountRow.value ?? rows.length), rows.length, 1),
+      Math.max(Number(failedCountRow.value ?? 0), rows.filter((row) => row.status === 'failed').length),
+      canonical.id
+    );
+
+    for (const row of duplicates) {
+      db.prepare('update communication_replies set communication_id = ? where communication_id = ?').run(canonical.id, row.id);
+      db.prepare('delete from communications where id = ?').run(row.id);
+    }
+  }
 }
 
 function addColumnIfMissing(db: DatabaseSync, table: string, column: string, definition: string) {

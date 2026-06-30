@@ -1,4 +1,9 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, test } from 'vitest';
+import { AppRepository } from '../src/lib/server/repository';
 import { createTestRepository } from './repository-helpers';
 
 describe('repository communications', () => {
@@ -186,6 +191,224 @@ describe('repository communications', () => {
       sourceId: campaign.id,
       classSessionId: session.id,
       className: 'Open Water'
+    });
+  });
+
+  test('updates one scheduled communication with retry counts instead of duplicating the full body', () => {
+    const repo = createTestRepository();
+    const contact = repo.createContact({ firstName: 'Maya', lastName: 'Patel', email: 'maya@example.com' });
+    const course = repo.createCourseType({ name: 'Open Water' });
+    const session = repo.createClassSession({ courseTypeId: course.id, startsOn: '2026-08-02', location: 'Pool' });
+    const template = repo.createTemplate({ name: 'Reminder', subject: 'Reminder', body: 'Details.' });
+    const campaign = repo.createCampaign({
+      classSessionId: session.id,
+      templateId: template.id,
+      name: 'Pool reminder',
+      scheduledFor: '2026-08-01T13:00:00.000Z',
+      approved: true
+    });
+    repo.enrollContact(session.id, contact.id);
+    repo.ensurePendingDeliveries(campaign.id);
+
+    const firstAttempt = repo.claimNextEligibleDelivery(campaign.id, { source: 'manual', subject: '', body: '' })!;
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: firstAttempt.id,
+      attemptId: firstAttempt.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'SMTP timed out',
+      retryable: false
+    });
+    const firstCommunication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: campaign.id,
+      deliveryAttemptId: firstAttempt.attemptId,
+      originalRecipient: contact.email,
+      effectiveRecipient: contact.email,
+      subject: 'Pool reminder',
+      body: 'Canonical rendered email body.',
+      status: 'failed',
+      errorMessage: 'SMTP timed out'
+    });
+
+    repo.retryCampaignDeliveries(campaign.id, [contact.id]);
+    const secondAttempt = repo.claimNextEligibleDelivery(campaign.id, { source: 'manual', subject: '', body: '' })!;
+    repo.finalizeDeliveryAttemptFailed({
+      deliveryId: secondAttempt.id,
+      attemptId: secondAttempt.attemptId!,
+      failureKind: 'transient',
+      failureSummary: 'SMTP timed out again',
+      retryable: false
+    });
+    repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: campaign.id,
+      deliveryAttemptId: secondAttempt.attemptId,
+      originalRecipient: contact.email,
+      effectiveRecipient: contact.email,
+      subject: 'Pool reminder retry',
+      body: 'Duplicate body should not be stored as another history row.',
+      status: 'failed',
+      errorMessage: 'SMTP timed out again'
+    });
+
+    repo.retryCampaignDeliveries(campaign.id, [contact.id]);
+    const thirdAttempt = repo.claimNextEligibleDelivery(campaign.id, { source: 'manual', subject: '', body: '' })!;
+    repo.finalizeDeliveryAttemptAccepted({
+      deliveryId: thirdAttempt.id,
+      attemptId: thirdAttempt.attemptId!,
+      providerMessage: 'provider-accepted'
+    });
+    const finalCommunication = repo.recordCommunication({
+      contactId: contact.id,
+      channel: 'email',
+      source: 'campaign',
+      sourceId: campaign.id,
+      deliveryAttemptId: thirdAttempt.attemptId,
+      originalRecipient: contact.email,
+      effectiveRecipient: contact.email,
+      subject: 'Pool reminder accepted',
+      body: 'Accepted retry body should not replace the canonical body.',
+      status: 'accepted',
+      messageId: '<accepted@example.com>',
+      providerMessage: 'provider-accepted'
+    });
+
+    expect(finalCommunication.id).toBe(firstCommunication.id);
+    expect(repo.listCommunications()).toHaveLength(1);
+    expect(repo.getCommunication(firstCommunication.id)).toMatchObject({
+      subject: 'Pool reminder',
+      body: 'Canonical rendered email body.',
+      status: 'accepted',
+      providerMessage: 'provider-accepted',
+      errorMessage: undefined,
+      deliveryAttemptCount: 3,
+      failedAttemptCount: 2
+    });
+    expect(repo.listCommunicationsPage({ sourceId: campaign.id })).toMatchObject({
+      total: 1,
+      items: [
+        {
+          id: firstCommunication.id,
+          status: 'accepted',
+          body: '',
+          deliveryAttemptCount: 3,
+          failedAttemptCount: 2
+        }
+      ]
+    });
+  });
+
+  test('migration collapses existing duplicate scheduled communication rows by delivery', () => {
+    const dbPath = join(mkdtempSync(join(tmpdir(), 'scuba-email-legacy-')), 'app.sqlite');
+    const db = new DatabaseSync(dbPath);
+    db.exec(`
+      create table contacts (
+        id text primary key,
+        first_name text not null,
+        last_name text not null,
+        email text not null,
+        phone text not null default '',
+        notes text not null default '',
+        do_not_email integer not null default 0,
+        created_at text not null
+      );
+      create table delivery_attempts (
+        id text primary key,
+        delivery_id text not null,
+        attempt_number integer not null,
+        source text not null,
+        status text not null,
+        claimed_at text not null,
+        finalized_at text,
+        claim_expires_at text not null,
+        subject text not null default '',
+        body text not null default '',
+        provider_message text not null default '',
+        failure_kind text not null default '',
+        failure_summary text not null default '',
+        retry_policy_max_auto_retries integer not null default 3,
+        retry_policy_backoff text not null default '[300,1800,7200]'
+      );
+      create table campaign_deliveries (
+        id text primary key,
+        campaign_id text not null,
+        recipient_id text not null,
+        status text not null,
+        created_at text not null,
+        sent_at text,
+        provider_message text,
+        error_message text,
+        attempt_count integer not null default 0,
+        last_attempt_at text,
+        next_attempt_at text,
+        claim_expires_at text,
+        failure_kind text not null default '',
+        failure_summary text not null default '',
+        needs_audit_repair integer not null default 0,
+        retry_policy_max_auto_retries integer not null default 3,
+        retry_policy_backoff text not null default '[300,1800,7200]'
+      );
+      create table communications (
+        id text primary key,
+        contact_id text not null,
+        channel text not null,
+        source text not null,
+        source_id text,
+        original_recipient text not null default '',
+        effective_recipient text not null default '',
+        test_mode integer not null default 0,
+        subject text not null,
+        body text not null,
+        status text not null,
+        sent_at text,
+        message_id text not null default '',
+        provider_message text,
+        error_message text,
+        delivery_attempt_id text,
+        created_at text not null
+      );
+      insert into contacts (id, first_name, last_name, email, created_at)
+      values ('contact-1', 'Maya', 'Patel', 'maya@example.com', '2026-06-20T10:00:00.000Z');
+      insert into delivery_attempts (id, delivery_id, attempt_number, source, status, claimed_at, finalized_at, claim_expires_at)
+      values
+        ('attempt-1', 'delivery-1', 1, 'manual', 'failed', '2026-06-20T10:00:00.000Z', '2026-06-20T10:01:00.000Z', '2026-06-20T10:15:00.000Z'),
+        ('attempt-2', 'delivery-1', 2, 'manual', 'failed', '2026-06-20T10:10:00.000Z', '2026-06-20T10:11:00.000Z', '2026-06-20T10:25:00.000Z'),
+        ('attempt-3', 'delivery-1', 3, 'manual', 'accepted', '2026-06-20T10:20:00.000Z', '2026-06-20T10:21:00.000Z', '2026-06-20T10:35:00.000Z');
+      insert into campaign_deliveries (
+        id, campaign_id, recipient_id, status, created_at, sent_at, provider_message, attempt_count
+      ) values (
+        'delivery-1', 'campaign-1', 'contact-1', 'sent', '2026-06-20T10:00:00.000Z',
+        '2026-06-20T10:21:00.000Z', 'provider-accepted', 3
+      );
+      insert into communications (
+        id, contact_id, channel, source, source_id, original_recipient, effective_recipient,
+        subject, body, status, message_id, provider_message, error_message, delivery_attempt_id, created_at
+      ) values
+        ('comm-1', 'contact-1', 'email', 'campaign', 'campaign-1', 'maya@example.com', 'maya@example.com',
+          'Reminder', 'Canonical body.', 'failed', '', null, 'SMTP timed out', 'attempt-1', '2026-06-20T10:01:00.000Z'),
+        ('comm-2', 'contact-1', 'email', 'campaign', 'campaign-1', 'maya@example.com', 'maya@example.com',
+          'Reminder retry', 'Duplicate failed body.', 'failed', '', null, 'SMTP timed out again', 'attempt-2', '2026-06-20T10:11:00.000Z'),
+        ('comm-3', 'contact-1', 'email', 'campaign', 'campaign-1', 'maya@example.com', 'maya@example.com',
+          'Reminder accepted', 'Duplicate accepted body.', 'accepted', '<accepted@example.com>', 'provider-accepted', null, 'attempt-3', '2026-06-20T10:21:00.000Z');
+    `);
+    db.close();
+
+    const repo = new AppRepository(dbPath);
+
+    expect(repo.listCommunications()).toHaveLength(1);
+    expect(repo.getCommunication('comm-1')).toMatchObject({
+      id: 'comm-1',
+      subject: 'Reminder',
+      body: 'Canonical body.',
+      status: 'accepted',
+      messageId: '<accepted@example.com>',
+      providerMessage: 'provider-accepted',
+      deliveryAttemptCount: 3,
+      failedAttemptCount: 2
     });
   });
 

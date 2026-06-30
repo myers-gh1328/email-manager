@@ -40,6 +40,8 @@ function mapCommunication(row: Row, replies: CommunicationReply[] = []): Communi
     messageId: row.message_id ? text(row.message_id) : undefined,
     providerMessage: row.provider_message ? text(row.provider_message) : undefined,
     errorMessage: row.error_message ? text(row.error_message) : undefined,
+    deliveryAttemptCount: Math.max(Number(row.delivery_attempt_count ?? 1), 1),
+    failedAttemptCount: Math.max(Number(row.failed_attempt_count ?? 0), 0),
     createdAt: text(row.created_at),
     replies,
     replyCount: Number(row.reply_count ?? replies.length),
@@ -67,13 +69,25 @@ function mapReply(row: Row): CommunicationReply {
 }
 
 export function recordCommunication(db: DatabaseSync, input: CommunicationInput) {
+  if (input.source === 'campaign' && input.deliveryAttemptId) {
+    const existing = findCommunicationForDeliveryAttempt(db, input.deliveryAttemptId);
+    if (existing) {
+      updateCommunicationAttemptSummary(db, existing, input);
+      return listCommunicationById(db, text(existing.id));
+    }
+  }
+
   const id = newId();
   const timestamp = now();
+  const delivery = input.deliveryAttemptId ? deliveryAttemptSummary(db, input.deliveryAttemptId) : undefined;
+  const attemptCount = input.source === 'campaign' ? Math.max(delivery?.attemptNumber ?? 1, 1) : 1;
+  const failedAttemptCount = input.source === 'campaign' ? countFailedDeliveryAttempts(db, delivery?.deliveryId, input.status) : input.status === 'failed' ? 1 : 0;
   db.prepare(
     `insert into communications (
       id, contact_id, channel, source, source_id, original_recipient, effective_recipient, test_mode, subject, body, status,
-      sent_at, message_id, provider_message, error_message, delivery_attempt_id, created_at
-    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      sent_at, message_id, provider_message, error_message, delivery_id, delivery_attempt_id, delivery_attempt_count,
+      failed_attempt_count, created_at
+    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     input.contactId,
@@ -90,10 +104,86 @@ export function recordCommunication(db: DatabaseSync, input: CommunicationInput)
     input.messageId ?? '',
     input.providerMessage ?? null,
     input.errorMessage ?? null,
+    delivery?.deliveryId ?? null,
     input.deliveryAttemptId ?? null,
+    attemptCount,
+    failedAttemptCount,
     timestamp
   );
   return listCommunicationById(db, id);
+}
+
+function findCommunicationForDeliveryAttempt(db: DatabaseSync, attemptId: string) {
+  return db
+    .prepare(
+      `select cm.*
+       from delivery_attempts da
+       join communications cm on cm.delivery_id = da.delivery_id
+       where da.id = ? and cm.source = 'campaign'
+       limit 1`
+    )
+    .get(attemptId) as Row | undefined;
+}
+
+function updateCommunicationAttemptSummary(db: DatabaseSync, existing: Row, input: CommunicationInput) {
+  const timestamp = now();
+  const delivery = deliveryAttemptSummary(db, input.deliveryAttemptId ?? '');
+  const deliveryId = delivery?.deliveryId ?? text(existing.delivery_id);
+  const failedAttemptCount = countFailedDeliveryAttempts(db, deliveryId, input.status);
+  db.prepare(
+    `update communications
+     set original_recipient = ?,
+       effective_recipient = ?,
+       test_mode = ?,
+       status = ?,
+       sent_at = case when ? = 1 then ? else sent_at end,
+       message_id = ?,
+       provider_message = ?,
+       error_message = ?,
+       delivery_id = coalesce(delivery_id, ?),
+       delivery_attempt_id = ?,
+       delivery_attempt_count = max(delivery_attempt_count, ?),
+       failed_attempt_count = ?
+     where id = ?`
+  ).run(
+    input.originalRecipient ?? text(existing.original_recipient),
+    input.effectiveRecipient ?? input.originalRecipient ?? text(existing.effective_recipient),
+    input.testMode ? 1 : 0,
+    input.status,
+    input.status === 'accepted' || input.status === 'sent' ? 1 : 0,
+    timestamp,
+    input.messageId ?? '',
+    input.providerMessage ?? null,
+    input.errorMessage ?? null,
+    deliveryId || null,
+    input.deliveryAttemptId ?? null,
+    Math.max(delivery?.attemptNumber ?? Number(existing.delivery_attempt_count ?? 1), 1),
+    failedAttemptCount,
+    text(existing.id)
+  );
+}
+
+function deliveryAttemptSummary(db: DatabaseSync, attemptId: string) {
+  if (!attemptId) return undefined;
+  const row = db.prepare('select delivery_id, attempt_number from delivery_attempts where id = ?').get(attemptId) as Row | undefined;
+  return row
+    ? {
+        deliveryId: text(row.delivery_id),
+        attemptNumber: Number(row.attempt_number ?? 1)
+      }
+    : undefined;
+}
+
+function countFailedDeliveryAttempts(db: DatabaseSync, deliveryId: string | undefined, currentStatus: CommunicationInput['status']) {
+  if (!deliveryId) return currentStatus === 'failed' ? 1 : 0;
+  const row = db
+    .prepare(
+      `select count(*) as value
+       from delivery_attempts
+       where delivery_id = ? and status in ('failed', 'unknown')`
+    )
+    .get(deliveryId) as Row;
+  return Math.max(Number(row.value ?? 0), currentStatus === 'failed' ? 1 : 0);
 }
 
 export function recordEmailTestAudit(db: DatabaseSync, input: EmailTestAuditInput) {
@@ -250,7 +340,7 @@ export function listCommunicationsPage(db: DatabaseSync, input: CommunicationHis
       `select cm.id, cm.contact_id, cm.channel, cm.source, cm.source_id,
          cm.original_recipient, cm.effective_recipient, cm.test_mode, cm.subject,
          '' as body, cm.status, cm.sent_at, cm.message_id, cm.provider_message,
-         cm.error_message, cm.created_at,
+         cm.error_message, cm.delivery_attempt_count, cm.failed_attempt_count, cm.created_at,
          coalesce(replies.reply_count, 0) as reply_count,
          coalesce(replies.unreviewed_reply_count, 0) as unreviewed_reply_count,
          replies.first_reply_at,
