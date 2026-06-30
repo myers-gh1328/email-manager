@@ -178,6 +178,12 @@
               {/if}
             </p>
             {#if communication.errorMessage}<p class="error">Error: {communication.errorMessage}</p>{/if}
+            {#if communication.deliveryAttemptCount > 1 || communication.failedAttemptCount > 0}
+              <p class="help-text">
+                Send attempts: {communication.deliveryAttemptCount}
+                {#if communication.failedAttemptCount > 0} · Failed sends: {communication.failedAttemptCount}{/if}
+              </p>
+            {/if}
           </div>
           <dl class="history-facts">
             <div>
@@ -192,6 +198,18 @@
                 </span>
               </dd>
             </div>
+            {#if communication.deliveryAttemptCount > 1 || communication.failedAttemptCount > 0}
+              <div>
+                <dt>Attempts</dt>
+                <dd>
+                  <span class:warn={communication.failedAttemptCount > 0} class:good={communication.failedAttemptCount === 0} class="pill">
+                    {communication.failedAttemptCount > 0
+                      ? `${communication.failedAttemptCount} failed / ${communication.deliveryAttemptCount} total`
+                      : `${communication.deliveryAttemptCount} total`}
+                  </span>
+                </dd>
+              </div>
+            {/if}
           </dl>
         </article>
       {:else}
@@ -216,11 +234,12 @@
 
 <style>
   .history-facts {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: column;
+    align-items: stretch;
+    display: grid;
     gap: 8px;
+    justify-items: end;
     margin: 0;
+    min-width: 170px;
   }
 
   .history-facts div {
@@ -269,7 +288,8 @@
 
   @media (max-width: 720px) {
     .history-facts {
-      align-items: stretch;
+      justify-items: start;
+      min-width: 0;
     }
 
     .history-facts div {
