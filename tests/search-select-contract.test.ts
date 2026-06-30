@@ -8,6 +8,8 @@ describe('SearchSelect contract', () => {
     expect(source).toContain('type="hidden"');
     expect(source).toContain('role="listbox"');
     expect(source).toContain('aria-selected');
+    expect(source).toContain('aria-expanded={open}');
+    expect(source).toContain('{#if open}');
     expect(source).toContain('selectOption');
     expect(source).not.toContain('<select');
     expect(source).not.toContain('<datalist');

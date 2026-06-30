@@ -34,6 +34,7 @@
   let remoteOptions = $state<SearchOption[]>([]);
   let loading = $state(false);
   let searchError = $state('');
+  let open = $state(false);
   let filteredOptions = $derived(
     searchHref && search.trim()
       ? remoteOptions
@@ -83,42 +84,73 @@
   function selectOption(option: SearchOption) {
     selectedValue = option.value;
     search = option.label;
+    open = false;
+  }
+
+  function closeWhenLeaving(event: FocusEvent) {
+    if (event.currentTarget instanceof HTMLElement && event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) {
+      return;
+    }
+    open = false;
   }
 </script>
 
-<div class="search-select">
+<div class="search-select" onfocusin={() => (open = true)} onfocusout={closeWhenLeaving}>
   <div class="field-header">
     <label for={`${name}-search`}>{label}</label>
     {#if addHref && addLabel}<a class="button-link" href={addHref}>{addLabel}</a>{/if}
   </div>
-  <input id={`${name}-search`} bind:value={search} placeholder={placeholder} />
+  <input
+    id={`${name}-search`}
+    bind:value={search}
+    placeholder={placeholder}
+    autocomplete="off"
+    aria-expanded={open}
+    aria-controls={`${name}-options`}
+    oninput={() => (open = true)}
+  />
   <input type="hidden" {name} value={selectedValue} />
   {#if showSelected && selectedOption}<p class="help-text">Selected: {selectedOption.label}</p>{/if}
   {#if loading}<p class="help-text">Searching...</p>{/if}
   {#if searchError}<p class="error">{searchError}</p>{/if}
-  <div class="option-list" role="listbox" aria-label={label} aria-required={required}>
-    {#each filteredOptions as option}
-      <button
-        type="button"
-        class:selected={option.value === selectedValue}
-        role="option"
-        aria-selected={option.value === selectedValue}
-        onclick={() => selectOption(option)}
-      >
-        {option.label}
-      </button>
-    {:else}
-      <p class="empty">No options match that search.</p>
-    {/each}
-  </div>
+  {#if open}
+    <div id={`${name}-options`} class="option-list" role="listbox" aria-label={label} aria-required={required}>
+      {#each filteredOptions as option}
+        <button
+          type="button"
+          class:selected={option.value === selectedValue}
+          role="option"
+          aria-selected={option.value === selectedValue}
+          onclick={() => selectOption(option)}
+        >
+          {option.label}
+        </button>
+      {:else}
+        <p class="empty">No options match that search.</p>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>
+  .search-select {
+    position: relative;
+  }
+
   .option-list {
+    position: absolute;
+    z-index: 20;
+    inset-inline: 0;
     display: grid;
     gap: 6px;
+    margin-top: 6px;
+    padding: 8px;
     max-height: 260px;
     overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow-panel);
   }
 
   .option-list button {
