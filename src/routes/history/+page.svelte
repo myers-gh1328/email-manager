@@ -239,7 +239,7 @@
     gap: 8px;
     justify-items: end;
     margin: 0;
-    min-width: 170px;
+    min-width: max-content;
   }
 
   .history-facts div {
@@ -253,6 +253,10 @@
     font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
+  }
+
+  .history-facts dd {
+    margin: 0;
   }
 
   .inline-filters,
@@ -290,6 +294,7 @@
     .history-facts {
       justify-items: start;
       min-width: 0;
+      width: 100%;
     }
 
     .history-facts div {
