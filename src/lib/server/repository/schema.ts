@@ -436,6 +436,11 @@ function collapseDuplicateScheduledCommunications(db: DatabaseSync) {
       .prepare("select count(*) as value from delivery_attempts where delivery_id = ? and status in ('failed', 'unknown')")
       .get(duplicate.delivery_id) as { value?: number };
 
+    for (const row of duplicates) {
+      db.prepare('update communication_replies set communication_id = ? where communication_id = ?').run(canonical.id, row.id);
+      db.prepare('delete from communications where id = ?').run(row.id);
+    }
+
     db.prepare(
       `update communications
        set status = ?,
@@ -458,11 +463,6 @@ function collapseDuplicateScheduledCommunications(db: DatabaseSync) {
       Math.max(Number(failedCountRow.value ?? 0), rows.filter((row) => row.status === 'failed').length),
       canonical.id
     );
-
-    for (const row of duplicates) {
-      db.prepare('update communication_replies set communication_id = ? where communication_id = ?').run(canonical.id, row.id);
-      db.prepare('delete from communications where id = ?').run(row.id);
-    }
   }
 }
 

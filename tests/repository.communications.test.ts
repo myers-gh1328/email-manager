@@ -394,6 +394,9 @@ describe('repository communications', () => {
           'Reminder retry', 'Duplicate failed body.', 'failed', '', null, 'SMTP timed out again', 'attempt-2', '2026-06-20T10:11:00.000Z'),
         ('comm-3', 'contact-1', 'email', 'campaign', 'campaign-1', 'maya@example.com', 'maya@example.com',
           'Reminder accepted', 'Duplicate accepted body.', 'accepted', '<accepted@example.com>', 'provider-accepted', null, 'attempt-3', '2026-06-20T10:21:00.000Z');
+      create unique index idx_communications_message_id_unique
+        on communications(message_id)
+        where message_id != '';
     `);
     db.close();
 
