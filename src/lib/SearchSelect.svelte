@@ -13,7 +13,8 @@
     value = '',
     addHref = '',
     addLabel = '',
-    searchHref = ''
+    searchHref = '',
+    showSelected = true
   }: {
     name: string;
     label: string;
@@ -24,6 +25,7 @@
     addHref?: string;
     addLabel?: string;
     searchHref?: string;
+    showSelected?: boolean;
   } = $props();
 
   let selectedValue = $state('');
@@ -91,7 +93,7 @@
   </div>
   <input id={`${name}-search`} bind:value={search} placeholder={placeholder} />
   <input type="hidden" {name} value={selectedValue} />
-  {#if selectedOption}<p class="help-text">Selected: {selectedOption.label}</p>{/if}
+  {#if showSelected && selectedOption}<p class="help-text">Selected: {selectedOption.label}</p>{/if}
   {#if loading}<p class="help-text">Searching...</p>{/if}
   {#if searchError}<p class="error">{searchError}</p>{/if}
   <div class="option-list" role="listbox" aria-label={label} aria-required={required}>
