@@ -89,6 +89,7 @@
       addHref={addTemplateHref}
       addLabel="Add template"
       searchHref="/templates/search"
+      showSelected={false}
     />
     <button class="secondary" type="submit" formaction="?/loadTemplate">Load template</button>
     <label>Subject<input name="subject" value={subject} placeholder="Quick class update" /></label>
