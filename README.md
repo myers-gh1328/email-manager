@@ -194,7 +194,14 @@ Typical settings:
 
 If your provider supports app passwords, use one. Do not use your main account password unless your provider specifically requires it.
 
-Settings includes presets for Gmail, Fastmail, and Outlook. Gmail and Fastmail use SMTP with an app password. Outlook and Microsoft 365 use Microsoft OAuth2, not an app password.
+Settings includes presets for Gmail, Fastmail, Proton Mail Bridge, and Outlook. Gmail and Fastmail use SMTP with an app password. Proton Mail uses the local Proton Mail Bridge SMTP service and should use **No reply sync** because this app does not connect to Proton through IMAP. Outlook and Microsoft 365 use Microsoft OAuth2, not an app password.
+
+For Proton Mail Bridge:
+
+1. Install and start Proton Mail Bridge on the same computer as this app.
+2. In Settings, choose **Proton Mail Bridge preset**.
+3. Use the Bridge SMTP username and password shown by Proton Mail Bridge.
+4. Leave Reply Sync set to **No reply sync**.
 
 For Outlook or Microsoft 365:
 

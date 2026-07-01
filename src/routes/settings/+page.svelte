@@ -16,6 +16,7 @@
   let replySyncPort = $state('');
   let replySyncTls = $state(true);
   let replySyncUsername = $state('');
+  let replySyncMode = $state<'imap' | 'disabled'>('imap');
   let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
   let aiModelOptions = $derived((form?.aiModels ?? []).map((model: string) => ({ value: model, label: model })));
@@ -39,12 +40,13 @@
       replySyncPort = data.settings.replySyncPort;
       replySyncTls = data.settings.replySyncTls;
       replySyncUsername = data.settings.replySyncUsername;
+      replySyncMode = data.settings.replySyncMode;
       externalSignOnProvider = data.externalSignOn.provider || 'google';
       initialized = true;
     }
   });
 
-  function applySmtpPreset(provider: 'gmail' | 'fastmail' | 'outlook') {
+  function applySmtpPreset(provider: 'gmail' | 'fastmail' | 'outlook' | 'proton') {
     if (provider === 'gmail') {
       smtpAuthMethod = 'password';
       smtpHost = 'smtp.gmail.com';
@@ -53,6 +55,11 @@
       smtpAuthMethod = 'password';
       smtpHost = 'smtp.fastmail.com';
       smtpPort = '465';
+    } else if (provider === 'proton') {
+      smtpAuthMethod = 'password';
+      smtpHost = '127.0.0.1';
+      smtpPort = '1025';
+      replySyncMode = 'disabled';
     } else {
       smtpAuthMethod = 'microsoft-oauth2';
       smtpHost = 'smtp.office365.com';
@@ -62,6 +69,7 @@
   }
 
   function applyImapPreset(provider: 'gmail' | 'fastmail' | 'outlook') {
+    replySyncMode = 'imap';
     replySyncTls = true;
     replySyncPort = '993';
     if (provider === 'gmail') replySyncHost = 'imap.gmail.com';
@@ -335,6 +343,7 @@
       <div class="button-row">
         <button class="secondary" type="button" onclick={() => applySmtpPreset('gmail')}>Gmail preset</button>
         <button class="secondary" type="button" onclick={() => applySmtpPreset('fastmail')}>Fastmail preset</button>
+        <button class="secondary" type="button" onclick={() => applySmtpPreset('proton')}>Proton Mail Bridge preset</button>
         <button class="secondary" type="button" onclick={() => applySmtpPreset('outlook')}>Outlook OAuth preset</button>
       </div>
       <div class="toggle-grid">
@@ -351,7 +360,7 @@
         <label>
           Host
           <input name="smtpHost" bind:value={smtpHost} />
-          <span class="help-text">The outgoing mail server from your email provider, for example <code>smtp.gmail.com</code>.</span>
+          <span class="help-text">The outgoing mail server from your email provider, for example <code>smtp.gmail.com</code>. Proton Mail Bridge usually runs SMTP on <code>127.0.0.1</code>.</span>
         </label>
         <label>
           Port
@@ -524,46 +533,66 @@
         <div>
           <p class="eyebrow">Replies</p>
           <h3>Show replies to sent email</h3>
-          <p class="help-text">Connect the inbox for the same address you send from. The app only imports messages that reply to emails it already sent.</p>
+          <p class="help-text">Connect an IMAP inbox for the same address you send from, or turn this off for providers that do not expose IMAP to this app.</p>
+        </div>
+        <div class="toggle-grid">
+          <label class="check with-help">
+            <span><input name="replySyncMode" type="radio" value="imap" bind:group={replySyncMode} /> IMAP reply sync</span>
+            <small>Imports only replies to emails this app sent. It does not read your inbox as a general mailbox.</small>
+          </label>
+          <label class="check with-help">
+            <span><input name="replySyncMode" type="radio" value="disabled" bind:group={replySyncMode} /> No reply sync</span>
+            <small>Use this for Proton Mail or any provider where replies cannot be checked through IMAP.</small>
+          </label>
         </div>
         <div class="button-row">
           <button class="secondary" type="button" onclick={() => applyImapPreset('gmail')}>Gmail preset</button>
           <button class="secondary" type="button" onclick={() => applyImapPreset('fastmail')}>Fastmail preset</button>
           <button class="secondary" type="button" onclick={() => applyImapPreset('outlook')}>Outlook preset</button>
         </div>
-        <div class="split">
-          <label>
-            Incoming mail server
-            <input name="replySyncHost" bind:value={replySyncHost} placeholder="imap.example.com" />
-            <span class="help-text">This is the IMAP server from your email provider.</span>
+        {#if replySyncMode === 'imap'}
+          <div class="split">
+            <label>
+              Incoming mail server
+              <input name="replySyncHost" bind:value={replySyncHost} placeholder="imap.example.com" />
+              <span class="help-text">This is the IMAP server from your email provider.</span>
+            </label>
+            <label>
+              Port
+              <input name="replySyncPort" bind:value={replySyncPort} />
+              <span class="help-text">Usually 993.</span>
+            </label>
+          </div>
+          <label class="check with-help">
+            <span><input name="replySyncTls" type="checkbox" bind:checked={replySyncTls} /> Use secure IMAP</span>
+            <small>Leave this on unless your email provider gives different instructions.</small>
           </label>
           <label>
-            Port
-            <input name="replySyncPort" bind:value={replySyncPort} />
-            <span class="help-text">Usually 993.</span>
+            Username
+            <input name="replySyncUsername" bind:value={replySyncUsername} />
+            <span class="help-text">Usually the same email address used for sending.</span>
           </label>
-        </div>
-        <label class="check with-help">
-          <span><input name="replySyncTls" type="checkbox" bind:checked={replySyncTls} /> Use secure IMAP</span>
-          <small>Leave this on unless your email provider gives different instructions.</small>
-        </label>
-        <label>
-          Username
-          <input name="replySyncUsername" bind:value={replySyncUsername} />
-          <span class="help-text">Usually the same email address used for sending.</span>
-        </label>
-        <label>
-          Password
-          <input name="replySyncPassword" type="password" placeholder={data.settings.replySyncPasswordConfigured ? 'Configured' : ''} />
-          <span class="help-text">Use an app password if your email provider offers one. Leave blank to keep the current saved password.</span>
-        </label>
-        <label class="check with-help">
-          <span><input name="replySyncPollingEnabled" type="checkbox" checked={data.settings.replySyncPollingEnabled} /> Check for replies automatically</span>
-          <small>When on, the app checks the inbox while the server is running. Turn it off to sync only when you click the button below.</small>
-        </label>
+          <label>
+            Password
+            <input name="replySyncPassword" type="password" placeholder={data.settings.replySyncPasswordConfigured ? 'Configured' : ''} />
+            <span class="help-text">Use an app password if your email provider offers one. Leave blank to keep the current saved password.</span>
+          </label>
+          <label class="check with-help">
+            <span><input name="replySyncPollingEnabled" type="checkbox" checked={data.settings.replySyncPollingEnabled} /> Check for replies automatically</span>
+            <small>When on, the app checks the inbox while the server is running. Turn it off to sync only when you click the button below.</small>
+          </label>
+        {:else}
+          <input type="hidden" name="replySyncHost" value={replySyncHost} />
+          <input type="hidden" name="replySyncPort" value={replySyncPort} />
+          {#if replySyncTls}<input type="hidden" name="replySyncTls" value="on" />{/if}
+          <input type="hidden" name="replySyncUsername" value={replySyncUsername} />
+          <div class="setup-note">
+            <p class="help-text">Reply sync is off. Sent email history still records every outbound message, but replies will not be imported automatically.</p>
+          </div>
+        {/if}
         <div class="button-row">
           <button type="submit">Save reply sync</button>
-          <button class="secondary" type="submit" formaction="?/syncRepliesNow" formnovalidate>Sync replies now</button>
+          {#if replySyncMode === 'imap'}<button class="secondary" type="submit" formaction="?/syncRepliesNow" formnovalidate>Sync replies now</button>{/if}
         </div>
       </form>
     </details>
