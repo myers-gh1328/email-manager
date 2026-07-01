@@ -627,7 +627,12 @@ describe('operator visibility contract', () => {
     expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");
     expect(settings).toContain('<p class="eyebrow">Replies</p>');
     expect(settings).toContain("onclick={() => applySmtpPreset('proton')}");
-    expect(settings).toContain('Proton Mail Bridge preset');
+    expect(settings).toContain('Proton SMTP preset');
+    expect(settings).toContain("host: 'smtp.protonmail.ch'");
+    expect(settings).toContain("port: '587'");
+    expect(settings).toContain('window.confirm');
+    expect(settings).toContain("update({ reset: false })");
+    expect(settings).toContain('Sending test email...');
     expect(settings).toContain("replySyncMode = 'disabled'");
     expect(settings).toContain('No reply sync');
     expect(settings).toContain('Use this for Proton Mail or any provider where replies cannot be checked through IMAP.');

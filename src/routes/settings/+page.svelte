@@ -1,8 +1,10 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import BusyOverlay from '$lib/BusyOverlay.svelte';
   import SearchSelect from '$lib/SearchSelect.svelte';
 
   let { data, form } = $props();
+  let busyMessage = $state('');
   let smtpAuthMethod = $state('');
   let smtpHost = $state('');
   let smtpPort = $state('');
@@ -47,25 +49,51 @@
   });
 
   function applySmtpPreset(provider: 'gmail' | 'fastmail' | 'outlook' | 'proton') {
+    const current = { authMethod: smtpAuthMethod, host: smtpHost, port: smtpPort };
+    let next = current;
     if (provider === 'gmail') {
-      smtpAuthMethod = 'password';
-      smtpHost = 'smtp.gmail.com';
-      smtpPort = '465';
+      next = { authMethod: 'password', host: 'smtp.gmail.com', port: '465' };
     } else if (provider === 'fastmail') {
-      smtpAuthMethod = 'password';
-      smtpHost = 'smtp.fastmail.com';
-      smtpPort = '465';
+      next = { authMethod: 'password', host: 'smtp.fastmail.com', port: '465' };
     } else if (provider === 'proton') {
-      smtpAuthMethod = 'password';
-      smtpHost = '127.0.0.1';
-      smtpPort = '1025';
-      replySyncMode = 'disabled';
+      next = { authMethod: 'password', host: 'smtp.protonmail.ch', port: '587' };
     } else {
-      smtpAuthMethod = 'microsoft-oauth2';
-      smtpHost = 'smtp.office365.com';
-      smtpPort = '587';
+      next = { authMethod: 'microsoft-oauth2', host: 'smtp.office365.com', port: '587' };
+    }
+
+    if (presetWouldOverwrite(current, next) && !window.confirm('Apply this preset and replace the current SMTP host, port, and authentication method?')) {
+      return;
+    }
+
+    smtpAuthMethod = next.authMethod;
+    smtpHost = next.host;
+    smtpPort = next.port;
+    if (provider === 'proton') replySyncMode = 'disabled';
+    if (provider === 'outlook') {
       microsoftTenantId ||= 'common';
     }
+  }
+
+  function presetWouldOverwrite(
+    current: { authMethod: string; host: string; port: string },
+    next: { authMethod: string; host: string; port: string }
+  ) {
+    return Boolean(
+      (current.authMethod && current.authMethod !== next.authMethod) ||
+      (current.host && current.host !== next.host) ||
+      (current.port && current.port !== next.port)
+    );
+  }
+
+  function preserveFormState(message = 'Saving settings...') {
+    busyMessage = message;
+    return async ({ update }: { update: (options?: { reset?: boolean }) => Promise<void> }) => {
+      try {
+        await update({ reset: false });
+      } finally {
+        busyMessage = '';
+      }
+    };
   }
 
   function applyImapPreset(provider: 'gmail' | 'fastmail' | 'outlook') {
@@ -123,6 +151,7 @@
     </div>
     <p class="body-copy">Remote access is provider-neutral. Use these settings with Cloudflare Tunnel, Tailscale, or another reverse proxy after setting a strong app secret and admin password.</p>
     {#if form?.message || data.message}<p class={noticeClass(form?.message || data.message)}>{form?.message || data.message}</p>{/if}
+    {#if busyMessage}<BusyOverlay message={busyMessage} />{/if}
     <label class="settings-search">
       Search settings
       <input bind:value={settingsSearch} placeholder="Agent, SMTP, password, schedule" />
@@ -332,7 +361,7 @@
     {#if sectionMatches('SMTP and provider authentication', ['smtp email account provider authentication microsoft outlook gmail fastmail password test send'])}
     <details class="settings-section settings-panel wide" open={sectionOpen('smtp')}>
       <summary>SMTP and Provider Authentication</summary>
-    <form method="POST" action="?/updateSmtp" class="panel-form" use:enhance>
+    <form method="POST" action="?/updateSmtp" class="panel-form" use:enhance={() => preserveFormState('Saving SMTP settings...')}>
       <div class="panel-title-row">
         <div>
           <p class="eyebrow">Email account</p>
@@ -343,7 +372,7 @@
       <div class="button-row">
         <button class="secondary" type="button" onclick={() => applySmtpPreset('gmail')}>Gmail preset</button>
         <button class="secondary" type="button" onclick={() => applySmtpPreset('fastmail')}>Fastmail preset</button>
-        <button class="secondary" type="button" onclick={() => applySmtpPreset('proton')}>Proton Mail Bridge preset</button>
+        <button class="secondary" type="button" onclick={() => applySmtpPreset('proton')}>Proton SMTP preset</button>
         <button class="secondary" type="button" onclick={() => applySmtpPreset('outlook')}>Outlook OAuth preset</button>
       </div>
       <div class="toggle-grid">
@@ -360,7 +389,7 @@
         <label>
           Host
           <input name="smtpHost" bind:value={smtpHost} />
-          <span class="help-text">The outgoing mail server from your email provider, for example <code>smtp.gmail.com</code>. Proton Mail Bridge usually runs SMTP on <code>127.0.0.1</code>.</span>
+          <span class="help-text">The outgoing mail server from your email provider, for example <code>smtp.gmail.com</code>. Proton SMTP uses <code>smtp.protonmail.ch</code>.</span>
         </label>
         <label>
           Port
@@ -883,7 +912,7 @@
 
      {#if sectionMatches('Test SMTP', ['send test email smtp accepted provider'])}
      <section class="settings-section settings-panel visible-panel">
-       <form method="POST" action="?/testSmtp" class="panel-form" use:enhance>
+       <form method="POST" action="?/testSmtp" class="panel-form" use:enhance={() => preserveFormState('Sending test email...')}>
          <div>
            <p class="eyebrow">SMTP test</p>
            <h3>Test SMTP</h3>
@@ -893,7 +922,10 @@
            <input name="testEmail" type="email" value={data.settings.smtpFrom} required />
            <span class="help-text">Sends a small test message and reports whether the SMTP server accepted it.</span>
          </label>
-         <button type="submit">Send test email</button>
+         <button type="submit" disabled={busyMessage === 'Sending test email...'}>
+           {#if busyMessage === 'Sending test email...'}<span class="button-spinner" aria-hidden="true"></span>{/if}
+           Send test email
+         </button>
        </form>
      </section>
      {/if}
