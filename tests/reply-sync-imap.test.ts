@@ -17,7 +17,8 @@ const settings = vi.hoisted(() => ({
   replySyncPort: '993',
   replySyncTls: true,
   replySyncUsername: 'user@example.com',
-  replySyncPasswordConfigured: true
+  replySyncPasswordConfigured: true,
+  replySyncMode: 'imap' as 'imap' | 'disabled'
 }));
 
 vi.mock('imapflow', () => ({
@@ -46,6 +47,7 @@ vi.mock('../src/lib/server/settings', () => ({
 describe('reply sync IMAP adapter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    settings.replySyncMode = 'imap';
     settings.replySyncPasswordConfigured = true;
     repo.listRecentCommunicationMessageIds.mockReturnValue([{ id: 'communication-1', messageId: '<sent@example.com>' }]);
     repo.recordCommunicationReply.mockReturnValue({ created: true });
@@ -92,6 +94,15 @@ describe('reply sync IMAP adapter', () => {
     const { syncRepliesNow } = await import('../src/lib/server/reply-sync');
 
     await expect(syncRepliesNow()).resolves.toMatchObject({ status: 'not_configured' });
+
+    expect(client.connect).not.toHaveBeenCalled();
+  });
+
+  test('returns disabled before opening IMAP when reply sync is off', async () => {
+    settings.replySyncMode = 'disabled';
+    const { syncRepliesNow } = await import('../src/lib/server/reply-sync');
+
+    await expect(syncRepliesNow()).resolves.toMatchObject({ status: 'disabled' });
 
     expect(client.connect).not.toHaveBeenCalled();
   });

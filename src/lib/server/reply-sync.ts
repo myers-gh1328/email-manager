@@ -29,7 +29,8 @@ export interface ReplySyncMailbox {
   close(): Promise<void>;
 }
 
-export function replySyncConfigured(settings: Pick<AppSettings, 'replySyncHost' | 'replySyncUsername' | 'replySyncPasswordConfigured'>) {
+export function replySyncConfigured(settings: Pick<AppSettings, 'replySyncMode' | 'replySyncHost' | 'replySyncUsername' | 'replySyncPasswordConfigured'>) {
+  if (settings.replySyncMode === 'disabled') return false;
   return Boolean(settings.replySyncHost && settings.replySyncUsername && settings.replySyncPasswordConfigured);
 }
 
@@ -39,6 +40,7 @@ export async function syncRepliesNow() {
     import('./settings')
   ]);
   const settings = getSettings();
+  if (settings.replySyncMode === 'disabled') return emptyResult('disabled');
   if (!replySyncConfigured(settings)) return emptyResult('not_configured');
 
   const mailbox = await createImapMailbox(settings, getReplySyncPassword());

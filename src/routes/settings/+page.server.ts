@@ -85,6 +85,7 @@ export const actions = {
   syncRepliesNow: async () => {
     try {
       const result = await syncRepliesNow();
+      if (result.status === 'disabled') return fail(400, { message: 'Turn on IMAP reply sync before syncing replies.' });
       if (result.status === 'not_configured') return fail(400, { message: 'Enter IMAP settings before syncing replies.' });
       return { message: `Reply sync checked ${result.checked} recent messages and imported ${result.imported} new replies.` };
     } catch {

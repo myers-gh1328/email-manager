@@ -4,10 +4,11 @@ import { createTestRepository } from './repository-helpers';
 
 describe('reply sync', () => {
   test('reports configured only when required IMAP settings are complete', () => {
-    expect(replySyncConfigured({ replySyncHost: '', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(false);
-    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: '', replySyncPasswordConfigured: true })).toBe(false);
-    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: false })).toBe(false);
-    expect(replySyncConfigured({ replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(true);
+    expect(replySyncConfigured({ replySyncMode: 'imap', replySyncHost: '', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(false);
+    expect(replySyncConfigured({ replySyncMode: 'imap', replySyncHost: 'imap.example.com', replySyncUsername: '', replySyncPasswordConfigured: true })).toBe(false);
+    expect(replySyncConfigured({ replySyncMode: 'imap', replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: false })).toBe(false);
+    expect(replySyncConfigured({ replySyncMode: 'disabled', replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(false);
+    expect(replySyncConfigured({ replySyncMode: 'imap', replySyncHost: 'imap.example.com', replySyncUsername: 'user', replySyncPasswordConfigured: true })).toBe(true);
   });
 
   test('does not fetch the mailbox when there are no outbound message ids', async () => {

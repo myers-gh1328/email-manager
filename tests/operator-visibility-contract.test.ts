@@ -626,6 +626,11 @@ describe('operator visibility contract', () => {
     expect(settings).toContain('Blocks scheduled emails, direct email, SMTP tests, and test-mode reroutes until turned off.');
     expect(settings).toContain("sectionMatches('Reply Sync', ['imap inbox replies polling manual sync email replies'])");
     expect(settings).toContain('<p class="eyebrow">Replies</p>');
+    expect(settings).toContain("onclick={() => applySmtpPreset('proton')}");
+    expect(settings).toContain('Proton Mail Bridge preset');
+    expect(settings).toContain("replySyncMode = 'disabled'");
+    expect(settings).toContain('No reply sync');
+    expect(settings).toContain('Use this for Proton Mail or any provider where replies cannot be checked through IMAP.');
     expect(settings).not.toContain("sectionMatches('Reply Sync', ['imap inbox replies acknowledgements acknowledged polling manual sync email replies'])");
     expect(settings).not.toContain('<p class="eyebrow">Acknowledgements</p>');
     expect(settings).toContain("sectionMatches('Agent Access', ['ai assistant claude code local tools mcp token confirmation'])");

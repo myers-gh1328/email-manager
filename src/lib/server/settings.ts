@@ -45,6 +45,7 @@ export interface AppSettings {
   replySyncUsername: string;
   replySyncPasswordConfigured: boolean;
   replySyncPollingEnabled: boolean;
+  replySyncMode: 'imap' | 'disabled';
   themeMode: ThemeMode;
   agentEnabled: boolean;
   agentPermissions: AgentPermissions;
@@ -86,6 +87,7 @@ export function getSettings(): AppSettings {
     replySyncUsername: repo.getSetting('replySync.username'),
     replySyncPasswordConfigured: Boolean(repo.getSetting('replySync.password')),
     replySyncPollingEnabled: repo.getSetting('replySync.pollingEnabled') !== 'false',
+    replySyncMode: normalizeReplySyncMode(repo.getSetting('replySync.mode')),
     themeMode: normalizeThemeMode(repo.getSetting('ui.themeMode')),
     agentEnabled: repo.getSetting('agent.enabled') === 'true',
     agentPermissions: normalizeAgentPermissions(
@@ -182,11 +184,13 @@ export function updateAiSettings(form: FormData) {
 }
 
 export function updateReplySyncSettings(form: FormData) {
+  const mode = normalizeReplySyncMode(formText(form.get('replySyncMode')));
+  set('replySync.mode', mode);
   set('replySync.host', form.get('replySyncHost'));
   set('replySync.port', form.get('replySyncPort') || '993');
   set('replySync.tls', checked(form, 'replySyncTls'));
   set('replySync.username', form.get('replySyncUsername'));
-  set('replySync.pollingEnabled', checked(form, 'replySyncPollingEnabled'));
+  set('replySync.pollingEnabled', mode === 'imap' ? checked(form, 'replySyncPollingEnabled') : 'false');
 
   const postedPassword = form.get('replySyncPassword');
   const password = typeof postedPassword === 'string' ? postedPassword : '';
@@ -268,6 +272,10 @@ function normalizeBaseUrl(value: string) {
     normalized = normalized.slice(0, -1);
   }
   return normalized;
+}
+
+function normalizeReplySyncMode(value: string): 'imap' | 'disabled' {
+  return value === 'disabled' ? 'disabled' : 'imap';
 }
 
 function cappedInt(value: FormDataEntryValue | string | null, fallback: number, min: number, max: number) {

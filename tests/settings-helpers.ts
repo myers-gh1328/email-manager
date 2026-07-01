@@ -37,6 +37,7 @@ export function baseAppSettings(overrides: Partial<AppSettings> = {}): AppSettin
     replySyncUsername: '',
     replySyncPasswordConfigured: false,
     replySyncPollingEnabled: true,
+    replySyncMode: 'imap',
     themeMode: 'system',
     agentEnabled: false,
     agentPermissions: defaultAgentPermissions,
