@@ -2,6 +2,7 @@ import { repo } from './app';
 import { decryptSecret, encryptSecret } from './crypto';
 import { normalizeThemeMode, type ThemeMode } from '../shared/theme';
 import { formText } from './form-utils';
+import { isLoopbackHost } from '../shared/network';
 import {
   agentPermissionKeys,
   defaultAgentPermissions,
@@ -42,6 +43,7 @@ export interface AppSettings {
   replySyncHost: string;
   replySyncPort: string;
   replySyncTls: boolean;
+  replySyncAllowSelfSignedCertificate: boolean;
   replySyncUsername: string;
   replySyncPasswordConfigured: boolean;
   replySyncPollingEnabled: boolean;
@@ -84,6 +86,7 @@ export function getSettings(): AppSettings {
     replySyncHost: repo.getSetting('replySync.host'),
     replySyncPort: repo.getSetting('replySync.port') || '993',
     replySyncTls: repo.getSetting('replySync.tls') !== 'false',
+    replySyncAllowSelfSignedCertificate: replySyncAllowsSelfSignedCertificate(),
     replySyncUsername: repo.getSetting('replySync.username'),
     replySyncPasswordConfigured: Boolean(repo.getSetting('replySync.password')),
     replySyncPollingEnabled: repo.getSetting('replySync.pollingEnabled') !== 'false',
@@ -109,6 +112,12 @@ export function getSettings(): AppSettings {
       instructorPluralLabel: repo.getSetting('vocabulary.instructorPluralLabel') || defaultVocabulary.instructorPluralLabel
     })
   };
+}
+
+function replySyncAllowsSelfSignedCertificate() {
+  const configured = repo.getSetting('replySync.allowSelfSignedCertificate');
+  if (configured) return configured === 'true';
+  return isLoopbackHost(repo.getSetting('replySync.host')) && repo.getSetting('replySync.port') === '1143';
 }
 
 export function updateProfileSettings(form: FormData) {
@@ -189,6 +198,11 @@ export function updateReplySyncSettings(form: FormData) {
   set('replySync.host', form.get('replySyncHost'));
   set('replySync.port', form.get('replySyncPort') || '993');
   set('replySync.tls', checked(form, 'replySyncTls'));
+  const replySyncHost = formText(form.get('replySyncHost'));
+  set(
+    'replySync.allowSelfSignedCertificate',
+    checked(form, 'replySyncAllowSelfSignedCertificate') && isLoopbackHost(replySyncHost)
+  );
   set('replySync.username', form.get('replySyncUsername'));
   set('replySync.pollingEnabled', mode === 'imap' ? checked(form, 'replySyncPollingEnabled') : 'false');
 

@@ -137,6 +137,8 @@ When changing reply sync, preserve these rules:
 - do not log senders, subjects, bodies, mailbox names, UIDs, Message-IDs,
   credentials, usernames, or hosts
 - keep background polling disableable and keep manual sync available
+- allow self-signed IMAP certificates only for explicit loopback Bridge configuration
+- keep an IMAP error listener attached so provider failures do not crash the app
 
 ### Optional Local MCP
 

@@ -180,6 +180,11 @@ sent. It does not import unrelated inbox mail, mark messages read, move
 messages, or delete messages. You can turn automatic checking off and use
 **Sync replies now** manually.
 
+For Proton Mail Bridge on the same machine, choose **Proton Bridge preset**.
+It uses `127.0.0.1:1143`, STARTTLS, and Bridge's local self-signed certificate.
+Certificate verification may be relaxed only for a loopback IMAP host; remote
+IMAP servers always require a trusted certificate.
+
 ## SMTP Setup
 
 SMTP is the outgoing mail service from your email provider. The app uses it to send individual emails from your account.
@@ -194,14 +199,16 @@ Typical settings:
 
 If your provider supports app passwords, use one. Do not use your main account password unless your provider specifically requires it.
 
-Settings includes presets for Gmail, Fastmail, Proton Mail, and Outlook. Gmail and Fastmail use SMTP with an app password. Proton Mail uses SMTP submission and should use **No reply sync** because this app does not connect to Proton through IMAP. Outlook and Microsoft 365 use Microsoft OAuth2, not an app password.
+Settings includes presets for Gmail, Fastmail, Proton Mail, and Outlook. Gmail and Fastmail use SMTP with an app password. Proton Mail can use direct SMTP submission or a locally running Proton Mail Bridge; Bridge also enables IMAP reply sync. Outlook and Microsoft 365 use Microsoft OAuth2, not an app password.
 
 For Proton Mail:
 
 1. In Settings, choose **Proton SMTP preset**.
 2. Use host `smtp.protonmail.ch` and port `587`.
 3. Use the Proton SMTP username and SMTP token for your account.
-4. Leave Reply Sync set to **No reply sync**.
+4. For direct Proton SMTP, leave Reply Sync set to **No reply sync**. For a
+   locally running Bridge, use the separate **Proton Bridge preset** under
+   Reply Sync and the credentials shown by Bridge.
 
 For Outlook or Microsoft 365:
 
