@@ -301,6 +301,11 @@ Run it:
 HOST=127.0.0.1 PORT=3000 node build
 ```
 
+When one deployment is intentionally accessed through more than one origin,
+set `SCUBA_EMAIL_TRUSTED_ORIGINS` at build time to a comma-separated allowlist
+of the additional exact origins. The adapter-node `ORIGIN` remains the primary
+browser-facing URL. Do not use wildcards.
+
 Run it under a process manager so scheduled sends continue while you are away.
 Platform options:
 
