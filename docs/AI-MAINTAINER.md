@@ -44,6 +44,7 @@ Keep route-specific form actions in the owning `+page.server.ts`. Move code into
 
 - `src/lib/server/app.ts` creates the singleton repository using the configured SQLite path.
 - `src/lib/server/auth.ts` owns admin password hashing, sessions, setup cookies, and route redirects.
+- `src/lib/server/owner-auth.ts` optionally places the shared, deployment-configured Entra owner-auth layer in front of all application routes. Keep its secrets runtime-only and preserve `/healthz` as the unauthenticated process probe.
 - `src/lib/server/background.ts` owns the minute-based scheduled-send loop and due-campaign processing.
 - `src/lib/server/scheduler.ts` owns pure delivery-planning helpers.
 - `src/lib/server/mailer.ts` owns SMTP delivery, Microsoft OAuth2 SMTP support, test mode rerouting, signatures, and HTML conversion.

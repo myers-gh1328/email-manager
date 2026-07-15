@@ -287,6 +287,26 @@ Important notes:
 - Set `SCUBA_EMAIL_DISABLE_BACKGROUND=true` only if you do not want the automatic scheduler to start.
 - Back up the data directory. It contains contacts, templates, schedules, and encrypted settings.
 
+### Deployment-managed owner authentication
+
+Hosted limited-user deployments can place Microsoft Entra authentication in
+front of every application route with the shared `@myers-gh1328/owner-oidc`
+package. Set `SCUBA_EMAIL_OWNER_AUTH_ENABLED=true` and provide:
+
+- `SCUBA_EMAIL_ENTRA_TENANT_ID`
+- `SCUBA_EMAIL_ENTRA_CLIENT_ID`
+- `SCUBA_EMAIL_ENTRA_CLIENT_SECRET`
+- `SCUBA_EMAIL_ENTRA_REDIRECT_URIS`, using exact HTTPS `/auth/callback` URLs
+- `SCUBA_EMAIL_ENTRA_POST_LOGOUT_REDIRECT_URI`
+- `SCUBA_EMAIL_ENTRA_ALLOWED_OBJECT_IDS`, as a comma-separated owner allowlist
+- `SCUBA_EMAIL_OWNER_SESSION_SECRET`, containing at least 32 random bytes
+
+When enabled, `/auth/login`, `/auth/callback`, and `/auth/logout` own the Entra
+flow, `/healthz` remains public for process checks, and all application routes
+require an allowlisted Entra session. Cookies are HTTP-only, Secure, and
+SameSite=Lax. Disabling the flag restores the existing local-password and
+optional linked-provider behavior as the recovery path.
+
 ## Production Build
 
 Build the app:
