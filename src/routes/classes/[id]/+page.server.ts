@@ -17,6 +17,7 @@ import {
   scheduledForFromClassOffset
 } from '$lib/server/campaign-email';
 import { extractRosterFromImage } from '$lib/server/llm';
+import { reportImageImportFailure } from '$lib/server/image-import-diagnostics';
 import { importRosterRows, parseRosterCsv } from '$lib/server/roster-import';
 import { localReturnTo } from '$lib/server/return-to';
 import { getSettings } from '$lib/server/settings';
@@ -103,12 +104,13 @@ export const actions = {
     const file = form.get('imageFile');
     if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose an image to import.'));
     const dataUrl = `data:${file.type || 'image/png'};base64,${Buffer.from(await file.arrayBuffer()).toString('base64')}`;
+    let result;
     try {
-      const result = importRosterRows(repo, params.id, await extractRosterFromImage(dataUrl));
-      throw redirect(303, classDetailActionReturn(params.id, form, `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
+      result = importRosterRows(repo, params.id, await extractRosterFromImage(dataUrl));
     } catch (error) {
-      return fail(400, { error: true, panel: 'image', message: errorText(error) });
+      return fail(400, { error: true, panel: 'image', message: reportImageImportFailure('class_roster', error) });
     }
+    throw redirect(303, classDetailActionReturn(params.id, form, `Imported image roster: ${result.created} created, ${result.reused} reused, ${result.enrolled} enrolled, ${result.skipped} skipped.`));
   },
   previewClassEmail: async ({ params, request }) => {
 	    const form = await request.formData();

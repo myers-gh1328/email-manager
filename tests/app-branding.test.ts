@@ -22,7 +22,10 @@ describe('app branding', () => {
     expect(manifest.name).toBe('Training Communications Studio');
     expect(manifest.short_name).toBe('Training Comms');
     expect(readFileSync('src/app.html', 'utf8')).toContain('apple-mobile-web-app-title" content="Training Comms"');
-    expect(readFileSync('static/icons/icon.svg', 'utf8')).toContain('Training Communications Studio');
+    const icon = readFileSync('static/icons/icon.svg', 'utf8');
+    expect(icon).toContain('Training Communications Studio');
+    expect(icon).toContain('data-brand-mark="communications"');
+    expect(icon).not.toContain('<circle');
   });
 
   test('does not show the legacy product name in user-facing shell surfaces', () => {
