@@ -260,6 +260,17 @@ account management, or hosted authentication. Provider credentials are
 installation-owned settings. Sign-on must not store provider access tokens or
 refresh tokens.
 
+A hosted limited-user deployment may instead enable the shared
+`@myers-gh1328/owner-oidc` outer authentication layer. This deployment-owned
+mode is tenant-pinned and authorizes only explicit Entra object IDs. It handles
+its own `/auth/login`, `/auth/callback`, and `/auth/logout` routes before
+SvelteKit application routing, leaves only `/healthz` public, and bypasses the
+inner local-password routing only after a verified owner session. Its client
+credential, object-ID allowlist, and independent session-signing secret are
+runtime secrets/configuration and are never persisted in the application
+database. Disabling the deployment flag restores the inner authentication
+path.
+
 Secrets are encrypted before storage using the app secret. The app secret must be changed before remote exposure.
 
 Sensitive values include:
