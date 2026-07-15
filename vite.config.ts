@@ -10,7 +10,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       reportsDirectory: 'coverage',
-      include: ['src/lib/server/**/*.ts', 'src/lib/shared/**/*.ts', 'src/mcp/**/*.ts'],
+      include: ['src/lib/pwa-updates.ts', 'src/lib/server/**/*.ts', 'src/lib/shared/**/*.ts', 'src/mcp/**/*.ts'],
       exclude: [
         'src/lib/server/repository/types.ts',
         'src/mcp/index.ts'
