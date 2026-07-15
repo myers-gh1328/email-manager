@@ -87,6 +87,10 @@
     open = false;
   }
 
+  function keepOptionAvailable(event: PointerEvent) {
+    event.preventDefault();
+  }
+
   function closeWhenLeaving(event: FocusEvent) {
     if (event.currentTarget instanceof HTMLElement && event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) {
       return;
@@ -121,6 +125,7 @@
           class:selected={option.value === selectedValue}
           role="option"
           aria-selected={option.value === selectedValue}
+          onpointerdown={keepOptionAvailable}
           onclick={() => selectOption(option)}
         >
           {option.label}

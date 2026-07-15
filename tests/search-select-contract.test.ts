@@ -11,6 +11,8 @@ describe('SearchSelect contract', () => {
     expect(source).toContain('aria-expanded={open}');
     expect(source).toContain('{#if open}');
     expect(source).toContain('selectOption');
+    expect(source).toContain('onpointerdown={keepOptionAvailable}');
+    expect(source).toContain('event.preventDefault()');
     expect(source).not.toContain('<select');
     expect(source).not.toContain('<datalist');
   });
