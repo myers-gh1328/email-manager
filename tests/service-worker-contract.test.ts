@@ -9,8 +9,13 @@ describe('service worker contract', () => {
     expect(source).not.toContain('scuba-email-studio-${version}');
   });
 
-  test('does not force activate a new worker over an active app session', () => {
-    expect(source).not.toContain('skipWaiting()');
+  test('activates only when the shared lifecycle prompt requests it', () => {
+    expect(source).toContain("import { installPwaUpdateHandler } from '@myers-gh1328/pwa-lifecycle'");
+    expect(source).toContain('installPwaUpdateHandler(workerScope)');
     expect(source).not.toContain('clients.claim()');
+  });
+
+  test('disables SvelteKit auto-registration so the shared lifecycle owns registration', () => {
+    expect(readFileSync('svelte.config.js', 'utf8')).toContain('register: false');
   });
 });

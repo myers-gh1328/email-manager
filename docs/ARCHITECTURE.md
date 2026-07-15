@@ -287,6 +287,15 @@ The app provides settings that make remote access understandable:
 
 Only enable trusted proxy headers when the proxy or tunnel is the only public path to the app.
 
+## PWA Updates
+
+The browser shell uses the shared `@myers-gh1328/pwa-lifecycle` package to own
+service-worker registration and present an explicit Update/Later prompt when a
+replacement worker is waiting. Updates never activate automatically. Accepting
+the prompt sends `SKIP_WAITING`; controlled tabs reload after the replacement
+worker takes control. The service worker continues to own only static asset
+caching and must not cache API responses or private application data.
+
 ## Desktop Packaging
 
 Desktop packaging is additive. It must not replace the server deployment path used by `npm run build`, `node build`, or `npm run deploy:local`.

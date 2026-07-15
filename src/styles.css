@@ -117,6 +117,53 @@ body {
   background: var(--page-bg);
 }
 
+.pwa-update-prompt {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 100;
+  display: grid;
+  gap: 10px;
+  width: min(380px, calc(100vw - 36px));
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-panel);
+  color: var(--text);
+}
+
+.pwa-update-prompt[hidden] {
+  display: none;
+}
+
+.pwa-update-prompt > span {
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.pwa-update-prompt > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.pwa-update-prompt button {
+  min-height: 42px;
+}
+
+.pwa-update-prompt button:first-child {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--surface);
+}
+
+.pwa-update-prompt button:focus-visible {
+  outline: 3px solid var(--brand-strong);
+  outline-offset: 2px;
+}
+
 button,
 input,
 select,
