@@ -1,6 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { errorText, required, text } from '$lib/server/form-utils';
+import { reportImageImportFailure } from '$lib/server/image-import-diagnostics';
 import { extractRosterFromImage } from '$lib/server/llm';
 import { loadContactsData } from '$lib/server/page-data';
 import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
@@ -52,12 +53,13 @@ export const actions = {
     const file = form.get('imageFile');
     if (!(file instanceof File) || file.size === 0) throw redirect(303, contactActionReturn(form, 'Choose an image to import.'));
     const dataUrl = `data:${file.type || 'image/png'};base64,${Buffer.from(await file.arrayBuffer()).toString('base64')}`;
+    let result;
     try {
-      const result = importContactRows(repo, await extractRosterFromImage(dataUrl));
-      throw redirect(303, contactActionReturn(form, `Imported screenshot contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`));
+      result = importContactRows(repo, await extractRosterFromImage(dataUrl));
     } catch (error) {
-      return fail(400, { error: true, message: errorText(error) });
+      return fail(400, { error: true, message: reportImageImportFailure('contacts', error) });
     }
+    throw redirect(303, contactActionReturn(form, `Imported screenshot contacts: ${result.created} created, ${result.reused} reused, ${result.skipped} skipped.`));
   },
   updateContact: async ({ request }) => {
     const form = await request.formData();
