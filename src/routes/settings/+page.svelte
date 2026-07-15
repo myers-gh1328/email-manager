@@ -17,6 +17,7 @@
   let replySyncHost = $state('');
   let replySyncPort = $state('');
   let replySyncTls = $state(true);
+  let replySyncAllowSelfSignedCertificate = $state(false);
   let replySyncUsername = $state('');
   let replySyncMode = $state<'imap' | 'disabled'>('imap');
   let externalSignOnProvider = $state('google');
@@ -41,6 +42,7 @@
       replySyncHost = data.settings.replySyncHost;
       replySyncPort = data.settings.replySyncPort;
       replySyncTls = data.settings.replySyncTls;
+      replySyncAllowSelfSignedCertificate = data.settings.replySyncAllowSelfSignedCertificate;
       replySyncUsername = data.settings.replySyncUsername;
       replySyncMode = data.settings.replySyncMode;
       externalSignOnProvider = data.externalSignOn.provider || 'google';
@@ -96,13 +98,15 @@
     };
   }
 
-  function applyImapPreset(provider: 'gmail' | 'fastmail' | 'outlook') {
+  function applyImapPreset(provider: 'gmail' | 'fastmail' | 'outlook' | 'proton-bridge') {
     replySyncMode = 'imap';
-    replySyncTls = true;
-    replySyncPort = '993';
+    replySyncTls = provider !== 'proton-bridge';
+    replySyncPort = provider === 'proton-bridge' ? '1143' : '993';
+    replySyncAllowSelfSignedCertificate = provider === 'proton-bridge';
     if (provider === 'gmail') replySyncHost = 'imap.gmail.com';
     if (provider === 'fastmail') replySyncHost = 'imap.fastmail.com';
     if (provider === 'outlook') replySyncHost = 'outlook.office365.com';
+    if (provider === 'proton-bridge') replySyncHost = '127.0.0.1';
   }
 
   function noticeClass(message: string) {
@@ -578,6 +582,7 @@
           <button class="secondary" type="button" onclick={() => applyImapPreset('gmail')}>Gmail preset</button>
           <button class="secondary" type="button" onclick={() => applyImapPreset('fastmail')}>Fastmail preset</button>
           <button class="secondary" type="button" onclick={() => applyImapPreset('outlook')}>Outlook preset</button>
+          <button class="secondary" type="button" onclick={() => applyImapPreset('proton-bridge')}>Proton Bridge preset</button>
         </div>
         {#if replySyncMode === 'imap'}
           <div class="split">
@@ -595,6 +600,10 @@
           <label class="check with-help">
             <span><input name="replySyncTls" type="checkbox" bind:checked={replySyncTls} /> Use secure IMAP</span>
             <small>Leave this on unless your email provider gives different instructions.</small>
+          </label>
+          <label class="check with-help">
+            <span><input name="replySyncAllowSelfSignedCertificate" type="checkbox" bind:checked={replySyncAllowSelfSignedCertificate} /> Trust the local Bridge certificate</span>
+            <small>Use only with Proton Bridge on localhost. Certificate verification remains required for remote IMAP servers.</small>
           </label>
           <label>
             Username
@@ -614,6 +623,7 @@
           <input type="hidden" name="replySyncHost" value={replySyncHost} />
           <input type="hidden" name="replySyncPort" value={replySyncPort} />
           {#if replySyncTls}<input type="hidden" name="replySyncTls" value="on" />{/if}
+          {#if replySyncAllowSelfSignedCertificate}<input type="hidden" name="replySyncAllowSelfSignedCertificate" value="on" />{/if}
           <input type="hidden" name="replySyncUsername" value={replySyncUsername} />
           <div class="setup-note">
             <p class="help-text">Reply sync is off. Sent email history still records every outbound message, but replies will not be imported automatically.</p>

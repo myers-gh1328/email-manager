@@ -1,6 +1,7 @@
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import type { AppSettings } from './settings';
+import { isLoopbackHost } from '../shared/network';
 import type { AppRepository, CommunicationReplyInput } from './repository';
 
 export interface ReplySyncResult {
@@ -122,12 +123,19 @@ async function createImapMailbox(settings: AppSettings, password: string): Promi
     host: settings.replySyncHost,
     port: Number(settings.replySyncPort || 993),
     secure: settings.replySyncTls,
+    tls: {
+      rejectUnauthorized: !(
+        settings.replySyncAllowSelfSignedCertificate &&
+        isLoopbackHost(settings.replySyncHost)
+      )
+    },
     auth: {
       user: settings.replySyncUsername,
       pass: password
     },
     logger: false
   });
+  client.on('error', () => undefined);
   await client.connect();
   const mailbox = await client.mailboxOpen('INBOX', { readOnly: true });
 

@@ -209,6 +209,12 @@ message bodies, mailbox names, UIDs, Message-IDs, usernames, hosts, or
 credential details in logs. User-visible errors should stay generic and point
 the user back to IMAP settings.
 
+Local Proton Mail Bridge is the only supported self-signed IMAP case. The
+setting is honored only for loopback hosts, with the existing Bridge
+`127.0.0.1:1143` configuration recognized during upgrade. Remote IMAP hosts
+must always retain certificate verification. Attach an IMAP client error
+listener so a failed background connection cannot terminate the Node process.
+
 ## AI Drafting
 
 AI assistance is optional and must remain optional.

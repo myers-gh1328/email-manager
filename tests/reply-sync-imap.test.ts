@@ -4,7 +4,8 @@ const client = vi.hoisted(() => ({
   connect: vi.fn(),
   mailboxOpen: vi.fn(),
   fetch: vi.fn(),
-  logout: vi.fn()
+  logout: vi.fn(),
+  on: vi.fn()
 }));
 
 const repo = vi.hoisted(() => ({
@@ -16,6 +17,7 @@ const settings = vi.hoisted(() => ({
   replySyncHost: 'imap.example.com',
   replySyncPort: '993',
   replySyncTls: true,
+  replySyncAllowSelfSignedCertificate: false,
   replySyncUsername: 'user@example.com',
   replySyncPasswordConfigured: true,
   replySyncMode: 'imap' as 'imap' | 'disabled'
@@ -49,6 +51,10 @@ describe('reply sync IMAP adapter', () => {
     vi.clearAllMocks();
     settings.replySyncMode = 'imap';
     settings.replySyncPasswordConfigured = true;
+    settings.replySyncHost = 'imap.example.com';
+    settings.replySyncPort = '993';
+    settings.replySyncTls = true;
+    settings.replySyncAllowSelfSignedCertificate = false;
     repo.listRecentCommunicationMessageIds.mockReturnValue([{ id: 'communication-1', messageId: '<sent@example.com>' }]);
     repo.recordCommunicationReply.mockReturnValue({ created: true });
     client.connect.mockResolvedValue(undefined);
@@ -87,6 +93,38 @@ describe('reply sync IMAP adapter', () => {
       receivedAt: '2026-06-22T15:00:00.000Z'
     });
     expect(client.logout).toHaveBeenCalledOnce();
+  });
+
+  test('allows the Proton Bridge certificate only for a loopback IMAP host', async () => {
+    settings.replySyncHost = '127.0.0.1';
+    settings.replySyncPort = '1143';
+    settings.replySyncTls = false;
+    settings.replySyncAllowSelfSignedCertificate = true;
+    const { ImapFlow } = await import('imapflow');
+    const { syncRepliesNow } = await import('../src/lib/server/reply-sync');
+
+    await syncRepliesNow();
+
+    expect(ImapFlow).toHaveBeenCalledWith(expect.objectContaining({
+      host: '127.0.0.1',
+      port: 1143,
+      secure: false,
+      tls: { rejectUnauthorized: false }
+    }));
+    expect(client.on).toHaveBeenCalledWith('error', expect.any(Function));
+  });
+
+  test('keeps certificate verification enabled for non-loopback hosts', async () => {
+    settings.replySyncHost = 'imap.example.com';
+    settings.replySyncAllowSelfSignedCertificate = true;
+    const { ImapFlow } = await import('imapflow');
+    const { syncRepliesNow } = await import('../src/lib/server/reply-sync');
+
+    await syncRepliesNow();
+
+    expect(ImapFlow).toHaveBeenCalledWith(expect.objectContaining({
+      tls: { rejectUnauthorized: true }
+    }));
   });
 
   test('returns not configured before opening IMAP', async () => {

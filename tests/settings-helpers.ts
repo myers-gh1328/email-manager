@@ -34,6 +34,7 @@ export function baseAppSettings(overrides: Partial<AppSettings> = {}): AppSettin
     replySyncHost: '',
     replySyncPort: '993',
     replySyncTls: true,
+    replySyncAllowSelfSignedCertificate: false,
     replySyncUsername: '',
     replySyncPasswordConfigured: false,
     replySyncPollingEnabled: true,
