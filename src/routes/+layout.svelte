@@ -5,6 +5,7 @@
   import { afterNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
+  import { initializePwaUpdates } from '$lib/pwa-updates';
   import { navigationItems } from '$lib/shared/navigation';
 
   let { data, children } = $props();
@@ -43,6 +44,8 @@
   });
 
   onMount(() => {
+    let destroyed = false;
+    let destroyPwaUpdates: (() => void) | undefined;
     const click = (event: MouseEvent) => {
       const target = event.target instanceof Element ? event.target.closest('a[href]') : null;
       if (!(target instanceof HTMLAnchorElement)) return;
@@ -54,8 +57,16 @@
     document.addEventListener('click', click, true);
     window.addEventListener('pageshow', hideBusy);
     hideBusy();
+    void initializePwaUpdates()
+      .then((updates) => {
+        if (destroyed) updates.destroy();
+        else destroyPwaUpdates = updates.destroy;
+      })
+      .catch(() => undefined);
 
     return () => {
+      destroyed = true;
+      destroyPwaUpdates?.();
       document.removeEventListener('click', click, true);
       window.removeEventListener('pageshow', hideBusy);
       clearTimeout(busyTimer);

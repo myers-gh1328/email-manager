@@ -1,11 +1,14 @@
 /// <reference types="@sveltejs/kit" />
 
 import { build, files, version } from '$service-worker';
+import { installPwaUpdateHandler } from '@myers-gh1328/pwa-lifecycle';
 
 const cacheName = `training-communications-studio-${version}`;
 const cachedAssets = [...build, ...files];
 const workerScope = globalThis as ServiceWorkerGlobalScope;
 const cachedAssetPaths = new Set(cachedAssets.map((asset) => new URL(asset, workerScope.location.origin).pathname));
+
+installPwaUpdateHandler(workerScope);
 
 globalThis.addEventListener('install', (event) => {
   event.waitUntil(

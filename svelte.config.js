@@ -4,7 +4,10 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter({ out: process.env.SCUBA_BUILD_OUT ?? 'build' })
+    adapter: adapter({ out: process.env.SCUBA_BUILD_OUT ?? 'build' }),
+    serviceWorker: {
+      register: false
+    }
   }
 };
 

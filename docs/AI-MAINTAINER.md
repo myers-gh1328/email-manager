@@ -114,6 +114,14 @@ model is marked vision-capable, and an AI endpoint plus model are configured.
 The class roster page may accept mobile camera photos, but those photos still
 go through the normal AI extraction and import review path.
 
+### PWA Updates
+
+`src/lib/pwa-updates.ts` integrates the shared PWA lifecycle package, and
+`src/service-worker.ts` accepts its explicit `SKIP_WAITING` activation message.
+Keep SvelteKit auto-registration disabled so one lifecycle owner controls update
+state. Do not change this to automatic activation: the operator must choose
+Update before the worker takes control and reloads open tabs.
+
 ### Optional Reply Sync
 
 Reply sync is not inbox management. It uses IMAP only to find replies to
