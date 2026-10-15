@@ -81,7 +81,7 @@
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "imapflow": "^1.4.2",
     "mailparser": "^3.9.11",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^9.0.3",
     "openid-client": "^6.8.4",
     "svelte": "^5.34.3",
     "vite": "^6.3.5"
