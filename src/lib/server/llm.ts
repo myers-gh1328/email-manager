@@ -1,6 +1,10 @@
-import { repo } from './app';
-import { decryptSecret } from './crypto';
-import { getSettings } from './settings';
+import { aiBaseUrl, getSettings } from './settings';
+
+/**
+ * The model is chosen by the deployment's model gateway, never by the app or its users.
+ * Requests always ask for the gateway's automatic model selection.
+ */
+export const AI_MODEL = 'auto';
 
 const rosterResponseFormat = {
   type: 'json_schema',
@@ -57,18 +61,16 @@ export async function suggestTemplate(
   }
 ) {
   const settings = getSettings();
-  if (!settings.aiEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-    throw new Error('AI assistance is disabled or incomplete.');
+  const baseUrl = aiBaseUrl();
+  if (!settings.aiEnabled || !baseUrl) {
+    throw new Error('AI assistance is disabled or no AI endpoint is configured for this installation.');
   }
 
-  const response = await fetch(`${settings.aiBaseUrl.replace(/\/$/, '')}/chat/completions`, {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...(settings.aiApiKeyConfigured ? { authorization: `Bearer ${decryptSecret(repo.getSetting('ai.apiKey'))}` } : {})
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: settings.aiModel,
+      model: AI_MODEL,
       messages: [
         {
           role: 'system',
@@ -92,48 +94,18 @@ export async function suggestTemplate(
   return parseTemplateResponse(String(data.choices?.[0]?.message?.content ?? '').trim());
 }
 
-export async function listAiModels(input: { baseUrl: string; apiKey?: string }) {
-  if (!input.baseUrl.trim()) throw new Error('Enter an AI base URL before loading models.');
-  const response = await fetch(`${input.baseUrl.replace(/\/$/, '')}/models`, {
-    headers: {
-      ...(input.apiKey ? { authorization: `Bearer ${input.apiKey}` } : {})
-    }
-  });
-  if (!response.ok) throw new Error(`AI model list returned ${response.status}`);
-  const data = await response.json();
-  const models = modelsFromResponse(data);
-  return models
-    .map(modelId)
-    .filter(Boolean)
-    .sort((a: string, b: string) => a.localeCompare(b));
-}
-
-function modelsFromResponse(data: { data?: unknown; models?: unknown }) {
-  if (Array.isArray(data.data)) return data.data;
-  if (Array.isArray(data.models)) return data.models;
-  return [];
-}
-
-function modelId(model: unknown) {
-  if (typeof model === 'string') return model;
-  if (model && typeof model === 'object' && typeof (model as { id?: unknown }).id === 'string') return (model as { id: string }).id;
-  return '';
-}
-
 export async function extractRosterFromImage(imageDataUrl: string) {
   const settings = getSettings();
-  if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-    throw new Error('Enable a vision-capable AI model before importing screenshots.');
+  const baseUrl = aiBaseUrl();
+  if (!settings.aiEnabled || !settings.aiVisionEnabled || !baseUrl) {
+    throw new Error('Enable AI vision assistance on an installation with a configured AI endpoint before importing screenshots.');
   }
 
-  const response = await fetch(`${settings.aiBaseUrl.replace(/\/$/, '')}/chat/completions`, {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...(settings.aiApiKeyConfigured ? { authorization: `Bearer ${decryptSecret(repo.getSetting('ai.apiKey'))}` } : {})
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: settings.aiModel,
+      model: AI_MODEL,
       messages: [
         {
           role: 'system',

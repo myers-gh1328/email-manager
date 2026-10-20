@@ -74,7 +74,7 @@ Required visibility:
   It must not act like a general inbox reader.
 - Test audit navigation is visible only while email test mode is enabled. Direct URL access may show historical redirected test emails, but the page must clearly state when test mode is off.
 - Settings must use searchable collapsible sections and grouped forms. Changing one settings group must not resave unrelated groups.
-- AI model selection should prefer model discovery from the configured OpenAI-compatible `/models` endpoint, with manual entry only as a fallback for servers that cannot list models.
+- The AI endpoint is deployment configuration (`SCUBA_EMAIL_AI_BASE_URL`, an OpenAI-compatible `/v1` base URL), not an app setting. Requests always use model `auto` so the endpoint's gateway picks the model; the UI must not let users enter an endpoint, model, or API key. Settings keep only the AI on/off and vision switches.
 
 When adding UI for sending, scheduling, settings, or AI, add or update tests for these visibility rules where practical. If the rule is implemented through Svelte markup, prefer extracting a small pure helper when that makes the contract cheap to test.
 
@@ -283,7 +283,6 @@ Sensitive values include:
 
 - Admin password.
 - SMTP password.
-- AI API key.
 - Session tokens.
 - Student contact data.
 

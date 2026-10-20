@@ -110,8 +110,9 @@ The app must work without an AI endpoint. AI may draft text or extract roster ro
 
 AI parsing should tolerate common model response wrappers where practical. If parsing fails, return a useful error without leaking prompts or keys.
 
-Image roster import is allowed only when AI assistance is enabled, the chosen
-model is marked vision-capable, and an AI endpoint plus model are configured.
+Image roster import is allowed only when AI assistance is enabled, the AI
+endpoint is marked vision-capable, and the deployment configures
+`SCUBA_EMAIL_AI_BASE_URL`.
 The class roster page may accept mobile camera photos, but those photos still
 go through the normal AI extraction and import review path.
 
@@ -164,7 +165,7 @@ The UI must make send state auditable without requiring database knowledge or gu
 - History shows complete outbound email history across direct and scheduled email sends.
 - Test audit appears in navigation only while email test mode is enabled; historical direct URL access must say test mode is off.
 - Settings use searchable collapsible sections and grouped saves so users can find agent, SMTP, scheduler, remote access, AI, vocabulary, and password controls without rewriting unrelated settings.
-- AI model selection should discover models from the configured `/models` endpoint when available.
+- The AI endpoint comes only from `SCUBA_EMAIL_AI_BASE_URL` and requests use model `auto`; never add UI or settings for choosing an AI endpoint, model, or API key.
 
 When a change affects these rules, update tests or extract pure helpers so the contract is covered outside manual visual inspection.
 

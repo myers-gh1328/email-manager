@@ -17,7 +17,7 @@
     ...data.defaultTemplates.map((item) => ({ value: `default:${item.purpose}:${item.templateId}`, label: `${purposeLabel(item.purpose)} · ${item.templateName} · ${timingLabel(item.sendOffsetMinutes)}` })),
     ...data.templateOptions
   ]);
-  let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiBaseUrl && data.settings.aiModel));
+  let aiImageImportReady = $derived(Boolean(data.settings.aiEnabled && data.settings.aiVisionEnabled && data.settings.aiEndpointConfigured));
   let rosterSearch = $derived(data.rosterPage.search ?? '');
   let currentRosterPage = $derived(Math.floor(data.rosterPage.offset / data.rosterPage.limit) + 1);
   let totalRosterPages = $derived(Math.max(Math.ceil(data.rosterPage.total / data.rosterPage.limit), 1));

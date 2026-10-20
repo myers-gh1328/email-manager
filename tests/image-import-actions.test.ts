@@ -5,7 +5,7 @@ const importContactRows = vi.fn();
 
 vi.mock('$lib/server/app', () => ({ repo: {} }));
 vi.mock('$lib/server/settings', () => ({
-  getSettings: () => ({ aiEnabled: true, aiVisionEnabled: true, aiBaseUrl: 'https://ai.example.test/v1', aiModel: 'vision-model' })
+  getSettings: () => ({ aiEnabled: true, aiVisionEnabled: true, aiEndpointConfigured: true })
 }));
 vi.mock('$lib/server/llm', () => ({ extractRosterFromImage }));
 vi.mock('$lib/server/roster-import', () => ({

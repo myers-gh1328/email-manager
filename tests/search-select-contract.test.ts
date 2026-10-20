@@ -190,14 +190,14 @@ describe('SearchSelect contract', () => {
     expect(historyLoad).toContain('selectedContactId');
   });
 
-  test('uses the shared search select for discovered AI models in settings', () => {
+  test('does not let settings users choose an AI model or endpoint', () => {
     const settings = readFileSync('src/routes/settings/+page.svelte', 'utf8');
+    const settingsServer = readFileSync('src/routes/settings/+page.server.ts', 'utf8');
 
-    expect(settings).toContain("import SearchSelect from '$lib/SearchSelect.svelte'");
-    expect(settings).toContain('aiModelOptions');
-    expect(settings).toContain('<SearchSelect');
-    expect(settings).toContain('name="aiModel"');
-    expect(settings).toContain('placeholder="Search models"');
-    expect(settings).not.toContain('<select name="aiModel"');
+    expect(settings).not.toContain('name="aiModel"');
+    expect(settings).not.toContain('name="aiBaseUrl"');
+    expect(settings).not.toContain('name="aiApiKey"');
+    expect(settings).not.toContain('loadAiModels');
+    expect(settingsServer).not.toContain('loadAiModels');
   });
 });

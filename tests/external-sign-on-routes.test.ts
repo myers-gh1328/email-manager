@@ -30,11 +30,8 @@ const authMocks = vi.hoisted(() => ({
 
 const settingsPageMocks = vi.hoisted(() => ({
   loadSettingsData: vi.fn(),
-  listAiModels: vi.fn(),
   required: vi.fn(),
   testSmtpSettings: vi.fn(),
-  aiApiKeyForModelLoad: vi.fn(),
-  getAiApiKey: vi.fn(),
   getSettings: vi.fn(),
   updateAgentAccessSettings: vi.fn(),
   updateAgentPermissionSettings: vi.fn(),
@@ -49,7 +46,6 @@ const settingsPageMocks = vi.hoisted(() => ({
 vi.mock('$lib/server/external-sign-on', () => externalSignOnMocks);
 vi.mock('$lib/server/auth', () => authMocks);
 vi.mock('$lib/server/page-data', () => ({ loadSettingsData: settingsPageMocks.loadSettingsData }));
-vi.mock('$lib/server/llm', () => ({ listAiModels: settingsPageMocks.listAiModels }));
 vi.mock('$lib/server/form-utils', () => ({
   errorText: (error: unknown) => error instanceof Error ? error.message : 'Something went wrong.',
   formText: (value: FormDataEntryValue | null | string | boolean) => typeof value === 'string' || typeof value === 'boolean' ? String(value) : '',
@@ -57,8 +53,6 @@ vi.mock('$lib/server/form-utils', () => ({
 }));
 vi.mock('$lib/server/mailer', () => ({ testSmtpSettings: settingsPageMocks.testSmtpSettings }));
 vi.mock('$lib/server/settings', () => ({
-  aiApiKeyForModelLoad: settingsPageMocks.aiApiKeyForModelLoad,
-  getAiApiKey: settingsPageMocks.getAiApiKey,
   getSettings: settingsPageMocks.getSettings,
   updateAgentAccessSettings: settingsPageMocks.updateAgentAccessSettings,
   updateAgentPermissionSettings: settingsPageMocks.updateAgentPermissionSettings,
@@ -103,8 +97,7 @@ function baseSettings() {
     smtpUser: '',
     smtpFrom: '',
     microsoftTenantId: 'common',
-    aiBaseUrl: '',
-    aiModel: ''
+    aiEndpointConfigured: false
   };
 }
 

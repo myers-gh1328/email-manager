@@ -1,7 +1,6 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
-  import SearchSelect from '$lib/SearchSelect.svelte';
 
   let { data, form } = $props();
   let busyMessage = $state('');
@@ -12,8 +11,6 @@
   let smtpFrom = $state('');
   let microsoftTenantId = $state('');
   let initialized = $state(false);
-  let aiBaseUrl = $state('');
-  let selectedAiModel = $state('');
   let replySyncHost = $state('');
   let replySyncPort = $state('');
   let replySyncTls = $state(true);
@@ -22,7 +19,6 @@
   let replySyncMode = $state<'imap' | 'disabled'>('imap');
   let externalSignOnProvider = $state('google');
   let settingsSearch = $state('');
-  let aiModelOptions = $derived((form?.aiModels ?? []).map((model: string) => ({ value: model, label: model })));
   let appDataSearch = $derived(data.courseTypesPage.search ?? '');
   let appDataTotal = $derived(Math.max(data.courseTypesPage.total, data.locationsPage.total, data.checklistItemsPage.total));
   let currentAppDataPage = $derived(Math.floor(data.courseTypesPage.offset / data.courseTypesPage.limit) + 1);
@@ -37,8 +33,6 @@
       smtpUser = data.settings.smtpUser;
       smtpFrom = data.settings.smtpFrom;
       microsoftTenantId = data.settings.microsoftTenantId;
-      aiBaseUrl = form?.aiBaseUrl || data.settings.aiBaseUrl;
-      selectedAiModel = form?.aiModel || data.settings.aiModel;
       replySyncHost = data.settings.replySyncHost;
       replySyncPort = data.settings.replySyncPort;
       replySyncTls = data.settings.replySyncTls;
@@ -515,44 +509,21 @@
       <div class="toggle-grid">
         <label class="check with-help">
           <span><input name="aiEnabled" type="checkbox" checked={data.settings.aiEnabled} /> AI assistance</span>
-          <small>Enables template drafting with your local AI endpoint. Email sending still requires your explicit action.</small>
+          <small>Enables template drafting with this installation's AI endpoint. Email sending still requires your explicit action.</small>
         </label>
         <label class="check with-help">
-          <span><input name="aiVisionEnabled" type="checkbox" checked={data.settings.aiVisionEnabled} /> AI model supports vision</span>
-          <small>Turn this on only when the configured AI model can read images. It enables screenshot roster import.</small>
+          <span><input name="aiVisionEnabled" type="checkbox" checked={data.settings.aiVisionEnabled} /> AI endpoint supports vision</span>
+          <small>Turn this on only when the configured AI endpoint can read images. It enables screenshot roster import.</small>
         </label>
       </div>
-      <label>
-        Base URL
-        <input name="aiBaseUrl" bind:value={aiBaseUrl} placeholder="http://localhost:1234/v1" />
-        <span class="help-text">The local AI server address. It should look like an OpenAI-compatible <code>/v1</code> endpoint.</span>
-      </label>
-      {#if form?.aiModels?.length}
-        <div>
-          <SearchSelect
-            name="aiModel"
-            label="Model"
-            options={aiModelOptions}
-            value={selectedAiModel}
-            placeholder="Search models"
-            required
-          />
-          <span class="help-text">Loaded from the configured AI endpoint.</span>
-        </div>
-      {:else}
-        <label>
-          Model
-          <input name="aiModel" bind:value={selectedAiModel} />
-          <span class="help-text">Load models from the endpoint, or enter a model manually if your server does not expose <code>/models</code>.</span>
-        </label>
-      {/if}
-      <label>
-        API key
-        <input name="aiApiKey" type="password" placeholder={data.settings.aiApiKeyConfigured ? 'Configured' : 'Optional'} />
-        <span class="help-text">Usually optional for local AI tools. Leave blank to keep the current saved key.</span>
-      </label>
+      <p class="help-text">
+        {#if data.settings.aiEndpointConfigured}
+          This installation's AI endpoint and model are set by its deployment configuration.
+        {:else}
+          No AI endpoint is configured for this installation. Set <code>SCUBA_EMAIL_AI_BASE_URL</code> in the app environment to enable AI assistance.
+        {/if}
+      </p>
       <div class="button-row">
-        <button class="secondary" type="submit" formaction="?/loadAiModels" formnovalidate>Load models</button>
         <button type="submit">Save AI settings</button>
       </div>
     </form>

@@ -98,8 +98,8 @@ export const actions = {
   importImage: async ({ params, request }) => {
     const form = await request.formData();
     const settings = getSettings();
-    if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-      throw redirect(303, classDetailActionReturn(params.id, form, 'Connect AI assistance and choose a vision-capable model before importing roster images.'));
+    if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiEndpointConfigured) {
+      throw redirect(303, classDetailActionReturn(params.id, form, 'Enable AI vision assistance on an installation with a configured AI endpoint before importing roster images.'));
     }
     const file = form.get('imageFile');
     if (!(file instanceof File) || file.size === 0) throw redirect(303, classDetailActionReturn(params.id, form, 'Choose an image to import.'));

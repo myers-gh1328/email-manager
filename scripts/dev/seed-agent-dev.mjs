@@ -31,8 +31,6 @@ setSetting('smtp.from', 'test-inbox@example.com');
 setSetting('smtp.host', 'smtp.example.test');
 setSetting('smtp.port', '587');
 setSetting('smtp.user', 'test-inbox@example.com');
-setSetting('ai.baseUrl', 'http://127.0.0.1:11434/v1');
-setSetting('ai.model', 'llama3.1');
 
 const openWaterId = insertCourseType('Open Water Diver', 'Entry-level certification with classroom, pool, and checkout dive sessions.');
 const rescueId = insertCourseType('Rescue Diver', 'Scenario-based rescue skills and emergency planning.');

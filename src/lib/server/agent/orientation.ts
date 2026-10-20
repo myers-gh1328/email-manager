@@ -100,9 +100,7 @@ export function getAppOverview() {
         microsoftRefreshTokenConfigured: settings.microsoftRefreshTokenConfigured,
         aiEnabled: settings.aiEnabled,
         aiVisionEnabled: settings.aiVisionEnabled,
-        aiBaseUrlConfigured: Boolean(settings.aiBaseUrl),
-        aiModelConfigured: Boolean(settings.aiModel),
-        aiApiKeyConfigured: settings.aiApiKeyConfigured,
+        aiEndpointConfigured: settings.aiEndpointConfigured,
         agentEnabled: settings.agentEnabled
       }
     },
