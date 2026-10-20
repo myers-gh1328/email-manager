@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { formatDateTime, messageStatusLabel, replySummary } from '$lib/shared/format';
 
   let { data } = $props();
@@ -28,7 +29,7 @@
   let historyClearHref = $derived(data.returnTo ? `/history?returnTo=${encodeURIComponent(data.returnTo)}` : '/history');
 
   function historyPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
@@ -42,7 +43,7 @@
   }
 
   function replyFilterHref(replyStatus: string) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
@@ -55,7 +56,7 @@
   }
 
   function statusFilterHref(status: string) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
@@ -68,7 +69,7 @@
   }
 
   function typeFilterHref(type: string) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.communicationPage.search) params.set('search', data.communicationPage.search);
     if (data.selectedContactId) params.set('contactId', data.selectedContactId);
@@ -81,7 +82,7 @@
   }
 
   function composeNewEmailHref() {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     params.set('returnTo', historyReturnTo);
     return `/new-email?${params.toString()}`;
   }

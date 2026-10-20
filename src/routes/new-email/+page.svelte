@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
   import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
@@ -34,7 +35,7 @@
   }
 
   function composeWorkflowReturnTo() {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (selectedContactIds[0]) params.set('contactId', selectedContactIds[0]);
     if (subject) params.set('subject', subject);
     if (body) params.set('body', body);

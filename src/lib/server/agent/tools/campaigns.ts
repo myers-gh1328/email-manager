@@ -15,7 +15,7 @@ interface SendDueCampaignsOperation {
   campaignIds: string[];
 }
 
-export function prepareSendDueCampaignsTool(repo: AppRepository, _input: Record<string, never> = {}, settingsOverride?: AppSettings) {
+export function prepareSendDueCampaignsTool(repo: AppRepository, settingsOverride?: AppSettings) {
   const settings = settingsOverride ?? getSettings();
   const denied = requireAgentPermission(settings, 'prepareEmail');
   if (denied) return denied;

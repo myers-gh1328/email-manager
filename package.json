@@ -6,7 +6,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "electron/main.cjs",
+  "main": "electron/main.mjs",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:agent": "vite --host 127.0.0.1 --port 5174",
@@ -19,7 +19,7 @@
     "desktop:dist:mac": "npm run build && electron-builder --mac --publish never",
     "desktop:dist:win": "npm run build && electron-builder --win --publish never",
     "desktop:pack": "npm run build && electron-builder --dir",
-    "desktop:start": "npm run build && electron electron/main.cjs",
+    "desktop:start": "npm run build && electron electron/main.mjs",
     "preview": "node build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
