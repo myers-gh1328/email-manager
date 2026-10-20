@@ -1,7 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { repo } from '$lib/server/app';
 import { syncDefaultCampaignsForClass } from '$lib/server/class-default-campaigns';
-import { errorText, required, text } from '$lib/server/form-utils';
+import { required, text } from '$lib/server/form-utils';
 import {
   loadContactOptions,
   loadCourseTypeOptions,

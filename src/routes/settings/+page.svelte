@@ -46,7 +46,7 @@
 
   function applySmtpPreset(provider: 'gmail' | 'fastmail' | 'outlook' | 'proton') {
     const current = { authMethod: smtpAuthMethod, host: smtpHost, port: smtpPort };
-    let next = current;
+    let next: typeof current;
     if (provider === 'gmail') {
       next = { authMethod: 'password', host: 'smtp.gmail.com', port: '465' };
     } else if (provider === 'fastmail') {
