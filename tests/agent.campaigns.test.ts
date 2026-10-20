@@ -29,7 +29,7 @@ describe('agent campaign send-due tools', () => {
   it('prepares send-due only when prepareEmail permission is enabled', () => {
     const repo = createTestRepository();
 
-    const result = prepareSendDueCampaignsTool(repo, {}, agentSettings());
+    const result = prepareSendDueCampaignsTool(repo, agentSettings());
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -45,7 +45,7 @@ describe('agent campaign send-due tools', () => {
     repo.markDeliverySent(repo.listDeliveries(campaign.id).find((delivery) => delivery.recipientId === sentContact.id)!.id, 'already-sent');
     repo.markDeliveryFailed(retryDelivery.id, 'temporary SMTP error');
 
-    const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
+    const prepared = prepareSendDueCampaignsTool(repo, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
     expect(prepared.data.summary).toBe('Send due scheduled emails (1).');
@@ -80,7 +80,7 @@ describe('agent campaign send-due tools', () => {
     }
     repo.markDeliveryFailed(retryDelivery.id, 'temporary SMTP error');
 
-    const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
+    const prepared = prepareSendDueCampaignsTool(repo, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
     const result = await commitSendDueCampaignsTool(
@@ -102,7 +102,7 @@ describe('agent campaign send-due tools', () => {
   it('requires exact confirmation and sendEmail permission for send-due commit', async () => {
     const repo = createTestRepository();
     seedDueCampaign(repo);
-    const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
+    const prepared = prepareSendDueCampaignsTool(repo, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
 
@@ -165,7 +165,7 @@ describe('agent campaign send-due tools', () => {
   it('fails closed when due campaign IDs change after prepare', async () => {
     const repo = createTestRepository();
     seedDueCampaign(repo, 'first');
-    const prepared = prepareSendDueCampaignsTool(repo, {}, agentSettings({ prepareEmail: true }));
+    const prepared = prepareSendDueCampaignsTool(repo, agentSettings({ prepareEmail: true }));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
     seedDueCampaign(repo, 'second');
@@ -190,7 +190,7 @@ describe('agent campaign send-due tools', () => {
     const repo = createTestRepository();
     seedDueCampaign(repo);
     const settings = agentSettings({ prepareEmail: true, sendEmail: true }, true, { emailTestModeEnabled: true });
-    const prepared = prepareSendDueCampaignsTool(repo, {}, settings);
+    const prepared = prepareSendDueCampaignsTool(repo, settings);
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) return;
 

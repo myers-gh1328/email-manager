@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import BusyOverlay from '$lib/BusyOverlay.svelte';
   import { messageStatusLabel, replySummary } from '$lib/shared/format';
@@ -43,7 +44,7 @@
   }
 
   function contactsPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.contactsPage.search) params.set('search', data.contactsPage.search);
     if (page > 1) params.set('page', String(page));

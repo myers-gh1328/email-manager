@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import SearchSelect from '$lib/SearchSelect.svelte';
 
@@ -28,7 +29,7 @@
   }
 
   function classesPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.classSessionsPage.search) params.set('search', data.classSessionsPage.search);
     if (page > 1) params.set('page', String(page));

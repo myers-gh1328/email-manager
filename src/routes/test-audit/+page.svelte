@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   let { data } = $props();
   let currentTestAuditPage = $derived(Math.floor(data.auditPage.offset / data.auditPage.limit) + 1);
   let totalTestAuditPages = $derived(Math.max(Math.ceil(data.auditPage.total / data.auditPage.limit), 1));
@@ -8,7 +9,7 @@
   }
 
   function testAuditPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.auditPage.search) params.set('search', data.auditPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
 	  import { enhance } from '$app/forms';
 	  import BusyOverlay from '$lib/BusyOverlay.svelte';
 	  import ContactMultiSelect from '$lib/ContactMultiSelect.svelte';
@@ -55,7 +56,7 @@
   }
 
   function rosterPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.rosterPage.search) params.set('search', data.rosterPage.search);
     if (page > 1) params.set('page', String(page));
@@ -66,7 +67,7 @@
   }
 
   function classEmailsPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (data.rosterPage.search) params.set('search', data.rosterPage.search);
     if (currentRosterPage > 1) params.set('page', String(currentRosterPage));

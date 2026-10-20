@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import SearchSelect from '$lib/SearchSelect.svelte';
   import { scheduledEmailSendSummary, scheduledEmailStatusLabel } from '$lib/shared/format';
@@ -32,7 +33,7 @@
   }
 
   function scheduledEmailsPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (scheduledEmailsPage.search) params.set('search', scheduledEmailsPage.search);
     if (scheduledEmailsPage.status) params.set('status', scheduledEmailsPage.status);
@@ -42,7 +43,7 @@
   }
 
   function statusFilterHref(status: string) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.returnTo) params.set('returnTo', data.returnTo);
     if (scheduledEmailsPage.search) params.set('search', scheduledEmailsPage.search);
     if (status) params.set('status', status);

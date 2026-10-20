@@ -143,7 +143,6 @@ import type {
   EmailTestAuditPageInput,
   EnrollmentChecklistCompletionInput,
   ExternalEntityType,
-  ExternalEventIngestion,
   ExternalEventIngestionInput,
   ExternalMappingInput,
   LocationInput,

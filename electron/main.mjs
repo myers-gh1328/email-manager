@@ -1,9 +1,9 @@
-const { app, BrowserWindow, dialog } = require('electron');
-const { spawn } = require('node:child_process');
-const { existsSync } = require('node:fs');
-const { mkdir } = require('node:fs/promises');
-const { join } = require('node:path');
-const { setTimeout: delay } = require('node:timers/promises');
+import { app, BrowserWindow, dialog } from 'electron';
+import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
 
 let mainWindow;
 let serverProcess;
@@ -89,7 +89,7 @@ async function createWindow(url) {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      preload: join(__dirname, 'preload.cjs')
+      preload: join(import.meta.dirname, 'preload.cjs')
     }
   });
 

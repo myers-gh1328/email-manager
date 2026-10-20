@@ -18,6 +18,16 @@ interface NatsConnectOptions {
   pass?: string;
 }
 
+interface NatsMessage {
+  data: Uint8Array;
+}
+
+interface NatsConnection {
+  subscribe(subject: string): AsyncIterable<NatsMessage>;
+}
+
+type NatsConnect = (options: NatsConnectOptions) => Promise<NatsConnection>;
+
 let started = false;
 
 export function getExternalEventsConfig(env: NodeJS.ProcessEnv = process.env): ExternalEventsConfig {
@@ -90,9 +100,9 @@ export function buildNatsConnectOptions(config: ExternalEventsConfig): NatsConne
   }
 }
 
-async function importOptionalNats(): Promise<{ connect: (options: NatsConnectOptions) => Promise<any> }> {
+async function importOptionalNats(): Promise<{ connect: NatsConnect }> {
   const importer = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>;
-  const transport = (await importer('@nats-io/transport-node')) as { connect: (options: NatsConnectOptions) => Promise<any> };
+  const transport = (await importer('@nats-io/transport-node')) as { connect: NatsConnect };
   return { connect: transport.connect };
 }
 

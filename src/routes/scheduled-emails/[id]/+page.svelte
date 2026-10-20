@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import { deliveryStatusLabel, scheduledEmailStatusLabel } from '$lib/shared/format';
 
@@ -25,7 +26,7 @@
   }
 
   function recipientPageHref(page: number) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     if (data.recipientPage.search) params.set('search', data.recipientPage.search);
     if (page > 1) params.set('page', String(page));
     const query = params.toString();

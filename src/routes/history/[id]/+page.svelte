@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
   import { enhance } from '$app/forms';
   import { formatDateTime, messageStatusLabel } from '$lib/shared/format';
 
@@ -7,7 +8,7 @@
   let detailReturnTo = $derived(`/history/${communication.id}${data.returnTo ? `?returnTo=${encodeURIComponent(data.returnTo)}` : ''}`);
 
   function replyHref(reply: { snippet: string; textBody: string }) {
-    const params = new URLSearchParams();
+    const params = new SvelteURLSearchParams();
     params.set('contactId', communication.contactId);
     params.set('subject', communication.subject.toLowerCase().startsWith('re:') ? communication.subject : `Re: ${communication.subject}`);
     const quoted = reply.snippet || reply.textBody;
