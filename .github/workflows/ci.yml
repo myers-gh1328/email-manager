@@ -41,9 +41,10 @@ jobs:
       - name: Generate coverage
         run: npm run test:coverage
 
-      - name: Sonar scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        with:
-          args: -Dsonar.qualitygate.wait=true
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # SonarCloud — commented out, free tier limit reached
+      # - name: Sonar scan
+      #   uses: SonarSource/sonarqube-scan-action@v6
+      #   with:
+      #     args: -Dsonar.qualitygate.wait=true
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
