@@ -235,11 +235,7 @@ Successful deliveries are recorded and are not sent again. Failed deliveries can
 
 AI assistance is optional. The app works without it.
 
-To enable AI drafting, configure an OpenAI-compatible local endpoint:
-
-- Base URL: usually something like `http://localhost:1234/v1`.
-- Model: the model name your local server expects.
-- API key: optional for many local servers.
+To enable AI drafting, point the app at an OpenAI-compatible endpoint that selects the model itself (for example a local model gateway) by setting `SCUBA_EMAIL_AI_BASE_URL` in the environment where the app starts, such as `SCUBA_EMAIL_AI_BASE_URL=http://localhost:1234/v1`, then restart the app and turn on AI assistance in Settings. The app sends model `auto` and no API key; the endpoint and model are not editable in the app. Endpoint, model, and API key values saved by earlier versions are ignored.
 
 AI can help draft template text. It does not approve campaigns, schedule sends, or send email by itself.
 
@@ -280,6 +276,7 @@ SCUBA_EMAIL_APP_SECRET=change-this-long-random-secret
 SCUBA_EMAIL_APP_SECRET_FILE=./data/.scuba-email-app-secret
 SCUBA_EMAIL_SECURE_COOKIES=false
 SCUBA_EMAIL_DISABLE_BACKGROUND=false
+SCUBA_EMAIL_AI_BASE_URL=
 SCUBA_HEALTH_URL=http://127.0.0.1:3010
 HOST=127.0.0.1
 PORT=5173
@@ -419,7 +416,7 @@ The app stores data locally. Treat the data directory as sensitive because it ca
 - Student contact details.
 - Class enrollment history.
 - Email templates and campaign history.
-- Encrypted SMTP password and optional AI API key.
+- Encrypted SMTP password.
 - Login sessions and app settings.
 
 Do not commit the data directory. It is ignored by git.

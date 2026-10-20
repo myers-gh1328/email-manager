@@ -85,19 +85,23 @@ describe('roster import', () => {
     expect(repo.listContacts().map((contact) => contact.email).sort()).toEqual(['lee@example.com', 'maya@example.com']);
   });
 
-  test('requires an enabled vision model before extracting rows from an image', async () => {
+  test('requires AI vision to be enabled before extracting rows from an image', async () => {
     await expect(
       extractRosterRowsFromImage(
-        {
-          aiEnabled: true,
-          aiVisionEnabled: false,
-          aiBaseUrl: 'http://localhost:1234/v1',
-          aiModel: 'local-text-only',
-          aiApiKeyConfigured: false
-        },
+        { aiEnabled: true, aiVisionEnabled: false, aiEndpointConfigured: true },
         vi.fn(),
         'data:image/png;base64,abc'
       )
-    ).rejects.toThrow('Enable a vision-capable AI model before importing screenshots.');
+    ).rejects.toThrow('Enable AI vision assistance on an installation with a configured AI endpoint before importing screenshots.');
+  });
+
+  test('requires a deployment-configured AI endpoint before extracting rows from an image', async () => {
+    await expect(
+      extractRosterRowsFromImage(
+        { aiEnabled: true, aiVisionEnabled: true, aiEndpointConfigured: false },
+        vi.fn(),
+        'data:image/png;base64,abc'
+      )
+    ).rejects.toThrow('Enable AI vision assistance on an installation with a configured AI endpoint before importing screenshots.');
   });
 });

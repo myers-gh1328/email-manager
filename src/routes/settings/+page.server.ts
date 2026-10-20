@@ -10,7 +10,6 @@ import {
   updateExternalSignOnProviderSettings,
   type ExternalSignOnProvider
 } from '$lib/server/external-sign-on';
-import { listAiModels } from '$lib/server/llm';
 import { syncRepliesNow } from '$lib/server/reply-sync';
 import { errorText, formText, required, text } from '$lib/server/form-utils';
 import { testSmtpSettings } from '$lib/server/mailer';
@@ -19,8 +18,6 @@ import { OutboundGateError } from '$lib/server/outbound-errors';
 import { loadSettingsData } from '$lib/server/page-data';
 import { localReturnTo, returnAfterCreate } from '$lib/server/return-to';
 import {
-  aiApiKeyForModelLoad,
-  getAiApiKey,
   getSettings,
   updateAgentAccessSettings,
   updateAgentPermissionSettings,
@@ -192,31 +189,6 @@ export const actions = {
 
     clearExternalSignOnIdentity();
     return { message: 'External sign-on link removed. Provider settings were kept.' };
-  },
-  loadAiModels: async ({ request }) => {
-    const form = await request.formData();
-	    const baseUrl = formText(form.get('aiBaseUrl'));
-	    const postedApiKey = formText(form.get('aiApiKey'));
-	    const settings = getSettings();
-	    try {
-	      const models = await listAiModels({
-	        baseUrl,
-	        apiKey: aiApiKeyForModelLoad(baseUrl, postedApiKey, settings, getAiApiKey())
-	      });
-      if (!models.length) return fail(400, { message: 'AI endpoint did not return any models.', aiBaseUrl: baseUrl });
-      return {
-        message: `Loaded ${models.length} model${models.length === 1 ? '' : 's'} from the AI endpoint.`,
-        aiModels: models,
-        aiBaseUrl: baseUrl,
-        aiModel: formText(form.get('aiModel'))
-      };
-    } catch (error) {
-      return fail(400, {
-        message: errorText(error),
-        aiBaseUrl: baseUrl,
-        aiModel: formText(form.get('aiModel'))
-      });
-    }
   },
   saveAndConnectMicrosoft: async ({ request }) => {
     updateSmtpSettings(await request.formData());

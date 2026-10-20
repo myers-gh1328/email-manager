@@ -16,7 +16,7 @@ describe('operator visibility contract', () => {
       'Class detail must show both automatic course emails',
       'History must provide a complete outbound email history',
       'Test audit navigation is visible only while email test mode is enabled',
-      'AI model selection should prefer model discovery'
+      'The AI endpoint is deployment configuration (`SCUBA_EMAIL_AI_BASE_URL`'
     ]) {
       expect(architecture).toContain(phrase);
     }
@@ -69,7 +69,7 @@ describe('operator visibility contract', () => {
     expect(readFileSync('src/routes/classes/[id]/+page.server.ts', 'utf8')).toContain('toggleChecklistItem');
     expect(readFileSync('src/lib/server/page-data.ts', 'utf8')).toContain('communicationPage = repo.listCommunicationsPage');
     expect(readFileSync('src/lib/shared/navigation.ts', 'utf8')).toContain('emailTestModeEnabled');
-    expect(readFileSync('src/lib/server/llm.ts', 'utf8')).toContain('listAiModels');
+    expect(readFileSync('src/lib/server/llm.ts', 'utf8')).not.toContain('listAiModels');
   });
 
   test('keeps risky send actions and approval language off the dashboard', () => {

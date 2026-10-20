@@ -6,8 +6,8 @@ describe('roster image import UI', () => {
     const source = readFileSync('src/routes/classes/[id]/+page.svelte', 'utf8');
 
     expect(source).toContain('aiImageImportReady');
-    expect(source).toContain('data.settings.aiBaseUrl');
-    expect(source).toContain('data.settings.aiModel');
+    expect(source).toContain('data.settings.aiEndpointConfigured');
+    expect(source).not.toContain('data.settings.aiModel');
     expect(source).toContain('accept="image/*" capture="environment"');
   });
 });

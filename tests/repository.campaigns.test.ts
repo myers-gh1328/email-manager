@@ -1,7 +1,7 @@
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { createTestRepository } from './repository-helpers';
 import { AppRepository } from '../src/lib/server/repository';
 import { sendDueCampaignsWithDependencies } from '../src/lib/server/send-due-campaigns';
@@ -699,13 +699,20 @@ describe('repository campaigns and deliveries', () => {
       body: 'Details.',
       nowIso: '2026-09-30T13:00:00.000Z'
     });
-    repo.finalizeDeliveryAttemptFailed({
-      deliveryId: firstClaim!.id,
-      attemptId: firstClaim!.attemptId!,
-      failureKind: 'transient',
-      failureSummary: 'Temporary failure',
-      retryable: true
-    });
+    // Retry backoff is computed from the wall clock at failure time, so pin it to the claim time.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-30T13:00:00.000Z'));
+    try {
+      repo.finalizeDeliveryAttemptFailed({
+        deliveryId: firstClaim!.id,
+        attemptId: firstClaim!.attemptId!,
+        failureKind: 'transient',
+        failureSummary: 'Temporary failure',
+        retryable: true
+      });
+    } finally {
+      vi.useRealTimers();
+    }
 
     const automaticRetry = repo.claimNextEligibleDelivery(campaign.id, {
       source: 'automatic',

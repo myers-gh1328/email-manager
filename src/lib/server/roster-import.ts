@@ -105,12 +105,12 @@ export function importContactRows(
 }
 
 export async function extractRosterRowsFromImage(
-  settings: Pick<AppSettings, 'aiEnabled' | 'aiVisionEnabled' | 'aiBaseUrl' | 'aiModel' | 'aiApiKeyConfigured'>,
+  settings: Pick<AppSettings, 'aiEnabled' | 'aiVisionEnabled' | 'aiEndpointConfigured'>,
   extractor: VisionExtractor,
   imageDataUrl: string
 ) {
-  if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiBaseUrl || !settings.aiModel) {
-    throw new Error('Enable a vision-capable AI model before importing screenshots.');
+  if (!settings.aiEnabled || !settings.aiVisionEnabled || !settings.aiEndpointConfigured) {
+    throw new Error('Enable AI vision assistance on an installation with a configured AI endpoint before importing screenshots.');
   }
   return extractor(imageDataUrl);
 }

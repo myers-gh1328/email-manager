@@ -37,9 +37,7 @@ export interface AppSettings {
   microsoftRefreshTokenConfigured: boolean;
   aiEnabled: boolean;
   aiVisionEnabled: boolean;
-  aiBaseUrl: string;
-  aiModel: string;
-  aiApiKeyConfigured: boolean;
+  aiEndpointConfigured: boolean;
   replySyncHost: string;
   replySyncPort: string;
   replySyncTls: boolean;
@@ -80,9 +78,7 @@ export function getSettings(): AppSettings {
     microsoftRefreshTokenConfigured: Boolean(repo.getSetting('microsoft.refreshToken')),
     aiEnabled: repo.getSetting('ai.enabled') === 'true',
     aiVisionEnabled: repo.getSetting('ai.visionEnabled') === 'true',
-    aiBaseUrl: repo.getSetting('ai.baseUrl'),
-    aiModel: repo.getSetting('ai.model'),
-    aiApiKeyConfigured: Boolean(repo.getSetting('ai.apiKey')),
+    aiEndpointConfigured: Boolean(aiBaseUrl()),
     replySyncHost: repo.getSetting('replySync.host'),
     replySyncPort: repo.getSetting('replySync.port') || '993',
     replySyncTls: repo.getSetting('replySync.tls') !== 'false',
@@ -185,11 +181,15 @@ export function updateSmtpSettings(form: FormData) {
 export function updateAiSettings(form: FormData) {
   set('ai.enabled', checked(form, 'aiEnabled'));
   set('ai.visionEnabled', checked(form, 'aiVisionEnabled'));
-  set('ai.baseUrl', form.get('aiBaseUrl'));
-  set('ai.model', form.get('aiModel'));
+}
 
-  const aiApiKey = formText(form.get('aiApiKey'));
-  if (aiApiKey) repo.setSetting('ai.apiKey', encryptSecret(aiApiKey));
+/**
+ * OpenAI-compatible base URL (ending in `/v1`) for AI assistance. It comes only from the
+ * deployment environment; earlier releases stored `ai.baseUrl`, `ai.model`, and `ai.apiKey`
+ * in app settings, and those stored values are now ignored.
+ */
+export function aiBaseUrl(env: NodeJS.ProcessEnv = process.env) {
+  return normalizeBaseUrl(env.SCUBA_EMAIL_AI_BASE_URL ?? '');
 }
 
 export function updateReplySyncSettings(form: FormData) {
@@ -249,19 +249,8 @@ export function getMicrosoftRefreshToken() {
   return decryptSecret(repo.getSetting('microsoft.refreshToken'));
 }
 
-export function getAiApiKey() {
-  return decryptSecret(repo.getSetting('ai.apiKey'));
-}
-
 export function getReplySyncPassword() {
   return decryptSecret(repo.getSetting('replySync.password'));
-}
-
-export function aiApiKeyForModelLoad(postedBaseUrl: string, postedApiKey: string, settings: AppSettings, savedApiKey: string) {
-  const newKey = postedApiKey.trim();
-  if (newKey) return newKey;
-  if (!settings.aiApiKeyConfigured) return '';
-  return normalizeBaseUrl(postedBaseUrl) === normalizeBaseUrl(settings.aiBaseUrl) ? savedApiKey : '';
 }
 
 export function setMicrosoftRefreshToken(refreshToken: string) {

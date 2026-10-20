@@ -55,7 +55,7 @@ The `main` branch should require pull requests and these status checks before
 merge:
 
 - `App gate`
-- `SonarCloud Code Analysis`
+- `SonarCloud Code Analysis` (paused: the CI Sonar step is commented out while the SonarCloud free tier limit is reached)
 
 Release tags should be created only after the version PR has merged.
 
