@@ -706,18 +706,19 @@ describe('repository campaigns and deliveries', () => {
       failureSummary: 'Temporary failure',
       retryable: true
     });
+    const retryAt = repo.listDeliveries(campaign.id)[0].nextAttemptAt!;
 
     const automaticRetry = repo.claimNextEligibleDelivery(campaign.id, {
       source: 'automatic',
       subject: 'Prep',
       body: 'Details.',
-      nowIso: '2026-09-30T13:06:00.000Z'
+      nowIso: retryAt
     });
     const manualRetry = repo.claimNextEligibleDelivery(campaign.id, {
       source: 'manual',
       subject: 'Prep',
       body: 'Details.',
-      nowIso: '2026-09-30T13:06:00.000Z'
+      nowIso: retryAt
     });
 
     expect(automaticRetry).toBeUndefined();

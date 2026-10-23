@@ -13,6 +13,7 @@ describe('external event ingestion', () => {
       url: 'nats://127.0.0.1:4222',
       subjects: [],
       consumer: 'email-manager',
+      stream: '',
       importMode: 'review'
     });
     expect(
@@ -22,6 +23,7 @@ describe('external event ingestion', () => {
         EXTERNAL_EVENTS_URL: 'nats://127.0.0.1:4222',
         EXTERNAL_EVENTS_SUBJECTS: 'scuba.contacts, scuba.classes',
         EXTERNAL_EVENTS_CONSUMER: 'local-importer',
+        EXTERNAL_EVENTS_STREAM: 'EXAMPLE',
         EXTERNAL_EVENTS_IMPORT_MODE: 'apply'
       })
     ).toEqual({
@@ -30,6 +32,7 @@ describe('external event ingestion', () => {
       url: 'nats://127.0.0.1:4222',
       subjects: ['scuba.contacts', 'scuba.classes'],
       consumer: 'local-importer',
+      stream: 'EXAMPLE',
       importMode: 'apply'
     });
   });
@@ -42,6 +45,7 @@ describe('external event ingestion', () => {
         url: 'nats://user%40example:p%40ss%3Aword@127.0.0.1:4222',
         subjects: ['scuba.contacts'],
         consumer: 'local-importer',
+        stream: 'EXAMPLE',
         importMode: 'review'
       })
     ).toEqual({
