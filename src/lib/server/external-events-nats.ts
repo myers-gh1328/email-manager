@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { AckPolicy, DeliverPolicy, JetStreamApiCodes, JetStreamApiError, jetstream } from '@nats-io/jetstream';
+import { connect } from '@nats-io/transport-node';
 import { applyExternalEvent } from './external-events';
 import type { ExternalEventMode } from './external-events';
 import type { AppRepository } from './repository';
@@ -62,7 +63,6 @@ export function startExternalEventSubscriber(config = getExternalEventsConfig())
 
 export async function runNatsSubscriber(config: ExternalEventsConfig, repo: AppRepository, signal?: AbortSignal) {
   if (!config.stream) throw new Error('EXTERNAL_EVENTS_STREAM is required.');
-  const { connect } = await importOptionalNats();
   const connection = await connect(buildNatsConnectOptions(config));
   const decoder = new TextDecoder();
   const active = new Set<{ stop: () => void }>();
@@ -142,12 +142,6 @@ export function buildNatsConnectOptions(config: ExternalEventsConfig): NatsConne
   } catch {
     return { servers: config.url, name: config.consumer };
   }
-}
-
-async function importOptionalNats(): Promise<{ connect: typeof import('@nats-io/transport-node').connect }> {
-  const importer = new Function('specifier', 'return import(specifier)') as (specifier: string) => Promise<unknown>;
-  const transport = (await importer('@nats-io/transport-node')) as typeof import('@nats-io/transport-node');
-  return { connect: transport.connect };
 }
 
 function splitSubjects(value: string) {
