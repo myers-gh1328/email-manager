@@ -198,7 +198,16 @@ EXTERNAL_EVENTS_PROVIDER=nats
 EXTERNAL_EVENTS_URL=nats://127.0.0.1:4222
 EXTERNAL_EVENTS_SUBJECTS=
 EXTERNAL_EVENTS_CONSUMER=email-manager
+EXTERNAL_EVENTS_STREAM=EXAMPLE
 ```
+
+When enabled, the NATS adapter uses one durable JetStream consumer per configured
+subject. The stream must already exist and include those subjects. Each durable
+resumes after downtime; events with valid envelopes are acknowledged after the
+local result is recorded. Unparseable payloads are logged by subject and stream
+sequence and acknowledged so they do not block later events. Unexpected storage
+failures are retried. The stream's retention
+period limits how far back recovery can reach.
 
 Provider-specific settings may be added when a provider is implemented, but
 examples in public documentation must use fake values only.
