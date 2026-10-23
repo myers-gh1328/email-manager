@@ -94,6 +94,11 @@ The app uses Node's built-in SQLite support. Runtime data is stored locally in a
 
 Install dependencies and start the development server:
 
+Source builds need `NODE_AUTH_TOKEN` set to a GitHub token with `read:packages`
+permission. GitHub's npm registry requires authentication even for public
+packages. Keep the token outside this repository. Desktop installers do not
+need a package-registry token.
+
 ```bash
 npm install
 npm run dev
