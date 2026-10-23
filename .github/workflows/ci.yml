@@ -35,6 +35,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install NATS test server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nats-server
+          nats-server --version
+
       - name: Run project gate
         run: npm run agent:check
 
